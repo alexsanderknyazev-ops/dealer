@@ -1,0 +1,152 @@
+.vehicles {
+  width: 100%;
+  max-width: 1000px;
+}
+
+.vehicles-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.vehicles-title {
+  font-family: var(--font-head);
+  font-size: 1.35rem;
+  margin: 0;
+  color: var(--text);
+}
+
+.vehicles-add {
+  background: var(--accent);
+  color: var(--bg);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.vehicles-add:hover {
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.vehicles-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.vehicles-search {
+  flex: 1;
+  min-width: 200px;
+  max-width: 400px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.vehicles-search:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.vehicles-status-filter {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.vehicles-error {
+  background: rgba(247, 118, 142, 0.12);
+  color: var(--error);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.vehicles-error code {
+  background: var(--bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.vehicles-loading,
+.vehicles-empty {
+  color: var(--text-muted);
+  margin: 24px 0;
+}
+
+.vehicles-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.vehicles-table th,
+.vehicles-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.vehicles-table th {
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.vehicles-table tr:last-child td {
+  border-bottom: none;
+}
+
+.vehicles-vin {
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.vehicles-link {
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.vehicles-pagination {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.vehicles-pagination button {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.vehicles-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vehicles-pagination button:not(:disabled):hover {
+  border-color: var(--accent);
+}

@@ -1,0 +1,36 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+/dealer
+/cmd/*/dealer
+/parts
+/deals
+/deals-service
+/vehicles-service
+services/*/parts
+services/*/*-service
+
+# Test binary
+*.test
+
+# Output
+*.out
+/vendor/
+
+# Env
+.env
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Go (go.work коммитим для мультимодульного workspace)
+
+# Frontend
+node_modules/
+frontend/*/node_modules/

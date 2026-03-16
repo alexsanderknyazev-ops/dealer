@@ -1,0 +1,156 @@
+syntax = "proto3";
+
+package dealerpoints.v1;
+
+option go_package = "github.com/dealer/dealer/pkg/pb/dealerpoints/v1;dealerpointsv1";
+
+service DealerPointsService {
+  // Дилерские точки
+  rpc CreateDealerPoint(CreateDealerPointRequest) returns (CreateDealerPointResponse);
+  rpc GetDealerPoint(GetDealerPointRequest) returns (GetDealerPointResponse);
+  rpc ListDealerPoints(ListDealerPointsRequest) returns (ListDealerPointsResponse);
+  rpc UpdateDealerPoint(UpdateDealerPointRequest) returns (UpdateDealerPointResponse);
+  rpc DeleteDealerPoint(DeleteDealerPointRequest) returns (DeleteDealerPointResponse);
+
+  // Юридические лица
+  rpc CreateLegalEntity(CreateLegalEntityRequest) returns (CreateLegalEntityResponse);
+  rpc GetLegalEntity(GetLegalEntityRequest) returns (GetLegalEntityResponse);
+  rpc ListLegalEntities(ListLegalEntitiesRequest) returns (ListLegalEntitiesResponse);
+  rpc UpdateLegalEntity(UpdateLegalEntityRequest) returns (UpdateLegalEntityResponse);
+  rpc DeleteLegalEntity(DeleteLegalEntityRequest) returns (DeleteLegalEntityResponse);
+
+  // Привязка юр. лиц к точкам
+  rpc LinkLegalEntityToDealerPoint(LinkLegalEntityRequest) returns (LinkLegalEntityResponse);
+  rpc UnlinkLegalEntityFromDealerPoint(UnlinkLegalEntityRequest) returns (UnlinkLegalEntityResponse);
+  rpc ListLegalEntitiesByDealerPoint(ListLegalEntitiesByDealerPointRequest) returns (ListLegalEntitiesResponse);
+
+  // Склады
+  rpc CreateWarehouse(CreateWarehouseRequest) returns (CreateWarehouseResponse);
+  rpc GetWarehouse(GetWarehouseRequest) returns (GetWarehouseResponse);
+  rpc ListWarehouses(ListWarehousesRequest) returns (ListWarehousesResponse);
+  rpc UpdateWarehouse(UpdateWarehouseRequest) returns (UpdateWarehouseResponse);
+  rpc DeleteWarehouse(DeleteWarehouseRequest) returns (DeleteWarehouseResponse);
+}
+
+message DealerPoint {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  int64 created_at = 4;
+  int64 updated_at = 5;
+}
+
+message CreateDealerPointRequest {
+  string name = 1;
+  string address = 2;
+}
+message CreateDealerPointResponse { DealerPoint dealer_point = 1; }
+message GetDealerPointRequest { string id = 1; }
+message GetDealerPointResponse { DealerPoint dealer_point = 1; }
+message ListDealerPointsRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string search = 3;
+}
+message ListDealerPointsResponse {
+  repeated DealerPoint dealer_points = 1;
+  int32 total = 2;
+}
+message UpdateDealerPointRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string address = 3;
+}
+message UpdateDealerPointResponse { DealerPoint dealer_point = 1; }
+message DeleteDealerPointRequest { string id = 1; }
+message DeleteDealerPointResponse {}
+
+message LegalEntity {
+  string id = 1;
+  string name = 2;
+  string inn = 3;
+  string address = 4;
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+message CreateLegalEntityRequest {
+  string name = 1;
+  string inn = 2;
+  string address = 3;
+}
+message CreateLegalEntityResponse { LegalEntity legal_entity = 1; }
+message GetLegalEntityRequest { string id = 1; }
+message GetLegalEntityResponse { LegalEntity legal_entity = 1; }
+message ListLegalEntitiesRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string search = 3;
+}
+message ListLegalEntitiesResponse {
+  repeated LegalEntity legal_entities = 1;
+  int32 total = 2;
+}
+message UpdateLegalEntityRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string inn = 3;
+  optional string address = 4;
+}
+message UpdateLegalEntityResponse { LegalEntity legal_entity = 1; }
+message DeleteLegalEntityRequest { string id = 1; }
+message DeleteLegalEntityResponse {}
+
+message LinkLegalEntityRequest {
+  string dealer_point_id = 1;
+  string legal_entity_id = 2;
+}
+message LinkLegalEntityResponse {}
+message UnlinkLegalEntityRequest {
+  string dealer_point_id = 1;
+  string legal_entity_id = 2;
+}
+message UnlinkLegalEntityResponse {}
+message ListLegalEntitiesByDealerPointRequest {
+  string dealer_point_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message Warehouse {
+  string id = 1;
+  string dealer_point_id = 2;
+  string legal_entity_id = 3;
+  string type = 4;  // "cars" | "parts"
+  string name = 5;
+  int64 created_at = 6;
+  int64 updated_at = 7;
+}
+
+message CreateWarehouseRequest {
+  string dealer_point_id = 1;
+  string legal_entity_id = 2;
+  string type = 3;   // "cars" | "parts"
+  string name = 4;
+}
+message CreateWarehouseResponse { Warehouse warehouse = 1; }
+message GetWarehouseRequest { string id = 1; }
+message GetWarehouseResponse { Warehouse warehouse = 1; }
+message ListWarehousesRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string dealer_point_id = 3;
+  string legal_entity_id = 4;
+  string type = 5;   // "cars" | "parts" | ""
+}
+message ListWarehousesResponse {
+  repeated Warehouse warehouses = 1;
+  int32 total = 2;
+}
+message UpdateWarehouseRequest {
+  string id = 1;
+  optional string name = 2;
+}
+message UpdateWarehouseResponse { Warehouse warehouse = 1; }
+message DeleteWarehouseRequest { string id = 1; }
+message DeleteWarehouseResponse {}

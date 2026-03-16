@@ -1,0 +1,60 @@
+.dashboard {
+  width: 100%;
+}
+
+.dashboard-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-align: center;
+}
+
+.dashboard-welcome {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.dashboard-email {
+  font-size: 1.1rem;
+  color: var(--accent);
+  margin: 0 0 24px;
+  word-break: break-all;
+}
+
+.dashboard-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dashboard-primary {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dashboard-primary:hover {
+  opacity: 0.9;
+}
+
+.dashboard-logout {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 13px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.dashboard-logout:hover {
+  color: var(--error);
+  border-color: var(--error);
+}

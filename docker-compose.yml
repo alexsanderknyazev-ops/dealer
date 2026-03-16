@@ -1,0 +1,192 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dealer
+      POSTGRES_PASSWORD: dealer_secret
+      POSTGRES_DB: dealer
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dealer -d dealer"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://127.0.0.1:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: build/auth-service.Dockerfile
+    ports:
+      - "50051:50051"
+      - "8080:8080"
+    environment:
+      AUTH_GRPC_PORT: "50051"
+      AUTH_HTTP_PORT: "8080"
+      STATIC_DIR: "/app/web"
+      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      REDIS_ADDR: "redis:6379"
+      REDIS_PASSWORD: ""
+      REDIS_DB: "0"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_AUTH_EVENTS: "auth.events"
+      JWT_SECRET: "change-me-in-production"
+      CUSTOMERS_SERVICE_URL: "http://customers-service:8081"
+      VEHICLES_SERVICE_URL: "http://vehicles-service:8082"
+      DEALS_SERVICE_URL: "http://deals-service:8083"
+      PARTS_SERVICE_URL: "http://parts-service:8084"
+      BRANDS_SERVICE_URL: "http://brands-service:8085"
+      DEALER_POINTS_SERVICE_URL: "http://dealer-points-service:8086"
+    depends_on:
+      dealer-points-service:
+        condition: service_started
+      brands-service:
+        condition: service_started
+      customers-service:
+        condition: service_started
+      vehicles-service:
+        condition: service_started
+      deals-service:
+        condition: service_started
+      parts-service:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  customers-service:
+    build:
+      context: .
+      dockerfile: build/customers-service.Dockerfile
+    ports:
+      - "50052:50052"
+      - "8081:8081"
+    environment:
+      CUSTOMERS_GRPC_PORT: "50052"
+      CUSTOMERS_HTTP_PORT: "8081"
+      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      JWT_SECRET: "change-me-in-production"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  vehicles-service:
+    build:
+      context: .
+      dockerfile: build/vehicles-service.Dockerfile
+    ports:
+      - "50053:50053"
+      - "8082:8082"
+    environment:
+      VEHICLES_GRPC_PORT: "50053"
+      VEHICLES_HTTP_PORT: "8082"
+      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      JWT_SECRET: "change-me-in-production"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  deals-service:
+    build:
+      context: .
+      dockerfile: build/deals-service.Dockerfile
+    ports:
+      - "50054:50054"
+      - "8083:8083"
+    environment:
+      DEALS_GRPC_PORT: "50054"
+      DEALS_HTTP_PORT: "8083"
+      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      JWT_SECRET: "change-me-in-production"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  parts-service:
+    build:
+      context: .
+      dockerfile: build/parts-service.Dockerfile
+    ports:
+      - "50055:50055"
+      - "8084:8084"
+    environment:
+      PARTS_GRPC_PORT: "50055"
+      PARTS_HTTP_PORT: "8084"
+      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      JWT_SECRET: "change-me-in-production"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  brands-service:
+    build:
+      context: .
+      dockerfile: build/brands-service.Dockerfile
+    ports:
+      - "50056:50056"
+      - "8085:8085"
+    environment:
+      BRANDS_GRPC_PORT: "50056"
+      BRANDS_HTTP_PORT: "8085"
+      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      JWT_SECRET: "change-me-in-production"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  dealer-points-service:
+    build:
+      context: .
+      dockerfile: build/dealer-points-service.Dockerfile
+    ports:
+      - "50057:50057"
+      - "8086:8086"
+    environment:
+      DEALER_POINTS_GRPC_PORT: "50057"
+      DEALER_POINTS_HTTP_PORT: "8086"
+      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      JWT_SECRET: "change-me-in-production"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data: {}

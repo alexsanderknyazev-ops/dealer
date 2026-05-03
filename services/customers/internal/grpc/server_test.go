@@ -19,6 +19,7 @@ import (
 const (
 	testGRPCCustomerName  = "A"
 	testGRPCCustomerEmail = "a@b.c"
+	testWantErr           = "want err"
 )
 
 type grpcCustomerMock struct{}
@@ -110,7 +111,7 @@ func TestServer_GetCustomer_NotFound(t *testing.T) {
 	cli := dialTestServer(t, s)
 	_, err := cli.GetCustomer(context.Background(), &customersv1.GetCustomerRequest{Id: uuid.New().String()})
 	if err == nil {
-		t.Fatal("want err")
+		t.Fatal(testWantErr)
 	}
 }
 
@@ -137,7 +138,7 @@ func TestServer_UpdateCustomer_NotFound(t *testing.T) {
 	n := "x"
 	_, err := cli.UpdateCustomer(context.Background(), &customersv1.UpdateCustomerRequest{Id: uuid.New().String(), Name: &n})
 	if err == nil {
-		t.Fatal("want err")
+		t.Fatal(testWantErr)
 	}
 }
 
@@ -165,7 +166,7 @@ func TestServer_DeleteCustomer_NotFound(t *testing.T) {
 	cli := dialTestServer(t, s)
 	_, err := cli.DeleteCustomer(context.Background(), &customersv1.DeleteCustomerRequest{Id: uuid.New().String()})
 	if err == nil {
-		t.Fatal("want err")
+		t.Fatal(testWantErr)
 	}
 }
 
@@ -191,7 +192,7 @@ func TestServer_CreateCustomer_Err(t *testing.T) {
 	cli := dialTestServer(t, s)
 	_, err := cli.CreateCustomer(context.Background(), &customersv1.CreateCustomerRequest{Name: testGRPCCustomerName})
 	if err == nil {
-		t.Fatal("want err")
+		t.Fatal(testWantErr)
 	}
 }
 
@@ -207,7 +208,7 @@ func TestServer_ListCustomers_InternalErr(t *testing.T) {
 	cli := dialTestServer(t, s)
 	_, err := cli.ListCustomers(context.Background(), &customersv1.ListCustomersRequest{})
 	if err == nil {
-		t.Fatal("want err")
+		t.Fatal(testWantErr)
 	}
 }
 
@@ -223,7 +224,7 @@ func TestServer_GetCustomer_InternalErr(t *testing.T) {
 	cli := dialTestServer(t, s)
 	_, err := cli.GetCustomer(context.Background(), &customersv1.GetCustomerRequest{Id: uuid.New().String()})
 	if err == nil {
-		t.Fatal("want err")
+		t.Fatal(testWantErr)
 	}
 }
 

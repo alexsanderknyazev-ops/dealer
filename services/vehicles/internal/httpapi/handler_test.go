@@ -19,17 +19,19 @@ import (
 )
 
 const (
-	testJWTSecret          = "s"
-	testBearerUserID       = "u"
-	testBearerEmail        = "e"
-	httpAuthBearerSpace    = "Bearer "
-	testVehicleVIN         = "v"
-	testVehicleMakeShort   = "m"
-	testVehicleMakeGet     = "mk"
-	testVehicleModelGet    = "md"
-	testVehicleYear        = int32(1)
-	testVehicleStatus      = "a"
+	testJWTSecret           = "s"
+	testBearerUserID        = "u"
+	testBearerEmail         = "e"
+	httpAuthBearerSpace     = "Bearer "
+	headerAuthorization     = "Authorization"
+	testVehicleVIN          = "v"
+	testVehicleMakeShort    = "m"
+	testVehicleMakeGet      = "mk"
+	testVehicleModelGet     = "md"
+	testVehicleYear         = int32(1)
+	testVehicleStatus       = "a"
 	testVehDefaultStatus    = "available"
+	testVehicleNotFoundUUID = "00000000-0000-0000-0000-000000000099"
 )
 
 func testVehicleFromCreateInput(in service.CreateVehicleInput) *domain.Vehicle {
@@ -106,178 +108,196 @@ func bearerVeh(secret string) string {
 	return httpAuthBearerSpace + s
 }
 
-func TestVehiclesHTTP(t *testing.T) {
-	h := NewHandler(&mockVehicle{}, testJWTSecret)
+func vehiclesServeMux(m *mockVehicle) *http.ServeMux {
+	h := NewHandler(m, testJWTSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
+	return mux
+}
 
-	t.Run("options", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, httptest.NewRequest(http.MethodOptions, pathAPIVehicles, nil))
-		if w.Code != http.StatusNoContent {
-			t.Fatal(w.Code)
-		}
-	})
-	t.Run("unauth", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, httptest.NewRequest(http.MethodGet, pathAPIVehicles, nil))
-		if w.Code != http.StatusUnauthorized {
-			t.Fatal(w.Code)
-		}
-	})
-	t.Run("list", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, pathAPIVehicles, nil)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, req)
-		if w.Code != http.StatusOK {
-			t.Fatal(w.Code, w.Body.String())
-		}
-	})
-	t.Run("create_no_vin", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, pathAPIVehicles, bytes.NewReader([]byte("{}")))
-		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, req)
-		if w.Code != http.StatusBadRequest {
-			t.Fatal(w.Code)
-		}
-	})
-	t.Run("create_ok", func(t *testing.T) {
-		body, _ := json.Marshal(map[string]any{"vin": "VIN99", "make": "M", "model": "X", "year": 2020})
-		req := httptest.NewRequest(http.MethodPost, pathAPIVehicles, bytes.NewReader(body))
-		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, req)
-		if w.Code != http.StatusOK {
-			t.Fatal(w.Code, w.Body.String())
-		}
-	})
-	t.Run("list_err", func(t *testing.T) {
-		h2 := NewHandler(&mockVehicle{listErr: errors.New("db")}, testJWTSecret)
-		m2 := http.NewServeMux()
-		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodGet, pathAPIVehicles, nil)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		m2.ServeHTTP(w, req)
-		if w.Code != http.StatusInternalServerError {
-			t.Fatal(w.Code)
-		}
-	})
-	nf := "00000000-0000-0000-0000-000000000099"
-	t.Run("get_nf", func(t *testing.T) {
-		h2 := NewHandler(&mockVehicle{nf: nf}, testJWTSecret)
-		m2 := http.NewServeMux()
-		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodGet, pathVehicleByID(nf), nil)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		m2.ServeHTTP(w, req)
-		if w.Code != http.StatusNotFound {
-			t.Fatal(w.Code)
-		}
-	})
+func vehiclesWantCode(t *testing.T, w *httptest.ResponseRecorder, want int) {
+	t.Helper()
+	if w.Code != want {
+		t.Fatal(w.Code)
+	}
+}
+
+func vehiclesWantCodeBody(t *testing.T, w *httptest.ResponseRecorder, want int) {
+	t.Helper()
+	if w.Code != want {
+		t.Fatal(w.Code, w.Body.String())
+	}
+}
+
+func testVehiclesHTTPStepOptions(t *testing.T, mux *http.ServeMux) {
+	t.Helper()
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, httptest.NewRequest(http.MethodOptions, pathAPIVehicles, nil))
+	vehiclesWantCode(t, w, http.StatusNoContent)
+}
+
+func testVehiclesHTTPStepUnauth(t *testing.T, mux *http.ServeMux) {
+	t.Helper()
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, httptest.NewRequest(http.MethodGet, pathAPIVehicles, nil))
+	vehiclesWantCode(t, w, http.StatusUnauthorized)
+}
+
+func testVehiclesHTTPStepList(t *testing.T, mux *http.ServeMux) {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodGet, pathAPIVehicles, nil)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCodeBody(t, w, http.StatusOK)
+}
+
+func testVehiclesHTTPStepCreateNoVIN(t *testing.T, mux *http.ServeMux) {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodPost, pathAPIVehicles, bytes.NewReader([]byte("{}")))
+	setRequestJSONContentType(req)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCode(t, w, http.StatusBadRequest)
+}
+
+func testVehiclesHTTPStepCreateOK(t *testing.T, mux *http.ServeMux) {
+	t.Helper()
+	body, _ := json.Marshal(map[string]any{"vin": "VIN99", "make": "M", "model": "X", "year": 2020})
+	req := httptest.NewRequest(http.MethodPost, pathAPIVehicles, bytes.NewReader(body))
+	setRequestJSONContentType(req)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCodeBody(t, w, http.StatusOK)
+}
+
+func testVehiclesHTTPStepListErr(t *testing.T, mux *http.ServeMux) {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodGet, pathAPIVehicles, nil)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCode(t, w, http.StatusInternalServerError)
+}
+
+func testVehiclesHTTPStepGetNF(t *testing.T, nf string) {
+	t.Helper()
+	mux := vehiclesServeMux(&mockVehicle{nf: nf})
+	req := httptest.NewRequest(http.MethodGet, pathVehicleByID(nf), nil)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCode(t, w, http.StatusNotFound)
+}
+
+func testVehiclesHTTPStepGetOK(t *testing.T, mux *http.ServeMux, id string) {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodGet, pathVehicleByID(id), nil)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCode(t, w, http.StatusOK)
+}
+
+func testVehiclesHTTPStepUpdateNF(t *testing.T, nf string) {
+	t.Helper()
+	mux := vehiclesServeMux(&mockVehicle{nf: nf})
+	body, _ := json.Marshal(map[string]string{"make": "Z"})
+	req := httptest.NewRequest(http.MethodPut, pathVehicleByID(nf), bytes.NewReader(body))
+	setRequestJSONContentType(req)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCode(t, w, http.StatusNotFound)
+}
+
+func testVehiclesHTTPStepUpdatePutDelete(t *testing.T, mux *http.ServeMux, id string) {
+	t.Helper()
+	body, _ := json.Marshal(map[string]string{"make": "Z"})
+	req := httptest.NewRequest(http.MethodPut, pathVehicleByID(id), bytes.NewReader(body))
+	setRequestJSONContentType(req)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCode(t, w, http.StatusOK)
+	req2 := httptest.NewRequest(http.MethodDelete, pathVehicleByID(id), nil)
+	req2.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w2 := httptest.NewRecorder()
+	mux.ServeHTTP(w2, req2)
+	vehiclesWantCode(t, w2, http.StatusNoContent)
+}
+
+func testVehiclesHTTPStepCreateErr(t *testing.T) {
+	t.Helper()
+	mux := vehiclesServeMux(&mockVehicle{createErr: errors.New("db")})
+	body, _ := json.Marshal(map[string]any{"vin": "V2", "make": "M"})
+	req := httptest.NewRequest(http.MethodPost, pathAPIVehicles, bytes.NewReader(body))
+	setRequestJSONContentType(req)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCode(t, w, http.StatusInternalServerError)
+}
+
+func testVehiclesHTTPStepGetInternal(t *testing.T) {
+	t.Helper()
+	mux := vehiclesServeMux(&mockVehicle{getErr: errors.New("db")})
+	req := httptest.NewRequest(http.MethodGet, pathVehicleByID(uuid.New().String()), nil)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCode(t, w, http.StatusInternalServerError)
+}
+
+func testVehiclesHTTPStepUpdateBadJSON(t *testing.T, mux *http.ServeMux, id string) {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodPut, pathVehicleByID(id), bytes.NewReader([]byte("not-json")))
+	setRequestJSONContentType(req)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCode(t, w, http.StatusBadRequest)
+}
+
+func testVehiclesHTTPStepListQueryBrand(t *testing.T, mux *http.ServeMux) {
+	t.Helper()
+	bid := uuid.New().String()
+	req := httptest.NewRequest(http.MethodGet, pathAPIVehicles+"?brand_id="+bid+"&limit=5&offset=0", nil)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCode(t, w, http.StatusOK)
+}
+
+func testVehiclesHTTPStepDeleteNF(t *testing.T, nf string) {
+	t.Helper()
+	mux := vehiclesServeMux(&mockVehicle{nf: nf})
+	req := httptest.NewRequest(http.MethodDelete, pathVehicleByID(nf), nil)
+	req.Header.Set(headerAuthorization, bearerVeh(testJWTSecret))
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	vehiclesWantCode(t, w, http.StatusNotFound)
+}
+
+func TestVehiclesHTTP(t *testing.T) {
+	mux := vehiclesServeMux(&mockVehicle{})
+	testVehiclesHTTPStepOptions(t, mux)
+	testVehiclesHTTPStepUnauth(t, mux)
+	testVehiclesHTTPStepList(t, mux)
+	testVehiclesHTTPStepCreateNoVIN(t, mux)
+	testVehiclesHTTPStepCreateOK(t, mux)
+	testVehiclesHTTPStepListErr(t, vehiclesServeMux(&mockVehicle{listErr: errors.New("db")}))
+	nf := testVehicleNotFoundUUID
+	testVehiclesHTTPStepGetNF(t, nf)
 	id := uuid.New().String()
-	t.Run("get_ok", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, pathVehicleByID(id), nil)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, req)
-		if w.Code != http.StatusOK {
-			t.Fatal(w.Code)
-		}
-	})
-	t.Run("update_nf", func(t *testing.T) {
-		h2 := NewHandler(&mockVehicle{nf: nf}, testJWTSecret)
-		m2 := http.NewServeMux()
-		h2.RegisterRoutes(m2)
-		body, _ := json.Marshal(map[string]string{"make": "Z"})
-		req := httptest.NewRequest(http.MethodPut, pathVehicleByID(nf), bytes.NewReader(body))
-		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		m2.ServeHTTP(w, req)
-		if w.Code != http.StatusNotFound {
-			t.Fatal(w.Code)
-		}
-	})
-	t.Run("update_put_delete", func(t *testing.T) {
-		body, _ := json.Marshal(map[string]string{"make": "Z"})
-		req := httptest.NewRequest(http.MethodPut, pathVehicleByID(id), bytes.NewReader(body))
-		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, req)
-		if w.Code != http.StatusOK {
-			t.Fatal(w.Code)
-		}
-		req2 := httptest.NewRequest(http.MethodDelete, pathVehicleByID(id), nil)
-		req2.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w2 := httptest.NewRecorder()
-		mux.ServeHTTP(w2, req2)
-		if w2.Code != http.StatusNoContent {
-			t.Fatal(w2.Code)
-		}
-	})
-	t.Run("create_err", func(t *testing.T) {
-		h2 := NewHandler(&mockVehicle{createErr: errors.New("db")}, testJWTSecret)
-		m2 := http.NewServeMux()
-		h2.RegisterRoutes(m2)
-		body, _ := json.Marshal(map[string]any{"vin": "V2", "make": "M"})
-		req := httptest.NewRequest(http.MethodPost, pathAPIVehicles, bytes.NewReader(body))
-		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		m2.ServeHTTP(w, req)
-		if w.Code != http.StatusInternalServerError {
-			t.Fatal(w.Code)
-		}
-	})
-	t.Run("get_internal", func(t *testing.T) {
-		h2 := NewHandler(&mockVehicle{getErr: errors.New("db")}, testJWTSecret)
-		m2 := http.NewServeMux()
-		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodGet, pathVehicleByID(uuid.New().String()), nil)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		m2.ServeHTTP(w, req)
-		if w.Code != http.StatusInternalServerError {
-			t.Fatal(w.Code)
-		}
-	})
-	t.Run("update_bad_json", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPut, pathVehicleByID(id), bytes.NewReader([]byte("not-json")))
-		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, req)
-		if w.Code != http.StatusBadRequest {
-			t.Fatal(w.Code)
-		}
-	})
-	t.Run("list_query_brand", func(t *testing.T) {
-		bid := uuid.New().String()
-		req := httptest.NewRequest(http.MethodGet, pathAPIVehicles+"?brand_id="+bid+"&limit=5&offset=0", nil)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, req)
-		if w.Code != http.StatusOK {
-			t.Fatal(w.Code)
-		}
-	})
-	t.Run("delete_nf", func(t *testing.T) {
-		h2 := NewHandler(&mockVehicle{nf: nf}, testJWTSecret)
-		m2 := http.NewServeMux()
-		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodDelete, pathVehicleByID(nf), nil)
-		req.Header.Set("Authorization", bearerVeh(testJWTSecret))
-		w := httptest.NewRecorder()
-		m2.ServeHTTP(w, req)
-		if w.Code != http.StatusNotFound {
-			t.Fatal(w.Code)
-		}
-	})
+	testVehiclesHTTPStepGetOK(t, mux, id)
+	testVehiclesHTTPStepUpdateNF(t, nf)
+	testVehiclesHTTPStepUpdatePutDelete(t, mux, id)
+	testVehiclesHTTPStepCreateErr(t)
+	testVehiclesHTTPStepGetInternal(t)
+	testVehiclesHTTPStepUpdateBadJSON(t, mux, id)
+	testVehiclesHTTPStepListQueryBrand(t, mux)
+	testVehiclesHTTPStepDeleteNF(t, nf)
 }

@@ -46,7 +46,10 @@ func (r *VehicleRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.
 	return &v, nil
 }
 
-func (r *VehicleRepository) List(ctx context.Context, limit, offset int32, search, statusFilter string, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) ([]*domain.Vehicle, int32, error) {
+func (r *VehicleRepository) List(ctx context.Context, f domain.VehicleListFilter) ([]*domain.Vehicle, int32, error) {
+	limit, offset := f.Limit, f.Offset
+	search, statusFilter := f.Search, f.StatusFilter
+	brandID, dealerPointID, legalEntityID, warehouseID := f.BrandID, f.DealerPointID, f.LegalEntityID, f.WarehouseID
 	searchPattern := "%" + search + "%"
 	countQuery := "SELECT COUNT(*) FROM vehicles WHERE 1=1"
 	listQuery := `

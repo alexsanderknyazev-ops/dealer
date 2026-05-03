@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"errors"
-	"testing"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"testing"
 
 	"github.com/dealer/dealer/services/deals/internal/domain"
 )
@@ -112,7 +112,7 @@ func TestDealService_Update_AssignedEmptyClears(t *testing.T) {
 	a := uuid.New()
 	d, _ := s.Create(context.Background(), cid.String(), vid.String(), "1", "open", a.String(), "")
 	empty := ""
-	d2, err := s.Update(context.Background(), d.ID.String(), nil, nil, nil, nil, &empty, nil)
+	d2, err := s.Update(context.Background(), d.ID.String(), UpdateDealInput{AssignedTo: &empty})
 	if err != nil || d2.AssignedTo != nil {
 		t.Fatalf("%v %+v", err, d2.AssignedTo)
 	}
@@ -152,7 +152,7 @@ func TestDealService_Update_GetExisting(t *testing.T) {
 	cid, vid := uuid.New(), uuid.New()
 	d, _ := s.Create(context.Background(), cid.String(), vid.String(), "10", "x", "", "")
 	amt := "20"
-	d2, err := s.Update(context.Background(), d.ID.String(), nil, nil, &amt, nil, nil, nil)
+	d2, err := s.Update(context.Background(), d.ID.String(), UpdateDealInput{Amount: &amt})
 	if err != nil || d2.Amount != "20" {
 		t.Fatalf("%v", err)
 	}
@@ -169,7 +169,7 @@ func TestDealService_Get_DBErr(t *testing.T) {
 func TestDealService_Update_NotFound(t *testing.T) {
 	s := NewDealService(&memDealRepo{byID: map[uuid.UUID]*domain.Deal{}})
 	x := "x"
-	_, err := s.Update(context.Background(), uuid.New().String(), nil, nil, &x, nil, nil, nil)
+	_, err := s.Update(context.Background(), uuid.New().String(), UpdateDealInput{Amount: &x})
 	if err != ErrNotFound {
 		t.Fatalf("%v", err)
 	}
@@ -181,7 +181,7 @@ func TestDealService_Update_UpdateFails(t *testing.T) {
 	cid, vid := uuid.New(), uuid.New()
 	d, _ := s.Create(context.Background(), cid.String(), vid.String(), "1", "x", "", "")
 	x := "2"
-	_, err := s.Update(context.Background(), d.ID.String(), nil, nil, &x, nil, nil, nil)
+	_, err := s.Update(context.Background(), d.ID.String(), UpdateDealInput{Amount: &x})
 	if err == nil {
 		t.Fatal("want err")
 	}

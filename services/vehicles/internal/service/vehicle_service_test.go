@@ -41,7 +41,7 @@ func (m *memVehicleRepo) GetByID(_ context.Context, id uuid.UUID) (*domain.Vehic
 	return &cp, nil
 }
 
-func (m *memVehicleRepo) List(_ context.Context, _, _ int32, _, _ string, _, _, _, _ *uuid.UUID) ([]*domain.Vehicle, int32, error) {
+func (m *memVehicleRepo) List(_ context.Context, _ domain.VehicleListFilter) ([]*domain.Vehicle, int32, error) {
 	if m.err != nil {
 		return nil, 0, m.err
 	}
@@ -79,7 +79,7 @@ func (m *memVehicleRepo) Delete(_ context.Context, id uuid.UUID) error {
 func TestVehicleService_Create_DefaultStatus(t *testing.T) {
 	r := &memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}}
 	s := NewVehicleService(r)
-	v, err := s.Create(context.Background(), "VIN1", "M", "X", 2020, 0, "100", "", "", "", nil, nil, nil, nil)
+	v, err := s.Create(context.Background(), CreateVehicleInput{VIN: "VIN1", Make: "M", Model: "X", Year: 2020, MileageKm: 0, Price: "100"})
 	if err != nil || v.Status != "available" {
 		t.Fatalf("%v %+v", err, v)
 	}
@@ -99,7 +99,7 @@ func TestVehicleService_Get_NotFound(t *testing.T) {
 
 func TestVehicleService_List_DefaultLimit(t *testing.T) {
 	s := NewVehicleService(&memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}})
-	_, _, err := s.List(context.Background(), 0, 0, "", "", nil, nil, nil, nil)
+	_, _, err := s.List(context.Background(), domain.VehicleListFilter{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,9 +108,9 @@ func TestVehicleService_List_DefaultLimit(t *testing.T) {
 func TestVehicleService_Update_Delete(t *testing.T) {
 	r := &memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}}
 	s := NewVehicleService(r)
-	v, _ := s.Create(context.Background(), "V", "mk", "md", 2021, 1, "1", "sold", "c", "n", nil, nil, nil, nil)
+	v, _ := s.Create(context.Background(), CreateVehicleInput{VIN: "V", Make: "mk", Model: "md", Year: 2021, MileageKm: 1, Price: "1", Status: "sold", Color: "c", Notes: "n"})
 	nm := "newmake"
-	upd, err := s.Update(context.Background(), v.ID.String(), nil, &nm, nil, nil, nil, nil, nil, nil, nil, nil, false, nil, nil, nil, false, false, false)
+	upd, err := s.Update(context.Background(), v.ID.String(), UpdateVehicleInput{Make: &nm})
 	if err != nil || upd.Make != "newmake" {
 		t.Fatalf("%v", err)
 	}
@@ -123,8 +123,8 @@ func TestVehicleService_Update_ClearBrand(t *testing.T) {
 	r := &memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}}
 	s := NewVehicleService(r)
 	bid := uuid.New()
-	v, _ := s.Create(context.Background(), "V2", "m", "m", 2022, 0, "0", "a", "", "", &bid, nil, nil, nil)
-	upd, err := s.Update(context.Background(), v.ID.String(), nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, true, nil, nil, nil, false, false, false)
+	v, _ := s.Create(context.Background(), CreateVehicleInput{VIN: "V2", Make: "m", Model: "m", Year: 2022, MileageKm: 0, Price: "0", Status: "a", BrandID: &bid})
+	upd, err := s.Update(context.Background(), v.ID.String(), UpdateVehicleInput{ClearBrand: true})
 	if err != nil || upd.BrandID != nil {
 		t.Fatalf("%v %+v", err, upd.BrandID)
 	}
@@ -132,7 +132,7 @@ func TestVehicleService_Update_ClearBrand(t *testing.T) {
 
 func TestVehicleService_Create_Err(t *testing.T) {
 	s := NewVehicleService(&memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}, err: errors.New("db")})
-	_, err := s.Create(context.Background(), "x", "", "", 0, 0, "", "", "", "", nil, nil, nil, nil)
+	_, err := s.Create(context.Background(), CreateVehicleInput{VIN: "x"})
 	if err == nil {
 		t.Fatal("want err")
 	}
@@ -149,7 +149,7 @@ func TestVehicleService_Get_DBErr(t *testing.T) {
 func TestVehicleService_List_NormalizesLimit(t *testing.T) {
 	r := &memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}}
 	s := NewVehicleService(r)
-	_, total, err := s.List(context.Background(), 500, 0, "", "", nil, nil, nil, nil)
+	_, total, err := s.List(context.Background(), domain.VehicleListFilter{Limit: 500})
 	if err != nil || total != 0 {
 		t.Fatalf("%v %d", err, total)
 	}
@@ -158,13 +158,9 @@ func TestVehicleService_List_NormalizesLimit(t *testing.T) {
 func TestVehicleService_Update_RepoFails(t *testing.T) {
 	r := &memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}, updateErr: errors.New("db")}
 	s := NewVehicleService(r)
-	v, _ := s.Create(context.Background(), "V", "m", "m", 2020, 0, "1", "a", "", "", nil, nil, nil, nil)
+	v, _ := s.Create(context.Background(), CreateVehicleInput{VIN: "V", Make: "m", Model: "m", Year: 2020, MileageKm: 0, Price: "1", Status: "a"})
 	mk := "z"
-	_, err := s.Update(context.Background(), v.ID.String(),
-		nil, &mk, nil, nil, nil,
-		nil, nil, nil, nil,
-		nil, false, nil, nil, nil, false, false, false,
-	)
+	_, err := s.Update(context.Background(), v.ID.String(), UpdateVehicleInput{Make: &mk})
 	if err == nil {
 		t.Fatal("want err")
 	}

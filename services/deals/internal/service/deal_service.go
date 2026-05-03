@@ -13,6 +13,16 @@ import (
 
 var ErrNotFound = errors.New("deal not found")
 
+// UpdateDealInput carries optional fields for Update (keeps DealAPI parameter count within limits).
+type UpdateDealInput struct {
+	CustomerID *string
+	VehicleID  *string
+	Amount     *string
+	Stage      *string
+	AssignedTo *string
+	Notes      *string
+}
+
 type dealRepository interface {
 	Create(ctx context.Context, d *domain.Deal) error
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Deal, error)
@@ -26,7 +36,7 @@ type DealAPI interface {
 	Create(ctx context.Context, customerID, vehicleID, amount, stage, assignedTo, notes string) (*domain.Deal, error)
 	Get(ctx context.Context, id string) (*domain.Deal, error)
 	List(ctx context.Context, limit, offset int32, stageFilter, customerID string) ([]*domain.Deal, int32, error)
-	Update(ctx context.Context, id string, customerID, vehicleID, amount, stage, assignedTo, notes *string) (*domain.Deal, error)
+	Update(ctx context.Context, id string, in UpdateDealInput) (*domain.Deal, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -96,7 +106,7 @@ func (s *DealService) List(ctx context.Context, limit, offset int32, stageFilter
 	return s.repo.List(ctx, limit, offset, stageFilter, customerID)
 }
 
-func (s *DealService) Update(ctx context.Context, id string, customerID, vehicleID, amount, stage, assignedTo, notes *string) (*domain.Deal, error) {
+func (s *DealService) Update(ctx context.Context, id string, in UpdateDealInput) (*domain.Deal, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, ErrNotFound
@@ -105,31 +115,31 @@ func (s *DealService) Update(ctx context.Context, id string, customerID, vehicle
 	if err != nil {
 		return nil, ErrNotFound
 	}
-	if customerID != nil {
-		if cid, err := uuid.Parse(*customerID); err == nil {
+	if in.CustomerID != nil {
+		if cid, err := uuid.Parse(*in.CustomerID); err == nil {
 			existing.CustomerID = cid
 		}
 	}
-	if vehicleID != nil {
-		if vid, err := uuid.Parse(*vehicleID); err == nil {
+	if in.VehicleID != nil {
+		if vid, err := uuid.Parse(*in.VehicleID); err == nil {
 			existing.VehicleID = vid
 		}
 	}
-	if amount != nil {
-		existing.Amount = *amount
+	if in.Amount != nil {
+		existing.Amount = *in.Amount
 	}
-	if stage != nil {
-		existing.Stage = *stage
+	if in.Stage != nil {
+		existing.Stage = *in.Stage
 	}
-	if assignedTo != nil {
-		if *assignedTo == "" {
+	if in.AssignedTo != nil {
+		if *in.AssignedTo == "" {
 			existing.AssignedTo = nil
-		} else if a, err := uuid.Parse(*assignedTo); err == nil {
+		} else if a, err := uuid.Parse(*in.AssignedTo); err == nil {
 			existing.AssignedTo = &a
 		}
 	}
-	if notes != nil {
-		existing.Notes = *notes
+	if in.Notes != nil {
+		existing.Notes = *in.Notes
 	}
 	existing.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, existing); err != nil {

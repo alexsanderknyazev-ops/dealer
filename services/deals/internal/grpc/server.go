@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
+	dealsv1 "github.com/dealer/dealer/pkg/pb/deals/v1"
 	"github.com/dealer/dealer/services/deals/internal/domain"
 	"github.com/dealer/dealer/services/deals/internal/service"
-	dealsv1 "github.com/dealer/dealer/pkg/pb/deals/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -73,9 +73,10 @@ func (s *Server) ListDeals(ctx context.Context, req *dealsv1.ListDealsRequest) (
 }
 
 func (s *Server) UpdateDeal(ctx context.Context, req *dealsv1.UpdateDealRequest) (*dealsv1.UpdateDealResponse, error) {
-	d, err := s.svc.Update(ctx, req.Id,
-		req.CustomerId, req.VehicleId, req.Amount, req.Stage, req.AssignedTo, req.Notes,
-	)
+	d, err := s.svc.Update(ctx, req.Id, service.UpdateDealInput{
+		CustomerID: req.CustomerId, VehicleID: req.VehicleId, Amount: req.Amount,
+		Stage: req.Stage, AssignedTo: req.AssignedTo, Notes: req.Notes,
+	})
 	if err != nil {
 		if errors.Is(err, service.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, "deal not found")

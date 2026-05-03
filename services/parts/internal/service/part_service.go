@@ -23,7 +23,7 @@ type StockRow struct {
 type partRepository interface {
 	Create(ctx context.Context, p *domain.Part) error
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Part, error)
-	List(ctx context.Context, limit, offset int32, search, categoryFilter string, folderID, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) ([]*domain.Part, int32, error)
+	List(ctx context.Context, filter domain.PartListFilter) ([]*domain.Part, int32, error)
 	Update(ctx context.Context, p *domain.Part) error
 	Delete(ctx context.Context, id uuid.UUID) error
 }
@@ -39,7 +39,10 @@ type folderRepository interface {
 type partStockRepository interface {
 	ListByPart(ctx context.Context, partID uuid.UUID) ([]*domain.PartStock, error)
 	Upsert(ctx context.Context, partID, warehouseID uuid.UUID, quantity int32) error
-	ReplaceForPart(ctx context.Context, partID uuid.UUID, rows []struct{ WarehouseID uuid.UUID; Quantity int32 }) error
+	ReplaceForPart(ctx context.Context, partID uuid.UUID, rows []struct {
+		WarehouseID uuid.UUID
+		Quantity    int32
+	}) error
 }
 
 type PartService struct {
@@ -79,7 +82,10 @@ func (s *PartService) Create(ctx context.Context, sku, name, category string, fo
 		return nil, err
 	}
 	if len(initialStock) > 0 {
-		rows := make([]struct{ WarehouseID uuid.UUID; Quantity int32 }, len(initialStock))
+		rows := make([]struct {
+			WarehouseID uuid.UUID
+			Quantity    int32
+		}, len(initialStock))
 		for i, row := range initialStock {
 			rows[i].WarehouseID = row.WarehouseID
 			rows[i].Quantity = row.Quantity
@@ -117,7 +123,11 @@ func (s *PartService) List(ctx context.Context, limit, offset int32, search, cat
 	if limit <= 0 || limit > 100 {
 		limit = 20
 	}
-	return s.repo.List(ctx, limit, offset, search, categoryFilter, folderID, brandID, dealerPointID, legalEntityID, warehouseID)
+	return s.repo.List(ctx, domain.PartListFilter{
+		Limit: limit, Offset: offset, Search: search, CategoryFilter: categoryFilter,
+		FolderID: folderID, BrandID: brandID, DealerPointID: dealerPointID,
+		LegalEntityID: legalEntityID, WarehouseID: warehouseID,
+	})
 }
 
 func (s *PartService) Update(ctx context.Context, id string, sku, name, category *string, folderIDOpt, brandIDOpt, dealerPointIDOpt, legalEntityIDOpt, warehouseIDOpt *string, quantity *int32, unit, price, location, notes *string) (*domain.Part, error) {
@@ -231,12 +241,18 @@ func (s *PartService) ReplaceStock(ctx context.Context, partID string, rows []St
 	if err != nil {
 		return ErrNotFound
 	}
-	repoRows := make([]struct{ WarehouseID uuid.UUID; Quantity int32 }, 0, len(rows))
+	repoRows := make([]struct {
+		WarehouseID uuid.UUID
+		Quantity    int32
+	}, 0, len(rows))
 	for _, row := range rows {
 		if row.Quantity < 0 {
 			continue
 		}
-		repoRows = append(repoRows, struct{ WarehouseID uuid.UUID; Quantity int32 }{row.WarehouseID, row.Quantity})
+		repoRows = append(repoRows, struct {
+			WarehouseID uuid.UUID
+			Quantity    int32
+		}{row.WarehouseID, row.Quantity})
 	}
 	return s.stockRepo.ReplaceForPart(ctx, uid, repoRows)
 }

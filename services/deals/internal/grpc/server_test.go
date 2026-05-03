@@ -14,9 +14,9 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 
+	dealsv1 "github.com/dealer/dealer/pkg/pb/deals/v1"
 	"github.com/dealer/dealer/services/deals/internal/domain"
 	"github.com/dealer/dealer/services/deals/internal/service"
-	dealsv1 "github.com/dealer/dealer/pkg/pb/deals/v1"
 )
 
 type mockGRPCDeal struct{}
@@ -38,7 +38,7 @@ func (mockGRPCDeal) List(context.Context, int32, int32, string, string) ([]*doma
 	return nil, 0, nil
 }
 
-func (mockGRPCDeal) Update(_ context.Context, id string, customerID, vehicleID, amount, stage, assignedTo, notes *string) (*domain.Deal, error) {
+func (mockGRPCDeal) Update(_ context.Context, id string, _ service.UpdateDealInput) (*domain.Deal, error) {
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
 	return &domain.Deal{ID: uid, CustomerID: uuid.New(), VehicleID: uuid.New(), Amount: "1", Stage: "d", CreatedAt: now, UpdatedAt: now}, nil
@@ -163,7 +163,7 @@ func TestDealsGRPC_UpdateNF(t *testing.T) {
 
 type stubDealUpdateNF struct{ mockGRPCDeal }
 
-func (stubDealUpdateNF) Update(context.Context, string, *string, *string, *string, *string, *string, *string) (*domain.Deal, error) {
+func (stubDealUpdateNF) Update(context.Context, string, service.UpdateDealInput) (*domain.Deal, error) {
 	return nil, service.ErrNotFound
 }
 

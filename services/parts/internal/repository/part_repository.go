@@ -46,7 +46,10 @@ func (r *PartRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Par
 	return &p, nil
 }
 
-func (r *PartRepository) List(ctx context.Context, limit, offset int32, search, categoryFilter string, folderID, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) ([]*domain.Part, int32, error) {
+func (r *PartRepository) List(ctx context.Context, f domain.PartListFilter) ([]*domain.Part, int32, error) {
+	limit, offset := f.Limit, f.Offset
+	search, categoryFilter := f.Search, f.CategoryFilter
+	folderID, brandID, dealerPointID, legalEntityID, warehouseID := f.FolderID, f.BrandID, f.DealerPointID, f.LegalEntityID, f.WarehouseID
 	searchPattern := "%" + search + "%"
 	countQuery := "SELECT COUNT(*) FROM parts WHERE 1=1"
 	listQuery := `

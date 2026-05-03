@@ -33,7 +33,7 @@ func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", headerCORSAllowHeader)
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -99,7 +99,10 @@ func (h *Handler) handleCreate(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "name required"})
 		return
 	}
-	c, err := h.svc.Create(r.Context(), req.Name, req.Email, req.Phone, req.CustomerType, req.INN, req.Address, req.Notes)
+	c, err := h.svc.Create(r.Context(), service.CreateCustomerInput{
+		Name: req.Name, Email: req.Email, Phone: req.Phone, CustomerType: req.CustomerType,
+		INN: req.INN, Address: req.Address, Notes: req.Notes,
+	})
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
@@ -144,7 +147,10 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid body"})
 		return
 	}
-	c, err := h.svc.Update(r.Context(), id, req.Name, req.Email, req.Phone, req.CustomerType, req.INN, req.Address, req.Notes)
+	c, err := h.svc.Update(r.Context(), id, service.UpdateCustomerInput{
+		Name: req.Name, Email: req.Email, Phone: req.Phone, CustomerType: req.CustomerType,
+		INN: req.INN, Address: req.Address, Notes: req.Notes,
+	})
 	if err != nil {
 		if err == service.ErrNotFound {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
@@ -192,7 +198,7 @@ func customerToMap(c *domain.Customer) map[string]any {
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(headerContentType, mimeApplicationJSON)
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(v)
 }

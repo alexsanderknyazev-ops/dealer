@@ -15,22 +15,22 @@ type PartFolder struct {
 }
 
 type Part struct {
-	ID        uuid.UUID
-	SKU       string
-	Name      string
-	Category  string
-	FolderID       *uuid.UUID
-	BrandID        *uuid.UUID
-	DealerPointID  *uuid.UUID
-	LegalEntityID  *uuid.UUID
-	WarehouseID    *uuid.UUID
-	Quantity       int32
-	Unit      string
-	Price     string
-	Location  string
-	Notes     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID            uuid.UUID
+	SKU           string
+	Name          string
+	Category      string
+	FolderID      *uuid.UUID
+	BrandID       *uuid.UUID
+	DealerPointID *uuid.UUID
+	LegalEntityID *uuid.UUID
+	WarehouseID   *uuid.UUID
+	Quantity      int32
+	Unit          string
+	Price         string
+	Location      string
+	Notes         string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 // PartStock — остаток запчасти на конкретном складе (одна запчасть может быть на нескольких складах)
@@ -40,4 +40,17 @@ type PartStock struct {
 	Quantity    int32
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+// PartListFilter — параметры выборки parts (единый аргумент для repo/service вместо длинного списка полей).
+type PartListFilter struct {
+	Limit          int32
+	Offset         int32
+	Search         string
+	CategoryFilter string
+	FolderID       *uuid.UUID
+	BrandID        *uuid.UUID
+	DealerPointID  *uuid.UUID
+	LegalEntityID  *uuid.UUID
+	WarehouseID    *uuid.UUID
 }

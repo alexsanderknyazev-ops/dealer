@@ -39,7 +39,7 @@ func (f *fakePartRepo) GetByID(_ context.Context, id uuid.UUID) (*domain.Part, e
 	return &cp, nil
 }
 
-func (f *fakePartRepo) List(_ context.Context, _, _ int32, _, _ string, _, _, _, _, _ *uuid.UUID) ([]*domain.Part, int32, error) {
+func (f *fakePartRepo) List(_ context.Context, _ domain.PartListFilter) ([]*domain.Part, int32, error) {
 	if f.err != nil {
 		return nil, 0, f.err
 	}

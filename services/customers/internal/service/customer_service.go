@@ -13,12 +13,34 @@ import (
 
 var ErrNotFound = errors.New("customer not found")
 
+// CreateCustomerInput is the payload for Create (keeps CustomerAPI arity within Sonar limits).
+type CreateCustomerInput struct {
+	Name         string
+	Email        string
+	Phone        string
+	CustomerType string
+	INN          string
+	Address      string
+	Notes        string
+}
+
+// UpdateCustomerInput holds optional fields for Update.
+type UpdateCustomerInput struct {
+	Name         *string
+	Email        *string
+	Phone        *string
+	CustomerType *string
+	INN          *string
+	Address      *string
+	Notes        *string
+}
+
 // CustomerAPI — контракт для HTTP/gRPC (моки в тестах).
 type CustomerAPI interface {
-	Create(ctx context.Context, name, email, phone, customerType, inn, address, notes string) (*domain.Customer, error)
+	Create(ctx context.Context, in CreateCustomerInput) (*domain.Customer, error)
 	Get(ctx context.Context, id string) (*domain.Customer, error)
 	List(ctx context.Context, limit, offset int32, search string) ([]*domain.Customer, int32, error)
-	Update(ctx context.Context, id string, name, email, phone, customerType, inn, address, notes *string) (*domain.Customer, error)
+	Update(ctx context.Context, id string, in UpdateCustomerInput) (*domain.Customer, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -40,20 +62,21 @@ func NewCustomerService(repo customerRepository) *CustomerService {
 
 var _ CustomerAPI = (*CustomerService)(nil)
 
-func (s *CustomerService) Create(ctx context.Context, name, email, phone, customerType, inn, address, notes string) (*domain.Customer, error) {
+func (s *CustomerService) Create(ctx context.Context, in CreateCustomerInput) (*domain.Customer, error) {
+	customerType := in.CustomerType
 	if customerType == "" {
 		customerType = "individual"
 	}
 	now := time.Now().UTC()
 	c := &domain.Customer{
 		ID:           uuid.New(),
-		Name:         name,
-		Email:        email,
-		Phone:        phone,
+		Name:         in.Name,
+		Email:        in.Email,
+		Phone:        in.Phone,
 		CustomerType: customerType,
-		INN:          inn,
-		Address:      address,
-		Notes:        notes,
+		INN:          in.INN,
+		Address:      in.Address,
+		Notes:        in.Notes,
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
@@ -85,7 +108,7 @@ func (s *CustomerService) List(ctx context.Context, limit, offset int32, search 
 	return s.repo.List(ctx, limit, offset, search)
 }
 
-func (s *CustomerService) Update(ctx context.Context, id string, name, email, phone, customerType, inn, address, notes *string) (*domain.Customer, error) {
+func (s *CustomerService) Update(ctx context.Context, id string, in UpdateCustomerInput) (*domain.Customer, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, ErrNotFound
@@ -94,26 +117,26 @@ func (s *CustomerService) Update(ctx context.Context, id string, name, email, ph
 	if err != nil {
 		return nil, ErrNotFound
 	}
-	if name != nil {
-		existing.Name = *name
+	if in.Name != nil {
+		existing.Name = *in.Name
 	}
-	if email != nil {
-		existing.Email = *email
+	if in.Email != nil {
+		existing.Email = *in.Email
 	}
-	if phone != nil {
-		existing.Phone = *phone
+	if in.Phone != nil {
+		existing.Phone = *in.Phone
 	}
-	if customerType != nil {
-		existing.CustomerType = *customerType
+	if in.CustomerType != nil {
+		existing.CustomerType = *in.CustomerType
 	}
-	if inn != nil {
-		existing.INN = *inn
+	if in.INN != nil {
+		existing.INN = *in.INN
 	}
-	if address != nil {
-		existing.Address = *address
+	if in.Address != nil {
+		existing.Address = *in.Address
 	}
-	if notes != nil {
-		existing.Notes = *notes
+	if in.Notes != nil {
+		existing.Notes = *in.Notes
 	}
 	existing.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, existing); err != nil {

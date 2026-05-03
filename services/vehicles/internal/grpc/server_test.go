@@ -21,9 +21,9 @@ import (
 
 type mockGRPCVeh struct{}
 
-func (mockGRPCVeh) Create(_ context.Context, vin, make, model string, year int32, mileageKm int64, price, status, color, notes string, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) (*domain.Vehicle, error) {
+func (mockGRPCVeh) Create(_ context.Context, in service.CreateVehicleInput) (*domain.Vehicle, error) {
 	now := time.Now().UTC()
-	return &domain.Vehicle{ID: uuid.New(), VIN: vin, Make: make, Model: model, Year: year, MileageKm: mileageKm, Price: price, Status: status, Color: color, Notes: notes, BrandID: brandID, DealerPointID: dealerPointID, LegalEntityID: legalEntityID, WarehouseID: warehouseID, CreatedAt: now, UpdatedAt: now}, nil
+	return &domain.Vehicle{ID: uuid.New(), VIN: in.VIN, Make: in.Make, Model: in.Model, Year: in.Year, MileageKm: in.MileageKm, Price: in.Price, Status: in.Status, Color: in.Color, Notes: in.Notes, BrandID: in.BrandID, DealerPointID: in.DealerPointID, LegalEntityID: in.LegalEntityID, WarehouseID: in.WarehouseID, CreatedAt: now, UpdatedAt: now}, nil
 }
 
 func (mockGRPCVeh) Get(_ context.Context, id string) (*domain.Vehicle, error) {
@@ -32,11 +32,11 @@ func (mockGRPCVeh) Get(_ context.Context, id string) (*domain.Vehicle, error) {
 	return &domain.Vehicle{ID: uid, VIN: "v", Make: "m", Model: "m", Year: 1, Status: "a", CreatedAt: now, UpdatedAt: now}, nil
 }
 
-func (mockGRPCVeh) List(context.Context, int32, int32, string, string, *uuid.UUID, *uuid.UUID, *uuid.UUID, *uuid.UUID) ([]*domain.Vehicle, int32, error) {
+func (mockGRPCVeh) List(context.Context, domain.VehicleListFilter) ([]*domain.Vehicle, int32, error) {
 	return nil, 0, nil
 }
 
-func (mockGRPCVeh) Update(_ context.Context, id string, vin, make, model *string, year *int32, mileageKm *int64, price, status, color, notes *string, brandID *uuid.UUID, clearBrand bool, dealerPointID, legalEntityID, warehouseID *uuid.UUID, clearDealerPoint, clearLegalEntity, clearWarehouse bool) (*domain.Vehicle, error) {
+func (mockGRPCVeh) Update(_ context.Context, id string, _ service.UpdateVehicleInput) (*domain.Vehicle, error) {
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
 	return &domain.Vehicle{ID: uid, VIN: "v", Make: "m", Model: "m", Year: 1, Status: "a", CreatedAt: now, UpdatedAt: now}, nil
@@ -110,7 +110,7 @@ func TestVehiclesGRPC_CreateErr(t *testing.T) {
 
 type stubVehCreateErr struct{ mockGRPCVeh }
 
-func (stubVehCreateErr) Create(context.Context, string, string, string, int32, int64, string, string, string, string, *uuid.UUID, *uuid.UUID, *uuid.UUID, *uuid.UUID) (*domain.Vehicle, error) {
+func (stubVehCreateErr) Create(context.Context, service.CreateVehicleInput) (*domain.Vehicle, error) {
 	return nil, errors.New("db")
 }
 
@@ -142,7 +142,7 @@ func TestVehiclesGRPC_ListErr(t *testing.T) {
 
 type stubVehListErr struct{ mockGRPCVeh }
 
-func (stubVehListErr) List(context.Context, int32, int32, string, string, *uuid.UUID, *uuid.UUID, *uuid.UUID, *uuid.UUID) ([]*domain.Vehicle, int32, error) {
+func (stubVehListErr) List(context.Context, domain.VehicleListFilter) ([]*domain.Vehicle, int32, error) {
 	return nil, 0, errors.New("db")
 }
 
@@ -159,7 +159,7 @@ func TestVehiclesGRPC_UpdateNF(t *testing.T) {
 
 type stubVehUpdateNF struct{ mockGRPCVeh }
 
-func (stubVehUpdateNF) Update(context.Context, string, *string, *string, *string, *int32, *int64, *string, *string, *string, *string, *uuid.UUID, bool, *uuid.UUID, *uuid.UUID, *uuid.UUID, bool, bool, bool) (*domain.Vehicle, error) {
+func (stubVehUpdateNF) Update(context.Context, string, service.UpdateVehicleInput) (*domain.Vehicle, error) {
 	return nil, service.ErrNotFound
 }
 

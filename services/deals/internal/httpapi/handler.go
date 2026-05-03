@@ -33,7 +33,7 @@ func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", headerCORSAllowHeader)
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -143,7 +143,10 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid body"})
 		return
 	}
-	d, err := h.svc.Update(r.Context(), id, req.CustomerID, req.VehicleID, req.Amount, req.Stage, req.AssignedTo, req.Notes)
+	d, err := h.svc.Update(r.Context(), id, service.UpdateDealInput{
+		CustomerID: req.CustomerID, VehicleID: req.VehicleID, Amount: req.Amount,
+		Stage: req.Stage, AssignedTo: req.AssignedTo, Notes: req.Notes,
+	})
 	if err != nil {
 		if err == service.ErrNotFound {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
@@ -194,7 +197,7 @@ func dealToMap(d *domain.Deal) map[string]any {
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(headerContentType, mimeApplicationJSON)
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(v)
 }

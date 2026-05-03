@@ -38,7 +38,7 @@ func (f *gprPart) GetByID(_ context.Context, id uuid.UUID) (*domain.Part, error)
 	return &cp, nil
 }
 
-func (f *gprPart) List(_ context.Context, _, _ int32, _, _ string, _, _, _, _, _ *uuid.UUID) ([]*domain.Part, int32, error) {
+func (f *gprPart) List(_ context.Context, _ domain.PartListFilter) ([]*domain.Part, int32, error) {
 	var out []*domain.Part
 	for _, p := range f.parts {
 		cp := *p

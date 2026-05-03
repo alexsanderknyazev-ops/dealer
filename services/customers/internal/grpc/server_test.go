@@ -18,11 +18,11 @@ import (
 
 type grpcCustomerMock struct{}
 
-func (grpcCustomerMock) Create(_ context.Context, name, email, phone, customerType, inn, address, notes string) (*domain.Customer, error) {
+func (grpcCustomerMock) Create(_ context.Context, in service.CreateCustomerInput) (*domain.Customer, error) {
 	now := time.Now().UTC()
 	return &domain.Customer{
-		ID: uuid.New(), Name: name, Email: email, Phone: phone, CustomerType: customerType,
-		INN: inn, Address: address, Notes: notes, CreatedAt: now, UpdatedAt: now,
+		ID: uuid.New(), Name: in.Name, Email: in.Email, Phone: in.Phone, CustomerType: in.CustomerType,
+		INN: in.INN, Address: in.Address, Notes: in.Notes, CreatedAt: now, UpdatedAt: now,
 	}, nil
 }
 
@@ -39,30 +39,30 @@ func (grpcCustomerMock) List(_ context.Context, _, _ int32, _ string) ([]*domain
 	return []*domain.Customer{}, 0, nil
 }
 
-func (grpcCustomerMock) Update(_ context.Context, id string, name, email, phone, customerType, inn, address, notes *string) (*domain.Customer, error) {
+func (grpcCustomerMock) Update(_ context.Context, id string, in service.UpdateCustomerInput) (*domain.Customer, error) {
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
 	c := &domain.Customer{ID: uid, Name: "old", Email: "e", CreatedAt: now, UpdatedAt: now}
-	if name != nil {
-		c.Name = *name
+	if in.Name != nil {
+		c.Name = *in.Name
 	}
-	if email != nil {
-		c.Email = *email
+	if in.Email != nil {
+		c.Email = *in.Email
 	}
-	if phone != nil {
-		c.Phone = *phone
+	if in.Phone != nil {
+		c.Phone = *in.Phone
 	}
-	if customerType != nil {
-		c.CustomerType = *customerType
+	if in.CustomerType != nil {
+		c.CustomerType = *in.CustomerType
 	}
-	if inn != nil {
-		c.INN = *inn
+	if in.INN != nil {
+		c.INN = *in.INN
 	}
-	if address != nil {
-		c.Address = *address
+	if in.Address != nil {
+		c.Address = *in.Address
 	}
-	if notes != nil {
-		c.Notes = *notes
+	if in.Notes != nil {
+		c.Notes = *in.Notes
 	}
 	return c, nil
 }
@@ -138,7 +138,7 @@ func TestServer_UpdateCustomer_NotFound(t *testing.T) {
 
 type stubUpdateNF struct{ grpcCustomerMock }
 
-func (stubUpdateNF) Update(context.Context, string, *string, *string, *string, *string, *string, *string, *string) (*domain.Customer, error) {
+func (stubUpdateNF) Update(context.Context, string, service.UpdateCustomerInput) (*domain.Customer, error) {
 	return nil, service.ErrNotFound
 }
 
@@ -192,7 +192,7 @@ func TestServer_CreateCustomer_Err(t *testing.T) {
 
 type stubCreateErr struct{ grpcCustomerMock }
 
-func (stubCreateErr) Create(context.Context, string, string, string, string, string, string, string) (*domain.Customer, error) {
+func (stubCreateErr) Create(context.Context, service.CreateCustomerInput) (*domain.Customer, error) {
 	return nil, context.Canceled
 }
 

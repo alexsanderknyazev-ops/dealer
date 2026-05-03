@@ -39,7 +39,10 @@ func toProto(c *domain.Customer) *customersv1.Customer {
 }
 
 func (s *Server) CreateCustomer(ctx context.Context, req *customersv1.CreateCustomerRequest) (*customersv1.CreateCustomerResponse, error) {
-	c, err := s.svc.Create(ctx, req.Name, req.Email, req.Phone, req.CustomerType, req.Inn, req.Address, req.Notes)
+	c, err := s.svc.Create(ctx, service.CreateCustomerInput{
+		Name: req.Name, Email: req.Email, Phone: req.Phone, CustomerType: req.CustomerType,
+		INN: req.Inn, Address: req.Address, Notes: req.Notes,
+	})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -70,29 +73,10 @@ func (s *Server) ListCustomers(ctx context.Context, req *customersv1.ListCustome
 }
 
 func (s *Server) UpdateCustomer(ctx context.Context, req *customersv1.UpdateCustomerRequest) (*customersv1.UpdateCustomerResponse, error) {
-	var name, email, phone, customerType, inn, address, notes *string
-	if req.Name != nil {
-		name = req.Name
-	}
-	if req.Email != nil {
-		email = req.Email
-	}
-	if req.Phone != nil {
-		phone = req.Phone
-	}
-	if req.CustomerType != nil {
-		customerType = req.CustomerType
-	}
-	if req.Inn != nil {
-		inn = req.Inn
-	}
-	if req.Address != nil {
-		address = req.Address
-	}
-	if req.Notes != nil {
-		notes = req.Notes
-	}
-	c, err := s.svc.Update(ctx, req.Id, name, email, phone, customerType, inn, address, notes)
+	c, err := s.svc.Update(ctx, req.Id, service.UpdateCustomerInput{
+		Name: req.Name, Email: req.Email, Phone: req.Phone, CustomerType: req.CustomerType,
+		INN: req.Inn, Address: req.Address, Notes: req.Notes,
+	})
 	if err != nil {
 		if errors.Is(err, service.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, "customer not found")

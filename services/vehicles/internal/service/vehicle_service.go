@@ -13,20 +13,45 @@ import (
 
 var ErrNotFound = errors.New("vehicle not found")
 
+// CreateVehicleInput — поля для создания ТС (снижает число параметров VehicleAPI.Create).
+type CreateVehicleInput struct {
+	VIN, Make, Model                                   string
+	Year                                               int32
+	MileageKm                                          int64
+	Price, Status, Color, Notes                        string
+	BrandID, DealerPointID, LegalEntityID, WarehouseID *uuid.UUID
+}
+
+// UpdateVehicleInput — частичное обновление ТС и флаги сброса ссылок.
+type UpdateVehicleInput struct {
+	VIN, Make, Model            *string
+	Year                        *int32
+	MileageKm                   *int64
+	Price, Status, Color, Notes *string
+	BrandID                     *uuid.UUID
+	ClearBrand                  bool
+	DealerPointID               *uuid.UUID
+	LegalEntityID               *uuid.UUID
+	WarehouseID                 *uuid.UUID
+	ClearDealerPoint            bool
+	ClearLegalEntity            bool
+	ClearWarehouse              bool
+}
+
 type vehicleRepository interface {
 	Create(ctx context.Context, v *domain.Vehicle) error
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Vehicle, error)
-	List(ctx context.Context, limit, offset int32, search, statusFilter string, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) ([]*domain.Vehicle, int32, error)
+	List(ctx context.Context, f domain.VehicleListFilter) ([]*domain.Vehicle, int32, error)
 	Update(ctx context.Context, v *domain.Vehicle) error
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 // VehicleAPI — HTTP/gRPC и тесты.
 type VehicleAPI interface {
-	Create(ctx context.Context, vin, make, model string, year int32, mileageKm int64, price, status, color, notes string, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) (*domain.Vehicle, error)
+	Create(ctx context.Context, in CreateVehicleInput) (*domain.Vehicle, error)
 	Get(ctx context.Context, id string) (*domain.Vehicle, error)
-	List(ctx context.Context, limit, offset int32, search, statusFilter string, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) ([]*domain.Vehicle, int32, error)
-	Update(ctx context.Context, id string, vin, make, model *string, year *int32, mileageKm *int64, price, status, color, notes *string, brandID *uuid.UUID, clearBrand bool, dealerPointID, legalEntityID, warehouseID *uuid.UUID, clearDealerPoint, clearLegalEntity, clearWarehouse bool) (*domain.Vehicle, error)
+	List(ctx context.Context, f domain.VehicleListFilter) ([]*domain.Vehicle, int32, error)
+	Update(ctx context.Context, id string, in UpdateVehicleInput) (*domain.Vehicle, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -38,26 +63,27 @@ func NewVehicleService(repo vehicleRepository) *VehicleService {
 	return &VehicleService{repo: repo}
 }
 
-func (s *VehicleService) Create(ctx context.Context, vin, make, model string, year int32, mileageKm int64, price, status, color, notes string, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) (*domain.Vehicle, error) {
+func (s *VehicleService) Create(ctx context.Context, in CreateVehicleInput) (*domain.Vehicle, error) {
+	status := in.Status
 	if status == "" {
 		status = "available"
 	}
 	now := time.Now().UTC()
 	v := &domain.Vehicle{
 		ID:            uuid.New(),
-		VIN:           vin,
-		Make:          make,
-		Model:         model,
-		Year:          year,
-		MileageKm:     mileageKm,
-		Price:         price,
+		VIN:           in.VIN,
+		Make:          in.Make,
+		Model:         in.Model,
+		Year:          in.Year,
+		MileageKm:     in.MileageKm,
+		Price:         in.Price,
 		Status:        status,
-		Color:         color,
-		Notes:         notes,
-		BrandID:       brandID,
-		DealerPointID: dealerPointID,
-		LegalEntityID: legalEntityID,
-		WarehouseID:   warehouseID,
+		Color:         in.Color,
+		Notes:         in.Notes,
+		BrandID:       in.BrandID,
+		DealerPointID: in.DealerPointID,
+		LegalEntityID: in.LegalEntityID,
+		WarehouseID:   in.WarehouseID,
 		CreatedAt:     now,
 		UpdatedAt:     now,
 	}
@@ -82,14 +108,17 @@ func (s *VehicleService) Get(ctx context.Context, id string) (*domain.Vehicle, e
 	return v, nil
 }
 
-func (s *VehicleService) List(ctx context.Context, limit, offset int32, search, statusFilter string, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) ([]*domain.Vehicle, int32, error) {
+func (s *VehicleService) List(ctx context.Context, f domain.VehicleListFilter) ([]*domain.Vehicle, int32, error) {
+	limit := f.Limit
 	if limit <= 0 || limit > 100 {
 		limit = 20
 	}
-	return s.repo.List(ctx, limit, offset, search, statusFilter, brandID, dealerPointID, legalEntityID, warehouseID)
+	ff := f
+	ff.Limit = limit
+	return s.repo.List(ctx, ff)
 }
 
-func (s *VehicleService) Update(ctx context.Context, id string, vin, make, model *string, year *int32, mileageKm *int64, price, status, color, notes *string, brandID *uuid.UUID, clearBrand bool, dealerPointID, legalEntityID, warehouseID *uuid.UUID, clearDealerPoint, clearLegalEntity, clearWarehouse bool) (*domain.Vehicle, error) {
+func (s *VehicleService) Update(ctx context.Context, id string, in UpdateVehicleInput) (*domain.Vehicle, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, ErrNotFound
@@ -98,52 +127,52 @@ func (s *VehicleService) Update(ctx context.Context, id string, vin, make, model
 	if err != nil {
 		return nil, ErrNotFound
 	}
-	if vin != nil {
-		existing.VIN = *vin
+	if in.VIN != nil {
+		existing.VIN = *in.VIN
 	}
-	if make != nil {
-		existing.Make = *make
+	if in.Make != nil {
+		existing.Make = *in.Make
 	}
-	if model != nil {
-		existing.Model = *model
+	if in.Model != nil {
+		existing.Model = *in.Model
 	}
-	if year != nil {
-		existing.Year = *year
+	if in.Year != nil {
+		existing.Year = *in.Year
 	}
-	if mileageKm != nil {
-		existing.MileageKm = *mileageKm
+	if in.MileageKm != nil {
+		existing.MileageKm = *in.MileageKm
 	}
-	if price != nil {
-		existing.Price = *price
+	if in.Price != nil {
+		existing.Price = *in.Price
 	}
-	if status != nil {
-		existing.Status = *status
+	if in.Status != nil {
+		existing.Status = *in.Status
 	}
-	if color != nil {
-		existing.Color = *color
+	if in.Color != nil {
+		existing.Color = *in.Color
 	}
-	if notes != nil {
-		existing.Notes = *notes
+	if in.Notes != nil {
+		existing.Notes = *in.Notes
 	}
-	if clearBrand {
+	if in.ClearBrand {
 		existing.BrandID = nil
-	} else if brandID != nil {
-		existing.BrandID = brandID
+	} else if in.BrandID != nil {
+		existing.BrandID = in.BrandID
 	}
-	if clearDealerPoint {
+	if in.ClearDealerPoint {
 		existing.DealerPointID = nil
-	} else if dealerPointID != nil {
-		existing.DealerPointID = dealerPointID
+	} else if in.DealerPointID != nil {
+		existing.DealerPointID = in.DealerPointID
 	}
-	if clearLegalEntity {
+	if in.ClearLegalEntity {
 		existing.LegalEntityID = nil
-	} else if legalEntityID != nil {
-		existing.LegalEntityID = legalEntityID
+	} else if in.LegalEntityID != nil {
+		existing.LegalEntityID = in.LegalEntityID
 	}
-	if clearWarehouse {
+	if in.ClearWarehouse {
 		existing.WarehouseID = nil
-	} else if warehouseID != nil {
-		existing.WarehouseID = warehouseID
+	} else if in.WarehouseID != nil {
+		existing.WarehouseID = in.WarehouseID
 	}
 	existing.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, existing); err != nil {

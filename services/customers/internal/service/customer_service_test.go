@@ -12,6 +12,8 @@ import (
 	"github.com/dealer/dealer/customers-service/internal/domain"
 )
 
+const testFmtGotErr = "got %v"
+
 type fakeCustomerRepo struct {
 	byID    map[uuid.UUID]*domain.Customer
 	byEmail map[string]*domain.Customer
@@ -81,7 +83,7 @@ func TestCustomerService_Create_DefaultType(t *testing.T) {
 	r := &fakeCustomerRepo{}
 	s := NewCustomerService(r)
 	ctx := context.Background()
-	c, err := s.Create(ctx, "A", "a@b.c", "", "", "", "", "")
+	c, err := s.Create(ctx, CreateCustomerInput{Name: "A", Email: "a@b.c"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +96,7 @@ func TestCustomerService_Get_ParseErr(t *testing.T) {
 	s := NewCustomerService(&fakeCustomerRepo{})
 	_, err := s.Get(context.Background(), "not-a-uuid")
 	if err != ErrNotFound {
-		t.Fatalf("got %v", err)
+		t.Fatalf(testFmtGotErr, err)
 	}
 }
 
@@ -102,7 +104,7 @@ func TestCustomerService_Get_NotFound(t *testing.T) {
 	s := NewCustomerService(&fakeCustomerRepo{})
 	_, err := s.Get(context.Background(), uuid.New().String())
 	if err != ErrNotFound {
-		t.Fatalf("got %v", err)
+		t.Fatalf(testFmtGotErr, err)
 	}
 }
 
@@ -134,9 +136,9 @@ func TestCustomerService_List_LimitClamp(t *testing.T) {
 func TestCustomerService_Update_NotFound(t *testing.T) {
 	s := NewCustomerService(&fakeCustomerRepo{})
 	n := "x"
-	_, err := s.Update(context.Background(), uuid.New().String(), &n, nil, nil, nil, nil, nil, nil)
+	_, err := s.Update(context.Background(), uuid.New().String(), UpdateCustomerInput{Name: &n})
 	if err != ErrNotFound {
-		t.Fatalf("got %v", err)
+		t.Fatalf(testFmtGotErr, err)
 	}
 }
 
@@ -147,7 +149,7 @@ func TestCustomerService_Update_OK(t *testing.T) {
 	r := &fakeCustomerRepo{byID: map[uuid.UUID]*domain.Customer{id: c}}
 	s := NewCustomerService(r)
 	n := "New"
-	got, err := s.Update(context.Background(), id.String(), &n, nil, nil, nil, nil, nil, nil)
+	got, err := s.Update(context.Background(), id.String(), UpdateCustomerInput{Name: &n})
 	if err != nil || got.Name != "New" {
 		t.Fatalf("err=%v name=%q", err, got.Name)
 	}
@@ -156,14 +158,14 @@ func TestCustomerService_Update_OK(t *testing.T) {
 func TestCustomerService_Delete_ParseErr(t *testing.T) {
 	s := NewCustomerService(&fakeCustomerRepo{})
 	if err := s.Delete(context.Background(), "bad"); err != ErrNotFound {
-		t.Fatalf("got %v", err)
+		t.Fatalf(testFmtGotErr, err)
 	}
 }
 
 func TestCustomerService_Create_RepoErr(t *testing.T) {
 	r := &fakeCustomerRepo{err: errors.New("db")}
 	s := NewCustomerService(r)
-	_, err := s.Create(context.Background(), "A", "a@b.c", "", "", "", "", "")
+	_, err := s.Create(context.Background(), CreateCustomerInput{Name: "A", Email: "a@b.c"})
 	if err == nil {
 		t.Fatal("want err")
 	}
@@ -174,7 +176,7 @@ func TestCustomerService_Get_RepoErr(t *testing.T) {
 	s := NewCustomerService(r)
 	_, err := s.Get(context.Background(), uuid.New().String())
 	if err == nil || err == ErrNotFound {
-		t.Fatalf("got %v", err)
+		t.Fatalf(testFmtGotErr, err)
 	}
 }
 
@@ -194,8 +196,8 @@ func TestCustomerService_Update_RepoErrOnSave(t *testing.T) {
 	r := &fakeCustomerRepo{byID: map[uuid.UUID]*domain.Customer{id: c}, updErr: errors.New("write fail")}
 	s := NewCustomerService(r)
 	n := "x"
-	_, err := s.Update(context.Background(), id.String(), &n, nil, nil, nil, nil, nil, nil)
+	_, err := s.Update(context.Background(), id.String(), UpdateCustomerInput{Name: &n})
 	if err == nil || err == ErrNotFound {
-		t.Fatalf("got %v", err)
+		t.Fatalf(testFmtGotErr, err)
 	}
 }

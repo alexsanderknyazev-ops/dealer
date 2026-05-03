@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/dealer/dealer/services/vehicles/internal/domain"
 	"github.com/dealer/dealer/services/vehicles/internal/jwt"
 	"github.com/dealer/dealer/services/vehicles/internal/service"
+	"github.com/google/uuid"
 )
 
 type Handler struct {
@@ -35,7 +35,7 @@ func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", headerCORSAllowHeaders)
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -87,7 +87,10 @@ func (h *Handler) handleList(w http.ResponseWriter, r *http.Request) {
 	legalEntityID := parseUUIDQuery("legal_entity_id")
 	warehouseID := parseUUIDQuery("warehouse_id")
 
-	list, total, err := h.svc.List(r.Context(), int32(limit), int32(offset), search, statusFilter, brandID, dealerPointID, legalEntityID, warehouseID)
+	list, total, err := h.svc.List(r.Context(), domain.VehicleListFilter{
+		Limit: int32(limit), Offset: int32(offset), Search: search, StatusFilter: statusFilter,
+		BrandID: brandID, DealerPointID: dealerPointID, LegalEntityID: legalEntityID, WarehouseID: warehouseID,
+	})
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
@@ -101,19 +104,19 @@ func (h *Handler) handleList(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleCreate(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		VIN      string  `json:"vin"`
-		Make     string  `json:"make"`
-		Model    string  `json:"model"`
-		Year     int32   `json:"year"`
-		MileageKm int64   `json:"mileage_km"`
-		Price   string  `json:"price"`
-		Status  string  `json:"status"`
-		Color   string  `json:"color"`
-		Notes          string  `json:"notes"`
-		BrandID        *string `json:"brand_id"`
-		DealerPointID  *string `json:"dealer_point_id"`
-		LegalEntityID  *string `json:"legal_entity_id"`
-		WarehouseID    *string `json:"warehouse_id"`
+		VIN           string  `json:"vin"`
+		Make          string  `json:"make"`
+		Model         string  `json:"model"`
+		Year          int32   `json:"year"`
+		MileageKm     int64   `json:"mileage_km"`
+		Price         string  `json:"price"`
+		Status        string  `json:"status"`
+		Color         string  `json:"color"`
+		Notes         string  `json:"notes"`
+		BrandID       *string `json:"brand_id"`
+		DealerPointID *string `json:"dealer_point_id"`
+		LegalEntityID *string `json:"legal_entity_id"`
+		WarehouseID   *string `json:"warehouse_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid body"})
@@ -133,8 +136,12 @@ func (h *Handler) handleCreate(w http.ResponseWriter, r *http.Request) {
 		}
 		return &uid
 	}
-	v, err := h.svc.Create(r.Context(), req.VIN, req.Make, req.Model, req.Year, req.MileageKm, req.Price, req.Status, req.Color, req.Notes,
-		parseOpt(req.BrandID), parseOpt(req.DealerPointID), parseOpt(req.LegalEntityID), parseOpt(req.WarehouseID))
+	v, err := h.svc.Create(r.Context(), service.CreateVehicleInput{
+		VIN: req.VIN, Make: req.Make, Model: req.Model, Year: req.Year, MileageKm: req.MileageKm,
+		Price: req.Price, Status: req.Status, Color: req.Color, Notes: req.Notes,
+		BrandID: parseOpt(req.BrandID), DealerPointID: parseOpt(req.DealerPointID),
+		LegalEntityID: parseOpt(req.LegalEntityID), WarehouseID: parseOpt(req.WarehouseID),
+	})
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
@@ -167,19 +174,19 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		VIN       *string `json:"vin"`
-		Make      *string `json:"make"`
-		Model     *string `json:"model"`
-		Year      *int32  `json:"year"`
-		MileageKm *int64  `json:"mileage_km"`
-		Price     *string `json:"price"`
-		Status    *string `json:"status"`
-		Color     *string `json:"color"`
-		Notes          *string `json:"notes"`
-		BrandID        *string `json:"brand_id"`
-		DealerPointID  *string `json:"dealer_point_id"`
-		LegalEntityID  *string `json:"legal_entity_id"`
-		WarehouseID    *string `json:"warehouse_id"`
+		VIN           *string `json:"vin"`
+		Make          *string `json:"make"`
+		Model         *string `json:"model"`
+		Year          *int32  `json:"year"`
+		MileageKm     *int64  `json:"mileage_km"`
+		Price         *string `json:"price"`
+		Status        *string `json:"status"`
+		Color         *string `json:"color"`
+		Notes         *string `json:"notes"`
+		BrandID       *string `json:"brand_id"`
+		DealerPointID *string `json:"dealer_point_id"`
+		LegalEntityID *string `json:"legal_entity_id"`
+		WarehouseID   *string `json:"warehouse_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid body"})
@@ -202,7 +209,12 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 	dpID, clearDP := parseOptClear(req.DealerPointID)
 	leID, clearLE := parseOptClear(req.LegalEntityID)
 	whID, clearWH := parseOptClear(req.WarehouseID)
-	v, err := h.svc.Update(r.Context(), id, req.VIN, req.Make, req.Model, req.Year, req.MileageKm, req.Price, req.Status, req.Color, req.Notes, brandID, clearBrand, dpID, leID, whID, clearDP, clearLE, clearWH)
+	v, err := h.svc.Update(r.Context(), id, service.UpdateVehicleInput{
+		VIN: req.VIN, Make: req.Make, Model: req.Model, Year: req.Year, MileageKm: req.MileageKm,
+		Price: req.Price, Status: req.Status, Color: req.Color, Notes: req.Notes,
+		BrandID: brandID, ClearBrand: clearBrand, DealerPointID: dpID, LegalEntityID: leID, WarehouseID: whID,
+		ClearDealerPoint: clearDP, ClearLegalEntity: clearLE, ClearWarehouse: clearWH,
+	})
 	if err != nil {
 		if errors.Is(err, service.ErrNotFound) {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
@@ -273,7 +285,7 @@ func vehicleToMap(v *domain.Vehicle) map[string]any {
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(headerContentType, mimeApplicationJSON)
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(v)
 }

@@ -18,6 +18,20 @@ import (
 	"github.com/dealer/dealer/customers-service/internal/service"
 )
 
+func assertHTTPStatus(t *testing.T, w *httptest.ResponseRecorder, want int) {
+	t.Helper()
+	if w.Code != want {
+		t.Fatalf("unexpected HTTP status: want %d got %d", want, w.Code)
+	}
+}
+
+func assertHTTPStatusBody(t *testing.T, w *httptest.ResponseRecorder, want int) {
+	t.Helper()
+	if w.Code != want {
+		t.Fatalf("unexpected HTTP status: want %d got %d body=%s", want, w.Code, w.Body.String())
+	}
+}
+
 type mockCustomerAPI struct {
 	list       []*domain.Customer
 	total      int32
@@ -29,14 +43,14 @@ type mockCustomerAPI struct {
 	notFoundID string
 }
 
-func (m *mockCustomerAPI) Create(_ context.Context, name, email, phone, customerType, inn, address, notes string) (*domain.Customer, error) {
+func (m *mockCustomerAPI) Create(_ context.Context, in service.CreateCustomerInput) (*domain.Customer, error) {
 	if m.createErr != nil {
 		return nil, m.createErr
 	}
 	now := time.Now().UTC()
 	return &domain.Customer{
-		ID: uuid.New(), Name: name, Email: email, Phone: phone, CustomerType: customerType,
-		INN: inn, Address: address, Notes: notes, CreatedAt: now, UpdatedAt: now,
+		ID: uuid.New(), Name: in.Name, Email: in.Email, Phone: in.Phone, CustomerType: in.CustomerType,
+		INN: in.INN, Address: in.Address, Notes: in.Notes, CreatedAt: now, UpdatedAt: now,
 	}, nil
 }
 
@@ -59,7 +73,7 @@ func (m *mockCustomerAPI) List(_ context.Context, _, _ int32, _ string) ([]*doma
 	return m.list, m.total, nil
 }
 
-func (m *mockCustomerAPI) Update(_ context.Context, id string, name, _, _, _, _, _, _ *string) (*domain.Customer, error) {
+func (m *mockCustomerAPI) Update(_ context.Context, id string, in service.UpdateCustomerInput) (*domain.Customer, error) {
 	if m.notFoundID != "" && id == m.notFoundID {
 		return nil, service.ErrNotFound
 	}
@@ -69,8 +83,8 @@ func (m *mockCustomerAPI) Update(_ context.Context, id string, name, _, _, _, _,
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
 	n := ""
-	if name != nil {
-		n = *name
+	if in.Name != nil {
+		n = *in.Name
 	}
 	return &domain.Customer{ID: uid, Name: n, Email: "e", CreatedAt: now, UpdatedAt: now}, nil
 }
@@ -105,9 +119,7 @@ func TestHandler_Options(t *testing.T) {
 	req := httptest.NewRequest(http.MethodOptions, pathAPICustomers, nil)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusNoContent {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusNoContent)
 }
 
 func TestHandler_List_Unauthorized(t *testing.T) {
@@ -117,9 +129,7 @@ func TestHandler_List_Unauthorized(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, pathAPICustomers, nil)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusUnauthorized {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusUnauthorized)
 }
 
 func TestHandler_List_ServiceError(t *testing.T) {
@@ -130,9 +140,7 @@ func TestHandler_List_ServiceError(t *testing.T) {
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusInternalServerError {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusInternalServerError)
 }
 
 func TestHandler_List_OK(t *testing.T) {
@@ -143,9 +151,7 @@ func TestHandler_List_OK(t *testing.T) {
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		t.Fatalf("code %d body %s", w.Code, w.Body.String())
-	}
+	assertHTTPStatusBody(t, w, http.StatusOK)
 }
 
 func TestHandler_Create_BadBody(t *testing.T) {
@@ -153,13 +159,11 @@ func TestHandler_Create_BadBody(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader([]byte("{")))
-	req.Header.Set("Content-Type", "application/json")
+	setRequestJSONContentType(req)
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusBadRequest)
 }
 
 func TestHandler_Create_NameRequired(t *testing.T) {
@@ -168,13 +172,11 @@ func TestHandler_Create_NameRequired(t *testing.T) {
 	h.RegisterRoutes(mux)
 	body, _ := json.Marshal(map[string]string{"email": "a@b.c"})
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	setRequestJSONContentType(req)
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusBadRequest)
 }
 
 func TestHandler_Get_NotFound(t *testing.T) {
@@ -182,13 +184,11 @@ func TestHandler_Get_NotFound(t *testing.T) {
 	h := NewHandler(&mockCustomerAPI{notFoundID: nf}, "sec")
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
-	req := httptest.NewRequest(http.MethodGet, pathAPICustomers+"/"+nf, nil)
+	req := httptest.NewRequest(http.MethodGet, pathCustomerByID(nf), nil)
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusNotFound {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusNotFound)
 }
 
 func TestHandler_Get_InternalErr(t *testing.T) {
@@ -196,13 +196,11 @@ func TestHandler_Get_InternalErr(t *testing.T) {
 	h := NewHandler(&mockCustomerAPI{getErr: errors.New("db")}, "sec")
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
-	req := httptest.NewRequest(http.MethodGet, pathAPICustomers+"/"+id, nil)
+	req := httptest.NewRequest(http.MethodGet, pathCustomerByID(id), nil)
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusInternalServerError {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusInternalServerError)
 }
 
 func TestHandler_Get_OK(t *testing.T) {
@@ -210,13 +208,11 @@ func TestHandler_Get_OK(t *testing.T) {
 	h := NewHandler(&mockCustomerAPI{}, "sec")
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
-	req := httptest.NewRequest(http.MethodGet, pathAPICustomers+"/"+id, nil)
+	req := httptest.NewRequest(http.MethodGet, pathCustomerByID(id), nil)
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		t.Fatalf("code %d %s", w.Code, w.Body.String())
-	}
+	assertHTTPStatusBody(t, w, http.StatusOK)
 }
 
 func TestHandler_Create_ServiceError(t *testing.T) {
@@ -225,13 +221,11 @@ func TestHandler_Create_ServiceError(t *testing.T) {
 	h.RegisterRoutes(mux)
 	body, _ := json.Marshal(map[string]string{"name": "A", "email": "a@b.c"})
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	setRequestJSONContentType(req)
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusInternalServerError {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusInternalServerError)
 }
 
 func TestHandler_Create_OK(t *testing.T) {
@@ -240,13 +234,11 @@ func TestHandler_Create_OK(t *testing.T) {
 	h.RegisterRoutes(mux)
 	body, _ := json.Marshal(map[string]string{"name": "A", "email": "a@b.c"})
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	setRequestJSONContentType(req)
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusOK)
 }
 
 func TestHandler_Update_NotFound(t *testing.T) {
@@ -255,14 +247,12 @@ func TestHandler_Update_NotFound(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	body, _ := json.Marshal(map[string]string{"name": "Z"})
-	req := httptest.NewRequest(http.MethodPut, pathAPICustomers+"/"+nf, bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	req := httptest.NewRequest(http.MethodPut, pathCustomerByID(nf), bytes.NewReader(body))
+	setRequestJSONContentType(req)
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusNotFound {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusNotFound)
 }
 
 func TestHandler_Update_BadBody(t *testing.T) {
@@ -270,14 +260,12 @@ func TestHandler_Update_BadBody(t *testing.T) {
 	h := NewHandler(&mockCustomerAPI{}, "sec")
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
-	req := httptest.NewRequest(http.MethodPut, pathAPICustomers+"/"+id, bytes.NewReader([]byte("x")))
-	req.Header.Set("Content-Type", "application/json")
+	req := httptest.NewRequest(http.MethodPut, pathCustomerByID(id), bytes.NewReader([]byte("x")))
+	setRequestJSONContentType(req)
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusBadRequest)
 }
 
 func TestHandler_Delete_NotFound(t *testing.T) {
@@ -285,13 +273,11 @@ func TestHandler_Delete_NotFound(t *testing.T) {
 	h := NewHandler(&mockCustomerAPI{notFoundID: nf}, "sec")
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
-	req := httptest.NewRequest(http.MethodDelete, pathAPICustomers+"/"+nf, nil)
+	req := httptest.NewRequest(http.MethodDelete, pathCustomerByID(nf), nil)
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusNotFound {
-		t.Fatalf("code %d", w.Code)
-	}
+	assertHTTPStatus(t, w, http.StatusNotFound)
 }
 
 func TestHandler_Update_Delete_NoContent(t *testing.T) {
@@ -300,20 +286,15 @@ func TestHandler_Update_Delete_NoContent(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	body, _ := json.Marshal(map[string]string{"name": "Z"})
-	req := httptest.NewRequest(http.MethodPut, pathAPICustomers+"/"+id, bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	req := httptest.NewRequest(http.MethodPut, pathCustomerByID(id), bytes.NewReader(body))
+	setRequestJSONContentType(req)
 	req.Header.Set("Authorization", bearer("sec"))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		t.Fatalf("put code %d", w.Code)
-	}
-	req2 := httptest.NewRequest(http.MethodDelete, pathAPICustomers+"/"+id, nil)
+	assertHTTPStatus(t, w, http.StatusOK)
+	req2 := httptest.NewRequest(http.MethodDelete, pathCustomerByID(id), nil)
 	req2.Header.Set("Authorization", bearer("sec"))
 	w2 := httptest.NewRecorder()
 	mux.ServeHTTP(w2, req2)
-	if w2.Code != http.StatusNoContent {
-		t.Fatalf("del code %d", w2.Code)
-	}
+	assertHTTPStatus(t, w2, http.StatusNoContent)
 }
-

@@ -66,8 +66,12 @@ func parseUUIDOptional(s string) *uuid.UUID {
 }
 
 func (s *Server) CreateVehicle(ctx context.Context, req *vehiclesv1.CreateVehicleRequest) (*vehiclesv1.CreateVehicleResponse, error) {
-	v, err := s.svc.Create(ctx, req.Vin, req.Make, req.Model, req.Year, req.MileageKm, req.Price, req.Status, req.Color, req.Notes,
-		parseUUIDOptional(req.BrandId), parseUUIDOptional(req.DealerPointId), parseUUIDOptional(req.LegalEntityId), parseUUIDOptional(req.WarehouseId))
+	v, err := s.svc.Create(ctx, service.CreateVehicleInput{
+		VIN: req.Vin, Make: req.Make, Model: req.Model, Year: req.Year, MileageKm: req.MileageKm,
+		Price: req.Price, Status: req.Status, Color: req.Color, Notes: req.Notes,
+		BrandID: parseUUIDOptional(req.BrandId), DealerPointID: parseUUIDOptional(req.DealerPointId),
+		LegalEntityID: parseUUIDOptional(req.LegalEntityId), WarehouseID: parseUUIDOptional(req.WarehouseId),
+	})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -86,8 +90,11 @@ func (s *Server) GetVehicle(ctx context.Context, req *vehiclesv1.GetVehicleReque
 }
 
 func (s *Server) ListVehicles(ctx context.Context, req *vehiclesv1.ListVehiclesRequest) (*vehiclesv1.ListVehiclesResponse, error) {
-	list, total, err := s.svc.List(ctx, req.Limit, req.Offset, req.Search, req.Status,
-		parseUUIDOptional(req.BrandId), parseUUIDOptional(req.DealerPointId), parseUUIDOptional(req.LegalEntityId), parseUUIDOptional(req.WarehouseId))
+	list, total, err := s.svc.List(ctx, domain.VehicleListFilter{
+		Limit: req.Limit, Offset: req.Offset, Search: req.Search, StatusFilter: req.Status,
+		BrandID: parseUUIDOptional(req.BrandId), DealerPointID: parseUUIDOptional(req.DealerPointId),
+		LegalEntityID: parseUUIDOptional(req.LegalEntityId), WarehouseID: parseUUIDOptional(req.WarehouseId),
+	})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -129,11 +136,12 @@ func (s *Server) UpdateVehicle(ctx context.Context, req *vehiclesv1.UpdateVehicl
 			warehouseID = parseUUIDOptional(s)
 		}
 	}
-	v, err := s.svc.Update(ctx, req.Id,
-		req.Vin, req.Make, req.Model, req.Year, req.MileageKm,
-		req.Price, req.Status, req.Color, req.Notes, brandID, clearBrand,
-		dealerPointID, legalEntityID, warehouseID, clearDealerPoint, clearLegalEntity, clearWarehouse,
-	)
+	v, err := s.svc.Update(ctx, req.Id, service.UpdateVehicleInput{
+		VIN: req.Vin, Make: req.Make, Model: req.Model, Year: req.Year, MileageKm: req.MileageKm,
+		Price: req.Price, Status: req.Status, Color: req.Color, Notes: req.Notes,
+		BrandID: brandID, ClearBrand: clearBrand, DealerPointID: dealerPointID, LegalEntityID: legalEntityID, WarehouseID: warehouseID,
+		ClearDealerPoint: clearDealerPoint, ClearLegalEntity: clearLegalEntity, ClearWarehouse: clearWarehouse,
+	})
 	if err != nil {
 		if errors.Is(err, service.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, "vehicle not found")

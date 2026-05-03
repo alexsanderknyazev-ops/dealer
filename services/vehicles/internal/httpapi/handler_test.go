@@ -25,14 +25,14 @@ type mockVehicle struct {
 	nf        string
 }
 
-func (m *mockVehicle) Create(_ context.Context, vin, make, model string, year int32, mileageKm int64, price, status, color, notes string, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) (*domain.Vehicle, error) {
+func (m *mockVehicle) Create(_ context.Context, in service.CreateVehicleInput) (*domain.Vehicle, error) {
 	if m.createErr != nil {
 		return nil, m.createErr
 	}
 	now := time.Now().UTC()
 	return &domain.Vehicle{
-		ID: uuid.New(), VIN: vin, Make: make, Model: model, Year: year, MileageKm: mileageKm, Price: price, Status: status,
-		Color: color, Notes: notes, BrandID: brandID, DealerPointID: dealerPointID, LegalEntityID: legalEntityID, WarehouseID: warehouseID,
+		ID: uuid.New(), VIN: in.VIN, Make: in.Make, Model: in.Model, Year: in.Year, MileageKm: in.MileageKm, Price: in.Price, Status: in.Status,
+		Color: in.Color, Notes: in.Notes, BrandID: in.BrandID, DealerPointID: in.DealerPointID, LegalEntityID: in.LegalEntityID, WarehouseID: in.WarehouseID,
 		CreatedAt: now, UpdatedAt: now,
 	}, nil
 }
@@ -49,22 +49,22 @@ func (m *mockVehicle) Get(_ context.Context, id string) (*domain.Vehicle, error)
 	return &domain.Vehicle{ID: uid, VIN: "v", Make: "mk", Model: "md", Year: 1, Status: "a", CreatedAt: now, UpdatedAt: now}, nil
 }
 
-func (m *mockVehicle) List(_ context.Context, _, _ int32, _, _ string, _, _, _, _ *uuid.UUID) ([]*domain.Vehicle, int32, error) {
+func (m *mockVehicle) List(_ context.Context, _ domain.VehicleListFilter) ([]*domain.Vehicle, int32, error) {
 	if m.listErr != nil {
 		return nil, 0, m.listErr
 	}
 	return []*domain.Vehicle{}, 0, nil
 }
 
-func (m *mockVehicle) Update(_ context.Context, id string, vin, make, model *string, year *int32, mileageKm *int64, price, status, color, notes *string, brandID *uuid.UUID, clearBrand bool, dealerPointID, legalEntityID, warehouseID *uuid.UUID, clearDealerPoint, clearLegalEntity, clearWarehouse bool) (*domain.Vehicle, error) {
+func (m *mockVehicle) Update(_ context.Context, id string, in service.UpdateVehicleInput) (*domain.Vehicle, error) {
 	if m.nf != "" && id == m.nf {
 		return nil, service.ErrNotFound
 	}
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
 	v := &domain.Vehicle{ID: uid, VIN: "v", Make: "m", Model: "m", Year: 1, Status: "a", CreatedAt: now, UpdatedAt: now}
-	if make != nil {
-		v.Make = *make
+	if in.Make != nil {
+		v.Make = *in.Make
 	}
 	return v, nil
 }
@@ -115,7 +115,7 @@ func TestVehiclesHTTP(t *testing.T) {
 	})
 	t.Run("create_no_vin", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, pathAPIVehicles, bytes.NewReader([]byte("{}")))
-		req.Header.Set("Content-Type", "application/json")
+		setRequestJSONContentType(req)
 		req.Header.Set("Authorization", bearerVeh(sec))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
@@ -126,7 +126,7 @@ func TestVehiclesHTTP(t *testing.T) {
 	t.Run("create_ok", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]any{"vin": "VIN99", "make": "M", "model": "X", "year": 2020})
 		req := httptest.NewRequest(http.MethodPost, pathAPIVehicles, bytes.NewReader(body))
-		req.Header.Set("Content-Type", "application/json")
+		setRequestJSONContentType(req)
 		req.Header.Set("Authorization", bearerVeh(sec))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
@@ -151,7 +151,7 @@ func TestVehiclesHTTP(t *testing.T) {
 		h2 := NewHandler(&mockVehicle{nf: nf}, sec)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodGet, pathAPIVehicles+"/"+nf, nil)
+		req := httptest.NewRequest(http.MethodGet, pathVehicleByID(nf), nil)
 		req.Header.Set("Authorization", bearerVeh(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
@@ -161,7 +161,7 @@ func TestVehiclesHTTP(t *testing.T) {
 	})
 	id := uuid.New().String()
 	t.Run("get_ok", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, pathAPIVehicles+"/"+id, nil)
+		req := httptest.NewRequest(http.MethodGet, pathVehicleByID(id), nil)
 		req.Header.Set("Authorization", bearerVeh(sec))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
@@ -174,8 +174,8 @@ func TestVehiclesHTTP(t *testing.T) {
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		body, _ := json.Marshal(map[string]string{"make": "Z"})
-		req := httptest.NewRequest(http.MethodPut, pathAPIVehicles+"/"+nf, bytes.NewReader(body))
-		req.Header.Set("Content-Type", "application/json")
+		req := httptest.NewRequest(http.MethodPut, pathVehicleByID(nf), bytes.NewReader(body))
+		setRequestJSONContentType(req)
 		req.Header.Set("Authorization", bearerVeh(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
@@ -185,15 +185,15 @@ func TestVehiclesHTTP(t *testing.T) {
 	})
 	t.Run("update_put_delete", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"make": "Z"})
-		req := httptest.NewRequest(http.MethodPut, pathAPIVehicles+"/"+id, bytes.NewReader(body))
-		req.Header.Set("Content-Type", "application/json")
+		req := httptest.NewRequest(http.MethodPut, pathVehicleByID(id), bytes.NewReader(body))
+		setRequestJSONContentType(req)
 		req.Header.Set("Authorization", bearerVeh(sec))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusOK {
 			t.Fatal(w.Code)
 		}
-		req2 := httptest.NewRequest(http.MethodDelete, pathAPIVehicles+"/"+id, nil)
+		req2 := httptest.NewRequest(http.MethodDelete, pathVehicleByID(id), nil)
 		req2.Header.Set("Authorization", bearerVeh(sec))
 		w2 := httptest.NewRecorder()
 		mux.ServeHTTP(w2, req2)
@@ -207,7 +207,7 @@ func TestVehiclesHTTP(t *testing.T) {
 		h2.RegisterRoutes(m2)
 		body, _ := json.Marshal(map[string]any{"vin": "V2", "make": "M"})
 		req := httptest.NewRequest(http.MethodPost, pathAPIVehicles, bytes.NewReader(body))
-		req.Header.Set("Content-Type", "application/json")
+		setRequestJSONContentType(req)
 		req.Header.Set("Authorization", bearerVeh(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
@@ -219,7 +219,7 @@ func TestVehiclesHTTP(t *testing.T) {
 		h2 := NewHandler(&mockVehicle{getErr: errors.New("db")}, sec)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodGet, pathAPIVehicles+"/"+uuid.New().String(), nil)
+		req := httptest.NewRequest(http.MethodGet, pathVehicleByID(uuid.New().String()), nil)
 		req.Header.Set("Authorization", bearerVeh(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
@@ -228,8 +228,8 @@ func TestVehiclesHTTP(t *testing.T) {
 		}
 	})
 	t.Run("update_bad_json", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPut, pathAPIVehicles+"/"+id, bytes.NewReader([]byte("not-json")))
-		req.Header.Set("Content-Type", "application/json")
+		req := httptest.NewRequest(http.MethodPut, pathVehicleByID(id), bytes.NewReader([]byte("not-json")))
+		setRequestJSONContentType(req)
 		req.Header.Set("Authorization", bearerVeh(sec))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
@@ -251,7 +251,7 @@ func TestVehiclesHTTP(t *testing.T) {
 		h2 := NewHandler(&mockVehicle{nf: nf}, sec)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodDelete, pathAPIVehicles+"/"+nf, nil)
+		req := httptest.NewRequest(http.MethodDelete, pathVehicleByID(nf), nil)
 		req.Header.Set("Authorization", bearerVeh(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)

@@ -1,6 +1,7 @@
 # Лабораторный стек dealer: инфраструктура (Postgres, Redis, Zookeeper, Kafka) + 7 микросервисов.
 # Плейсхолдеры для приложений подставляет Jenkins: __K8S_DB_HOST__, __K8S_DB_PORT__, __IMG_*__, __PULL_POLICY__
 # По умолчанию K8S_DB_HOST=postgres — совпадает с Service ниже.
+# Ресурсы: небольшие requests/limits (лабораторный профиль); при OOM/throttling увеличьте limits в Deployment.
 ---
 apiVersion: v1
 kind: Namespace
@@ -58,6 +59,13 @@ spec:
               value: dealer_secret
             - name: POSTGRES_DB
               value: dealer
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
@@ -103,6 +111,13 @@ spec:
           image: redis:7-alpine
           ports:
             - containerPort: 6379
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
           readinessProbe:
             exec:
               command: ["redis-cli", "ping"]
@@ -146,6 +161,13 @@ spec:
               value: "2181"
             - name: ZOOKEEPER_TICK_TIME
               value: "2000"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
           readinessProbe:
             tcpSocket:
               port: 2181
@@ -206,6 +228,13 @@ spec:
               value: "true"
             - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
               value: "0"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
           readinessProbe:
             tcpSocket:
               port: 29092
@@ -252,6 +281,13 @@ spec:
           ports:
             - containerPort: 50051
             - containerPort: 8080
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
           env:
             - name: AUTH_GRPC_PORT
               value: "50051"
@@ -324,6 +360,13 @@ spec:
           ports:
             - containerPort: 50052
             - containerPort: 8081
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
           env:
             - name: CUSTOMERS_GRPC_PORT
               value: "50052"
@@ -372,6 +415,13 @@ spec:
           ports:
             - containerPort: 50053
             - containerPort: 8082
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
           env:
             - name: VEHICLES_GRPC_PORT
               value: "50053"
@@ -420,6 +470,13 @@ spec:
           ports:
             - containerPort: 50054
             - containerPort: 8083
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
           env:
             - name: DEALS_GRPC_PORT
               value: "50054"
@@ -468,6 +525,13 @@ spec:
           ports:
             - containerPort: 50055
             - containerPort: 8084
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
           env:
             - name: PARTS_GRPC_PORT
               value: "50055"
@@ -516,6 +580,13 @@ spec:
           ports:
             - containerPort: 50056
             - containerPort: 8085
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
           env:
             - name: BRANDS_GRPC_PORT
               value: "50056"
@@ -564,6 +635,13 @@ spec:
           ports:
             - containerPort: 50057
             - containerPort: 8086
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
           env:
             - name: DEALER_POINTS_GRPC_PORT
               value: "50057"

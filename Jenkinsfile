@@ -355,7 +355,8 @@ fi
 # Единый вызов kubectl (ветка A: \$KUBECTL; ветка B: docker exec в minikube-ноду).
 kctl() {
   if [ "\$USE_DOCKER_EXEC" = 1 ]; then
-    docker exec -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" "\$@"
+    # -i обязателен: иначе stdin Jenkins (pipe в kubectl exec -i … psql -f -) не доходит в minikube.
+    docker exec -i -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" "\$@"
   else
     "\$KUBECTL" "\$@"
   fi

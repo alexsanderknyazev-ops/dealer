@@ -29,8 +29,13 @@ pipeline {
     )
     string(
       name: 'DOCKER_IMAGE',
-      defaultValue: 'users-go',
-      description: 'Имя образа в реестре (без registry-префикса)'
+      defaultValue: 'auth-service',
+      description: 'Имя образа в реестре (без registry-префикса), совпадает с тегом docker build'
+    )
+    string(
+      name: 'DOCKERFILE',
+      defaultValue: 'build/auth-service.Dockerfile',
+      description: 'Путь к Dockerfile от корня репозитория (см. build/*.Dockerfile в docker-compose)'
     )
     // --- Kubernetes / Minikube: включение деплоя, контейнер minikube, registry для pull-манифеста ---
     booleanParam(
@@ -70,7 +75,7 @@ pipeline {
   // Переменные окружения для стадий Sonar/Go (версии инструментов; SONAR_HOST_URL — к Sonar в Docker на хосте).
   environment {
     SONAR_HOST_URL = 'http://host.docker.internal:9000'
-    // Совпадает с `toolchain` в go.mod (users-go).
+    // Совпадает с `toolchain` в go.mod (корневой модуль dealer).
     GO_VERSION = '1.24.11'
     SONAR_SCANNER_VERSION = '8.0.1.6346'
     // Для сенсоров JS/TS/CSS Sonar нужен Node.js в PATH.
@@ -198,12 +203,14 @@ export BUILDKIT_PROGRESS=plain
 cd "\${WORKSPACE}"
 REG='${params.DOCKER_REGISTRY}'
 NAME='${params.DOCKER_IMAGE}'
+DOCKERFILE='${params.DOCKERFILE}'
 TAG='${env.BUILD_NUMBER}'
 FULL="\${REG}/\${NAME}:\${TAG}"
 LATEST="\${REG}/\${NAME}:latest"
 LOCAL_TAG="jenkins-\${TAG}"
 
-docker build -t "\${NAME}:\${LOCAL_TAG}" .
+test -f "\${DOCKERFILE}" || { echo "Dockerfile not found: \${DOCKERFILE}"; exit 1; }
+docker build -f "\${DOCKERFILE}" -t "\${NAME}:\${LOCAL_TAG}" .
 
 SKOPEO_IMG='quay.io/skopeo/stable:latest'
 docker pull -q "\${SKOPEO_IMG}" || docker pull "\${SKOPEO_IMG}"

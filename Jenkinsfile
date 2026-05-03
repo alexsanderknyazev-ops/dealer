@@ -8,7 +8,7 @@
 //   4. Docker build and push — все 7 сервисов (build/*.Dockerfile), Skopeo push в registry.
 //   5. Deploy to Minikube (опционально) — kubectl apply k8s/dealer-stack.yaml, rollout по каждому Deployment.
 //
-// В кластере нужны Postgres (и при auth — Redis/Kafka) в том же namespace или доступные по DNS из env.
+// Деплой k8s/dealer-stack.yaml поднимает Postgres, Redis, Zookeeper, Kafka и 7 сервисов в namespace dealer (см. параметр K8S_NAMESPACE).
 // =============================================================================
 
 pipeline {
@@ -325,6 +325,7 @@ NS='${params.K8S_NAMESPACE}'
 K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
 K8S_DB_HOST='${params.K8S_DB_HOST}'
 K8S_DB_PORT='${params.K8S_DB_PORT}'
+INFRA_DPL=(postgres redis zookeeper kafka)
 SVC_LIST=(auth-service customers-service vehicles-service deals-service parts-service brands-service dealer-points-service)
 
 test -f k8s/dealer-stack.yaml
@@ -392,13 +393,13 @@ registry_probe() {
 if [ "\$USE_DOCKER_EXEC" = 1 ]; then
   registry_probe
   render_stack | docker exec -i -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" apply -f -
-  for d in "\${SVC_LIST[@]}"; do
-    docker exec -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" -n "\$NS" rollout status "deployment/\$d" --timeout=180s
+  for d in "\${INFRA_DPL[@]}" "\${SVC_LIST[@]}"; do
+    docker exec -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" -n "\$NS" rollout status "deployment/\$d" --timeout=300s
   done
 else
   render_stack | "\$KUBECTL" apply -f -
-  for d in "\${SVC_LIST[@]}"; do
-    "\$KUBECTL" -n "\$NS" rollout status "deployment/\$d" --timeout=180s
+  for d in "\${INFRA_DPL[@]}" "\${SVC_LIST[@]}"; do
+    "\$KUBECTL" -n "\$NS" rollout status "deployment/\$d" --timeout=300s
   done
 fi
 """

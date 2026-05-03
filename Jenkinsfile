@@ -10,7 +10,6 @@
 //      Доступ к API: либо kubeconfig на агенте (любой драйвер minikube: qemu2, kvm, docker, …), либо ветка docker exec — только при --driver=docker (контейнер-нода на хосте).
 //
 // Деплой k8s/dealer-stack.yaml поднимает Postgres, Redis, Zookeeper, Kafka и 7 сервисов в namespace dealer (см. параметр K8S_NAMESPACE).
-// Локальный Jenkins + registry + монтирование kubeconfig: см. infra/lab/README.md
 // =============================================================================
 
 pipeline {
@@ -53,8 +52,8 @@ pipeline {
     // Локальная загрузка образа в dockerd ноды minikube (см. комментарий в stage Deploy).
     booleanParam(
       name: 'K8S_CTR_IMPORT_IMAGE',
-      defaultValue: false,
-      description: 'По умолчанию false (qemu2/kvm: pull из K8S_PULL_REGISTRY). true только при minikube --driver=docker + ветка docker exec: save|load в dockerd ноды; imagePullPolicy Never.'
+      defaultValue: true,
+      description: 'Только при ветке docker exec (minikube --driver=docker): save|load в dockerd ноды; imagePullPolicy Never. Для qemu2/kvm — false: образы из K8S_PULL_REGISTRY (VM тянет по сети).'
     )
     string(
       name: 'K8S_NAMESPACE',

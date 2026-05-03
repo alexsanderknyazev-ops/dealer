@@ -13,11 +13,13 @@ COPY api/ ./api/
 COPY services/auth/ ./services/auth/
 
 WORKDIR /app/services/auth
-RUN go build -o /auth-service .
+RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o /auth-service . \
+  && CGO_ENABLED=0 go build -ldflags="-w -s" -o /seed-admin ./cmd/seed-admin
 
 FROM alpine:3.19
 RUN apk --no-cache add ca-certificates
 COPY --from=builder /auth-service /auth-service
+COPY --from=builder /seed-admin /seed-admin
 COPY --from=frontend /app/frontend/auth/dist /app/web
 EXPOSE 50051 8080
 ENV STATIC_DIR=/app/web

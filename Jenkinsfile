@@ -6,7 +6,7 @@
 //   2. Go test + coverage — go test, coverage.out.
 //   3. SonarQube — sonar-scanner + Node, токен из credentials.
 //   4. Docker build and push — все 7 сервисов (build/*.Dockerfile), Skopeo push в registry.
-//   5. Deploy to Minikube (опционально) — kubectl apply k8s/dealer-stack.yaml, rollout по каждому Deployment.
+//   5. Deploy to Minikube (опционально) — kubectl apply k8s/dealer-stack.yaml, rollout; при K8S_BOOTSTRAP_DEV_DATA — миграции, сиды, seed-admin.
 //      Доступ к API: либо kubeconfig на агенте (любой драйвер minikube: qemu2, kvm, docker, …), либо ветка docker exec — только при --driver=docker (контейнер-нода на хосте).
 //
 // Деплой k8s/dealer-stack.yaml поднимает Postgres, Redis, Zookeeper, Kafka и 7 сервисов в namespace dealer (см. параметр K8S_NAMESPACE).
@@ -70,6 +70,11 @@ pipeline {
       name: 'K8S_DB_PORT',
       defaultValue: '5432',
       description: 'Порт Postgres: 5432 in-cluster; 5433 если БД на хосте (property.yaml)'
+    )
+    booleanParam(
+      name: 'K8S_BOOTSTRAP_DEV_DATA',
+      defaultValue: false,
+      description: 'После деплоя: миграции в Postgres (если ещё нет схемы), тестовые SQL-сиды и /seed-admin (admin@dealer.local / admin123). Только для лаборатории.'
     )
   }
 
@@ -346,6 +351,15 @@ if [ "\$USE_DOCKER_EXEC" = 1 ]; then
   docker exec -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" cluster-info
 fi
 
+# Единый вызов kubectl (ветка A: \$KUBECTL; ветка B: docker exec в minikube-ноду).
+kctl() {
+  if [ "\$USE_DOCKER_EXEC" = 1 ]; then
+    docker exec -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" "\$@"
+  else
+    "\$KUBECTL" "\$@"
+  fi
+}
+
 # --- Подготовка образов и манифеста k8s/dealer-stack.yaml ---
 TAG='${env.BUILD_NUMBER}'
 LOCAL_TAG="jenkins-\${TAG}"
@@ -354,6 +368,7 @@ NS='${params.K8S_NAMESPACE}'
 K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
 K8S_DB_HOST='${params.K8S_DB_HOST}'
 K8S_DB_PORT='${params.K8S_DB_PORT}'
+BOOTSTRAP_DEV='${params.K8S_BOOTSTRAP_DEV_DATA == true ? "true" : "false"}'
 INFRA_DPL=(postgres redis zookeeper kafka)
 SVC_LIST=(auth-service customers-service vehicles-service deals-service parts-service brands-service dealer-points-service)
 
@@ -422,14 +437,47 @@ registry_probe() {
 if [ "\$USE_DOCKER_EXEC" = 1 ]; then
   registry_probe
   render_stack | docker exec -i -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" apply -f -
-  for d in "\${INFRA_DPL[@]}" "\${SVC_LIST[@]}"; do
-    docker exec -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" -n "\$NS" rollout status "deployment/\$d" --timeout=300s
-  done
 else
   render_stack | "\$KUBECTL" apply -f -
-  for d in "\${INFRA_DPL[@]}" "\${SVC_LIST[@]}"; do
-    "\$KUBECTL" -n "\$NS" rollout status "deployment/\$d" --timeout=300s
+fi
+
+for d in "\${INFRA_DPL[@]}"; do
+  kctl -n "\$NS" rollout status "deployment/\$d" --timeout=300s
+done
+
+# Миграции + dev-сидеры в Postgres; admin — через /seed-admin в auth (образ с build/auth-service.Dockerfile).
+if [ "\$BOOTSTRAP_DEV" = "true" ]; then
+  echo "=== K8S_BOOTSTRAP_DEV_DATA: миграции и тестовые данные ==="
+  kctl -n "\$NS" wait --for=condition=available "deployment/postgres" --timeout=180s
+  HAS_USERS=\$(kctl -n "\$NS" exec "deployment/postgres" -- env PGPASSWORD=dealer_secret psql -U dealer -d dealer -qtAc "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='users');")
+  if [ "\$HAS_USERS" != "t" ]; then
+    echo "Применяю миграции (пустая БД)…"
+    for f in \\
+      001_users.up.sql 002_roles.up.sql 003_customers.up.sql 004_vehicles.up.sql \\
+      005_deals.up.sql 006_parts.up.sql 007_part_folders.up.sql 008_brands.up.sql \\
+      009_dealer_points.up.sql 010_part_stock.up.sql; do
+      test -f "\${WORKSPACE}/migrations/\$f"
+      kctl -n "\$NS" exec -i "deployment/postgres" -- env PGPASSWORD=dealer_secret psql -U dealer -d dealer -v ON_ERROR_STOP=1 -f - < "\${WORKSPACE}/migrations/\$f"
+    done
+  else
+    echo "Таблица users уже есть — миграции пропускаем."
+  fi
+  for f in seed_test_data.sql seed_dealer_brands.sql seed_parts.sql; do
+    test -f "\${WORKSPACE}/migrations/\$f"
+    echo "Сид: \$f"
+    kctl -n "\$NS" exec -i "deployment/postgres" -- env PGPASSWORD=dealer_secret psql -U dealer -d dealer -v ON_ERROR_STOP=1 -f - < "\${WORKSPACE}/migrations/\$f"
   done
+  echo "Bootstrap SQL готов."
+fi
+
+for d in "\${SVC_LIST[@]}"; do
+  kctl -n "\$NS" rollout status "deployment/\$d" --timeout=300s
+done
+
+if [ "\$BOOTSTRAP_DEV" = "true" ]; then
+  echo "=== seed-admin (admin@dealer.local / admin123 по умолчанию) ==="
+  SEED_DSN="postgres://dealer:dealer_secret@\${K8S_DB_HOST}:\${K8S_DB_PORT}/dealer?sslmode=disable"
+  kctl -n "\$NS" exec "deployment/auth-service" -- env POSTGRES_DSN="\$SEED_DSN" /seed-admin
 fi
 """
       }

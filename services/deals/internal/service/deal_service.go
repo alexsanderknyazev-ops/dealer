@@ -112,6 +112,58 @@ func (s *DealService) List(ctx context.Context, limit, offset int32, stageFilter
 	return s.repo.List(ctx, limit, offset, stageFilter, customerID)
 }
 
+func applyDealCustomerIDIfValid(d *domain.Deal, s *string) {
+	if s == nil {
+		return
+	}
+	cid, err := uuid.Parse(*s)
+	if err != nil {
+		return
+	}
+	d.CustomerID = cid
+}
+
+func applyDealVehicleIDIfValid(d *domain.Deal, s *string) {
+	if s == nil {
+		return
+	}
+	vid, err := uuid.Parse(*s)
+	if err != nil {
+		return
+	}
+	d.VehicleID = vid
+}
+
+func applyDealAssignedTo(d *domain.Deal, s *string) {
+	if s == nil {
+		return
+	}
+	if *s == "" {
+		d.AssignedTo = nil
+		return
+	}
+	a, err := uuid.Parse(*s)
+	if err != nil {
+		return
+	}
+	d.AssignedTo = &a
+}
+
+func mergeDealUpdateInput(d *domain.Deal, in UpdateDealInput) {
+	applyDealCustomerIDIfValid(d, in.CustomerID)
+	applyDealVehicleIDIfValid(d, in.VehicleID)
+	if in.Amount != nil {
+		d.Amount = *in.Amount
+	}
+	if in.Stage != nil {
+		d.Stage = *in.Stage
+	}
+	applyDealAssignedTo(d, in.AssignedTo)
+	if in.Notes != nil {
+		d.Notes = *in.Notes
+	}
+}
+
 func (s *DealService) Update(ctx context.Context, id string, in UpdateDealInput) (*domain.Deal, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
@@ -121,32 +173,7 @@ func (s *DealService) Update(ctx context.Context, id string, in UpdateDealInput)
 	if err != nil {
 		return nil, ErrNotFound
 	}
-	if in.CustomerID != nil {
-		if cid, err := uuid.Parse(*in.CustomerID); err == nil {
-			existing.CustomerID = cid
-		}
-	}
-	if in.VehicleID != nil {
-		if vid, err := uuid.Parse(*in.VehicleID); err == nil {
-			existing.VehicleID = vid
-		}
-	}
-	if in.Amount != nil {
-		existing.Amount = *in.Amount
-	}
-	if in.Stage != nil {
-		existing.Stage = *in.Stage
-	}
-	if in.AssignedTo != nil {
-		if *in.AssignedTo == "" {
-			existing.AssignedTo = nil
-		} else if a, err := uuid.Parse(*in.AssignedTo); err == nil {
-			existing.AssignedTo = &a
-		}
-	}
-	if in.Notes != nil {
-		existing.Notes = *in.Notes
-	}
+	mergeDealUpdateInput(existing, in)
 	existing.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, existing); err != nil {
 		return nil, err

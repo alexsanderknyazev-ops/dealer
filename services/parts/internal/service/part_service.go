@@ -19,19 +19,19 @@ type StockRow = domain.PartWarehouseQty
 
 // CreatePartInput is the payload for Create.
 type CreatePartInput struct {
-	SKU, Name, Category string
+	SKU, Name, Category                                          string
 	FolderID, BrandID, DealerPointID, LegalEntityID, WarehouseID *uuid.UUID
-	Quantity                         int32
-	Unit, Price, Location, Notes       string
-	InitialStock                     []StockRow
+	Quantity                                                     int32
+	Unit, Price, Location, Notes                                 string
+	InitialStock                                                 []StockRow
 }
 
 // UpdatePartInput holds optional fields for Update (optional string IDs follow HTTP clear semantics).
 type UpdatePartInput struct {
-	SKU, Name, Category *string
+	SKU, Name, Category                                          *string
 	FolderID, BrandID, DealerPointID, LegalEntityID, WarehouseID *string
-	Quantity *int32
-	Unit, Price, Location, Notes *string
+	Quantity                                                     *int32
+	Unit, Price, Location, Notes                                 *string
 }
 
 type partRepository interface {
@@ -131,6 +131,44 @@ func (s *PartService) List(ctx context.Context, filter domain.PartListFilter) ([
 	return s.repo.List(ctx, f)
 }
 
+func copyPartStringField(dst *string, src *string) {
+	if src != nil {
+		*dst = *src
+	}
+}
+
+// clearOrParseUUIDPtr: пустая строка сбрасывает ссылку, иначе парсит UUID при успехе.
+func clearOrParseUUIDPtr(dst **uuid.UUID, src *string) {
+	if src == nil {
+		return
+	}
+	if *src == "" {
+		*dst = nil
+		return
+	}
+	id, err := uuid.Parse(*src)
+	if err != nil {
+		return
+	}
+	v := id
+	*dst = &v
+}
+
+func mergePartUpdateInput(p *domain.Part, in UpdatePartInput) {
+	copyPartStringField(&p.SKU, in.SKU)
+	copyPartStringField(&p.Name, in.Name)
+	copyPartStringField(&p.Category, in.Category)
+	clearOrParseUUIDPtr(&p.FolderID, in.FolderID)
+	clearOrParseUUIDPtr(&p.BrandID, in.BrandID)
+	clearOrParseUUIDPtr(&p.DealerPointID, in.DealerPointID)
+	clearOrParseUUIDPtr(&p.LegalEntityID, in.LegalEntityID)
+	clearOrParseUUIDPtr(&p.WarehouseID, in.WarehouseID)
+	copyPartStringField(&p.Unit, in.Unit)
+	copyPartStringField(&p.Price, in.Price)
+	copyPartStringField(&p.Location, in.Location)
+	copyPartStringField(&p.Notes, in.Notes)
+}
+
 func (s *PartService) Update(ctx context.Context, id string, in UpdatePartInput) (*domain.Part, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
@@ -140,78 +178,7 @@ func (s *PartService) Update(ctx context.Context, id string, in UpdatePartInput)
 	if err != nil {
 		return nil, ErrNotFound
 	}
-	if in.SKU != nil {
-		existing.SKU = *in.SKU
-	}
-	if in.Name != nil {
-		existing.Name = *in.Name
-	}
-	if in.Category != nil {
-		existing.Category = *in.Category
-	}
-	if in.FolderID != nil {
-		if *in.FolderID == "" {
-			existing.FolderID = nil
-		} else {
-			fid, err := uuid.Parse(*in.FolderID)
-			if err == nil {
-				existing.FolderID = &fid
-			}
-		}
-	}
-	if in.BrandID != nil {
-		if *in.BrandID == "" {
-			existing.BrandID = nil
-		} else {
-			bid, err := uuid.Parse(*in.BrandID)
-			if err == nil {
-				existing.BrandID = &bid
-			}
-		}
-	}
-	if in.DealerPointID != nil {
-		if *in.DealerPointID == "" {
-			existing.DealerPointID = nil
-		} else {
-			did, err := uuid.Parse(*in.DealerPointID)
-			if err == nil {
-				existing.DealerPointID = &did
-			}
-		}
-	}
-	if in.LegalEntityID != nil {
-		if *in.LegalEntityID == "" {
-			existing.LegalEntityID = nil
-		} else {
-			lid, err := uuid.Parse(*in.LegalEntityID)
-			if err == nil {
-				existing.LegalEntityID = &lid
-			}
-		}
-	}
-	if in.WarehouseID != nil {
-		if *in.WarehouseID == "" {
-			existing.WarehouseID = nil
-		} else {
-			wid, err := uuid.Parse(*in.WarehouseID)
-			if err == nil {
-				existing.WarehouseID = &wid
-			}
-		}
-	}
-	// quantity теперь хранится в part_stock и пересчитывается триггером; прямое изменение parts.quantity не делаем
-	if in.Unit != nil {
-		existing.Unit = *in.Unit
-	}
-	if in.Price != nil {
-		existing.Price = *in.Price
-	}
-	if in.Location != nil {
-		existing.Location = *in.Location
-	}
-	if in.Notes != nil {
-		existing.Notes = *in.Notes
-	}
+	mergePartUpdateInput(existing, in)
 	existing.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, existing); err != nil {
 		return nil, err

@@ -77,6 +77,13 @@ func (grpcCustomerMock) Delete(_ context.Context, id string) error {
 	return nil
 }
 
+func mustErrGRPC(t *testing.T, err error) {
+	t.Helper()
+	if err == nil {
+		t.Fatal(testWantErr)
+	}
+}
+
 func dialTestServer(t *testing.T, srv *grpc.Server) customersv1.CustomersServiceClient {
 	t.Helper()
 	lis := bufconn.Listen(1024 * 1024)
@@ -110,9 +117,7 @@ func TestServer_GetCustomer_NotFound(t *testing.T) {
 	customersv1.RegisterCustomersServiceServer(s, NewServer(&stubNotFound{}))
 	cli := dialTestServer(t, s)
 	_, err := cli.GetCustomer(context.Background(), &customersv1.GetCustomerRequest{Id: uuid.New().String()})
-	if err == nil {
-		t.Fatal(testWantErr)
-	}
+	mustErrGRPC(t, err)
 }
 
 type stubNotFound struct{ grpcCustomerMock }
@@ -137,9 +142,7 @@ func TestServer_UpdateCustomer_NotFound(t *testing.T) {
 	cli := dialTestServer(t, s)
 	n := "x"
 	_, err := cli.UpdateCustomer(context.Background(), &customersv1.UpdateCustomerRequest{Id: uuid.New().String(), Name: &n})
-	if err == nil {
-		t.Fatal(testWantErr)
-	}
+	mustErrGRPC(t, err)
 }
 
 type stubUpdateNF struct{ grpcCustomerMock }
@@ -165,9 +168,7 @@ func TestServer_DeleteCustomer_NotFound(t *testing.T) {
 	customersv1.RegisterCustomersServiceServer(s, NewServer(&stubDeleteNF{}))
 	cli := dialTestServer(t, s)
 	_, err := cli.DeleteCustomer(context.Background(), &customersv1.DeleteCustomerRequest{Id: uuid.New().String()})
-	if err == nil {
-		t.Fatal(testWantErr)
-	}
+	mustErrGRPC(t, err)
 }
 
 func TestServer_DeleteCustomer_OK(t *testing.T) {
@@ -191,9 +192,7 @@ func TestServer_CreateCustomer_Err(t *testing.T) {
 	customersv1.RegisterCustomersServiceServer(s, NewServer(&stubCreateErr{}))
 	cli := dialTestServer(t, s)
 	_, err := cli.CreateCustomer(context.Background(), &customersv1.CreateCustomerRequest{Name: testGRPCCustomerName})
-	if err == nil {
-		t.Fatal(testWantErr)
-	}
+	mustErrGRPC(t, err)
 }
 
 type stubCreateErr struct{ grpcCustomerMock }
@@ -207,9 +206,7 @@ func TestServer_ListCustomers_InternalErr(t *testing.T) {
 	customersv1.RegisterCustomersServiceServer(s, NewServer(&stubListErr{}))
 	cli := dialTestServer(t, s)
 	_, err := cli.ListCustomers(context.Background(), &customersv1.ListCustomersRequest{})
-	if err == nil {
-		t.Fatal(testWantErr)
-	}
+	mustErrGRPC(t, err)
 }
 
 type stubListErr struct{ grpcCustomerMock }
@@ -223,9 +220,7 @@ func TestServer_GetCustomer_InternalErr(t *testing.T) {
 	customersv1.RegisterCustomersServiceServer(s, NewServer(&stubGetInt{}))
 	cli := dialTestServer(t, s)
 	_, err := cli.GetCustomer(context.Background(), &customersv1.GetCustomerRequest{Id: uuid.New().String()})
-	if err == nil {
-		t.Fatal(testWantErr)
-	}
+	mustErrGRPC(t, err)
 }
 
 type stubGetInt struct{ grpcCustomerMock }

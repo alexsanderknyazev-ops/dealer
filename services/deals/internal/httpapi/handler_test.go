@@ -238,7 +238,7 @@ func testDealsHTTPStepDeleteNF(t *testing.T, nf string) {
 	dealsWantCode(t, w, http.StatusNotFound)
 }
 
-func TestDealsHTTP(t *testing.T) {
+func TestDealsHTTP_readAndCreate(t *testing.T) {
 	mux := dealsServeMux(&mockDeal{})
 	testDealsHTTPStepOptions(t, mux)
 	testDealsHTTPStepUnauth(t, mux)
@@ -246,7 +246,14 @@ func TestDealsHTTP(t *testing.T) {
 	testDealsHTTPStepCreateMissingIDs(t, mux)
 	cid, vid := uuid.New().String(), uuid.New().String()
 	testDealsHTTPStepCreateOK(t, mux, cid, vid)
+}
+
+func TestDealsHTTP_listInternalError(t *testing.T) {
 	testDealsHTTPStepListErr(t, dealsServeMux(&mockDeal{listErr: errors.New("db")}))
+}
+
+func TestDealsHTTP_notFoundAndMutations(t *testing.T) {
+	mux := dealsServeMux(&mockDeal{})
 	nf := testDealNotFoundUUID
 	testDealsHTTPStepGetNF(t, nf)
 	id := uuid.New().String()

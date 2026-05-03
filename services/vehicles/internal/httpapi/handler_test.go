@@ -281,14 +281,21 @@ func testVehiclesHTTPStepDeleteNF(t *testing.T, nf string) {
 	vehiclesWantCode(t, w, http.StatusNotFound)
 }
 
-func TestVehiclesHTTP(t *testing.T) {
+func TestVehiclesHTTP_readListCreate(t *testing.T) {
 	mux := vehiclesServeMux(&mockVehicle{})
 	testVehiclesHTTPStepOptions(t, mux)
 	testVehiclesHTTPStepUnauth(t, mux)
 	testVehiclesHTTPStepList(t, mux)
 	testVehiclesHTTPStepCreateNoVIN(t, mux)
 	testVehiclesHTTPStepCreateOK(t, mux)
+}
+
+func TestVehiclesHTTP_listInternalError(t *testing.T) {
 	testVehiclesHTTPStepListErr(t, vehiclesServeMux(&mockVehicle{listErr: errors.New("db")}))
+}
+
+func TestVehiclesHTTP_notFoundAndMutations(t *testing.T) {
+	mux := vehiclesServeMux(&mockVehicle{})
 	nf := testVehicleNotFoundUUID
 	testVehiclesHTTPStepGetNF(t, nf)
 	id := uuid.New().String()

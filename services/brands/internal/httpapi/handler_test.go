@@ -246,14 +246,21 @@ func testBrandsHTTPStepGetInternal(t *testing.T) {
 	brandsWantCode(t, w, http.StatusInternalServerError)
 }
 
-func TestBrandsHTTP(t *testing.T) {
+func TestBrandsHTTP_listAndCreate(t *testing.T) {
 	mux := brandsServeMux(&mockBrand{list: []*domain.Brand{}, total: 0})
 	testBrandsHTTPStepOptions(t, mux)
 	testBrandsHTTPStepUnauth(t, mux)
 	testBrandsHTTPStepList(t, mux)
 	testBrandsHTTPStepCreateBad(t, mux)
 	testBrandsHTTPStepCreateOK(t, mux)
+}
+
+func TestBrandsHTTP_listInternalError(t *testing.T) {
 	testBrandsHTTPStepListErr(t, brandsServeMux(&mockBrand{listErr: errors.New("db")}))
+}
+
+func TestBrandsHTTP_notFoundAndMutations(t *testing.T) {
+	mux := brandsServeMux(&mockBrand{list: []*domain.Brand{}, total: 0})
 	nf := testBrandNotFoundUUID
 	testBrandsHTTPStepGetNF(t, nf)
 	id := uuid.New().String()

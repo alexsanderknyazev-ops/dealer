@@ -118,6 +118,50 @@ func (s *VehicleService) List(ctx context.Context, f domain.VehicleListFilter) (
 	return s.repo.List(ctx, ff)
 }
 
+func copyVehString(dst *string, src *string) {
+	if src != nil {
+		*dst = *src
+	}
+}
+
+func copyVehInt32(dst *int32, src *int32) {
+	if src != nil {
+		*dst = *src
+	}
+}
+
+func copyVehInt64(dst *int64, src *int64) {
+	if src != nil {
+		*dst = *src
+	}
+}
+
+func applyVehUUIDClearOrSet(clear bool, src *uuid.UUID, slot **uuid.UUID) {
+	if clear {
+		*slot = nil
+		return
+	}
+	if src != nil {
+		*slot = src
+	}
+}
+
+func mergeVehicleUpdateInput(v *domain.Vehicle, in UpdateVehicleInput) {
+	copyVehString(&v.VIN, in.VIN)
+	copyVehString(&v.Make, in.Make)
+	copyVehString(&v.Model, in.Model)
+	copyVehInt32(&v.Year, in.Year)
+	copyVehInt64(&v.MileageKm, in.MileageKm)
+	copyVehString(&v.Price, in.Price)
+	copyVehString(&v.Status, in.Status)
+	copyVehString(&v.Color, in.Color)
+	copyVehString(&v.Notes, in.Notes)
+	applyVehUUIDClearOrSet(in.ClearBrand, in.BrandID, &v.BrandID)
+	applyVehUUIDClearOrSet(in.ClearDealerPoint, in.DealerPointID, &v.DealerPointID)
+	applyVehUUIDClearOrSet(in.ClearLegalEntity, in.LegalEntityID, &v.LegalEntityID)
+	applyVehUUIDClearOrSet(in.ClearWarehouse, in.WarehouseID, &v.WarehouseID)
+}
+
 func (s *VehicleService) Update(ctx context.Context, id string, in UpdateVehicleInput) (*domain.Vehicle, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
@@ -127,53 +171,7 @@ func (s *VehicleService) Update(ctx context.Context, id string, in UpdateVehicle
 	if err != nil {
 		return nil, ErrNotFound
 	}
-	if in.VIN != nil {
-		existing.VIN = *in.VIN
-	}
-	if in.Make != nil {
-		existing.Make = *in.Make
-	}
-	if in.Model != nil {
-		existing.Model = *in.Model
-	}
-	if in.Year != nil {
-		existing.Year = *in.Year
-	}
-	if in.MileageKm != nil {
-		existing.MileageKm = *in.MileageKm
-	}
-	if in.Price != nil {
-		existing.Price = *in.Price
-	}
-	if in.Status != nil {
-		existing.Status = *in.Status
-	}
-	if in.Color != nil {
-		existing.Color = *in.Color
-	}
-	if in.Notes != nil {
-		existing.Notes = *in.Notes
-	}
-	if in.ClearBrand {
-		existing.BrandID = nil
-	} else if in.BrandID != nil {
-		existing.BrandID = in.BrandID
-	}
-	if in.ClearDealerPoint {
-		existing.DealerPointID = nil
-	} else if in.DealerPointID != nil {
-		existing.DealerPointID = in.DealerPointID
-	}
-	if in.ClearLegalEntity {
-		existing.LegalEntityID = nil
-	} else if in.LegalEntityID != nil {
-		existing.LegalEntityID = in.LegalEntityID
-	}
-	if in.ClearWarehouse {
-		existing.WarehouseID = nil
-	} else if in.WarehouseID != nil {
-		existing.WarehouseID = in.WarehouseID
-	}
+	mergeVehicleUpdateInput(existing, in)
 	existing.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, existing); err != nil {
 		return nil, err

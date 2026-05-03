@@ -202,7 +202,8 @@ test -x "\${SCANNER_HOME}/bin/sonar-scanner"
 cd "\${WORKSPACE}"
 "\${SCANNER_HOME}/bin/sonar-scanner" \\
   -Dsonar.host.url="${env.SONAR_HOST_URL}" \\
-  -Dsonar.token="\${SONAR_TOKEN}" ${params.SONAR_EXTRA_OPTS?.trim() ?: ''}
+  -Dsonar.token="\${SONAR_TOKEN}" \\
+  -Dsonar.scm.revision="\$(git rev-parse HEAD)" ${params.SONAR_EXTRA_OPTS?.trim() ?: ''}
 """
       }
     }

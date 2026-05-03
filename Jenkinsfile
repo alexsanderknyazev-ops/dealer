@@ -6,7 +6,7 @@
 //   2. Go test + coverage — go test, coverage.out.
 //   3. SonarQube — sonar-scanner + Node, токен из credentials.
 //   4. Docker build and push — все 7 сервисов (build/*.Dockerfile), Skopeo push в registry.
-//   5. Deploy to Minikube (опционально) — kubectl apply k8s/dealer-stack.yaml, rollout; при K8S_BOOTSTRAP_DEV_DATA — миграции, сиды, seed-admin.
+//   5. Deploy to Minikube (опционально) — при K8S_DELETE_NS_BEFORE_DEPLOY удаление namespace, apply, rollout; при K8S_BOOTSTRAP_DEV_DATA — миграции, сиды, seed-admin.
 //      Доступ к API: либо kubeconfig на агенте (любой драйвер minikube: qemu2, kvm, docker, …), либо ветка docker exec — только при --driver=docker (контейнер-нода на хосте).
 //
 // Деплой k8s/dealer-stack.yaml поднимает Postgres, Redis, Zookeeper, Kafka и 7 сервисов в namespace dealer (см. параметр K8S_NAMESPACE).
@@ -39,6 +39,11 @@ pipeline {
       name: 'K8S_BOOTSTRAP_DEV_DATA',
       choices: ['true', 'false'],
       description: 'После деплоя: миграции (если нет users), seed_test_data + seed_dealer_brands + seed_parts, /seed-admin (admin@dealer.local / admin123). Только лаборатория; на прод выставьте false. Не видно в UI — первый прогон / Scan Multibranch.'
+    )
+    choice(
+      name: 'K8S_DELETE_NS_BEFORE_DEPLOY',
+      choices: ['true', 'false'],
+      description: 'Перед kubectl apply: удалить namespace K8S_NAMESPACE (чистый деплой, PVC сбрасывается). На общем кластере — false.'
     )
     string(
       name: 'KUBECONFIG_PATH',
@@ -371,6 +376,7 @@ K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
 K8S_DB_HOST='${params.K8S_DB_HOST}'
 K8S_DB_PORT='${params.K8S_DB_PORT}'
 BOOTSTRAP_DEV='${params.K8S_BOOTSTRAP_DEV_DATA ?: "true"}'
+DELETE_NS_BEFORE='${params.K8S_DELETE_NS_BEFORE_DEPLOY ?: "true"}'
 INFRA_DPL=(postgres redis zookeeper kafka)
 SVC_LIST=(auth-service customers-service vehicles-service deals-service parts-service brands-service dealer-points-service)
 
@@ -438,6 +444,14 @@ registry_probe() {
 
 if [ "\$USE_DOCKER_EXEC" = 1 ]; then
   registry_probe
+fi
+
+if [ "\$DELETE_NS_BEFORE" = "true" ]; then
+  echo "=== K8S_DELETE_NS_BEFORE_DEPLOY: удаляю namespace \$NS ==="
+  kctl delete namespace "\$NS" --ignore-not-found --wait=true
+fi
+
+if [ "\$USE_DOCKER_EXEC" = 1 ]; then
   render_stack | docker exec -i -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" apply -f -
 else
   render_stack | "\$KUBECTL" apply -f -

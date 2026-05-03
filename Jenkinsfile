@@ -151,9 +151,21 @@ cd "\${WORKSPACE}"
 export GOMODCACHE="\${WORKSPACE}/.gomodcache"
 export GOCACHE="\${WORKSPACE}/.gocache"
 mkdir -p "\${GOMODCACHE}" "\${GOCACHE}"
-go test ./... \\
-  -coverpkg=github.com/dealer/dealer/pkg/postgres,github.com/dealer/dealer/pkg/redis,github.com/dealer/dealer/pkg/kafka \\
-  -coverprofile=coverage.out -covermode=atomic
+# Корень + каждый модуль из go.work: один go test ./... из корня не включает services/* (отдельные go.mod).
+# Склеиваем coverprofile (mode + строки блоков); без -coverpkg — в отчёт попадают все прогнанные пакеты.
+rm -f coverage.out
+first=1
+for d in . services/auth services/customers services/vehicles services/deals services/parts services/brands services/dealerpoints; do
+  (cd "\${d}" && go test ./... -coverprofile=cov_piece.out -covermode=atomic)
+  if [ "\${first}" -eq 1 ]; then
+    mv "\${d}/cov_piece.out" coverage.out
+    first=0
+  else
+    tail -n +2 "\${d}/cov_piece.out" >> coverage.out
+    rm -f "\${d}/cov_piece.out"
+  fi
+done
+rm -f cov_piece.out
 """
       }
     }

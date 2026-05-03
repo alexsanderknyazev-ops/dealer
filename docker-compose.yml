@@ -51,7 +51,7 @@ services:
   auth-service:
     build:
       context: .
-      dockerfile: build/auth-service.Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "50051:50051"
       - "8080:8080"

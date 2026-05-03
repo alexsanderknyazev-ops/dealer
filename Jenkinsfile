@@ -34,8 +34,8 @@ pipeline {
     )
     string(
       name: 'DOCKERFILE',
-      defaultValue: 'build/auth-service.Dockerfile',
-      description: 'Путь к Dockerfile от корня репозитория (см. build/*.Dockerfile в docker-compose)'
+      defaultValue: 'Dockerfile',
+      description: 'Путь к Dockerfile от корня репозитория (по умолчанию auth-service; остальные: build/*.Dockerfile)'
     )
     // --- Kubernetes / Minikube: включение деплоя, контейнер minikube, registry для pull-манифеста ---
     booleanParam(

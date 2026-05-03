@@ -129,7 +129,9 @@ cd "\${WORKSPACE}"
 export GOMODCACHE="\${WORKSPACE}/.gomodcache"
 export GOCACHE="\${WORKSPACE}/.gocache"
 mkdir -p "\${GOMODCACHE}" "\${GOCACHE}"
-go test ./... -coverprofile=coverage.out -covermode=atomic
+go test ./... \\
+  -coverpkg=github.com/dealer/dealer/pkg/postgres,github.com/dealer/dealer/pkg/redis,github.com/dealer/dealer/pkg/kafka \\
+  -coverprofile=coverage.out -covermode=atomic
 """
       }
     }

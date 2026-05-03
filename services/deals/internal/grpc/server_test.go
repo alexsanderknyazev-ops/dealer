@@ -19,6 +19,11 @@ import (
 	"github.com/dealer/dealer/services/deals/internal/service"
 )
 
+const (
+	testDealAmountStub = "1"
+	testDealStageStub  = "d"
+)
+
 type mockGRPCDeal struct{}
 
 func (mockGRPCDeal) Create(_ context.Context, in service.CreateDealInput) (*domain.Deal, error) {
@@ -31,7 +36,7 @@ func (mockGRPCDeal) Create(_ context.Context, in service.CreateDealInput) (*doma
 func (mockGRPCDeal) Get(_ context.Context, id string) (*domain.Deal, error) {
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
-	return &domain.Deal{ID: uid, CustomerID: uuid.New(), VehicleID: uuid.New(), Amount: "1", Stage: "d", CreatedAt: now, UpdatedAt: now}, nil
+	return &domain.Deal{ID: uid, CustomerID: uuid.New(), VehicleID: uuid.New(), Amount: testDealAmountStub, Stage: testDealStageStub, CreatedAt: now, UpdatedAt: now}, nil
 }
 
 func (mockGRPCDeal) List(context.Context, int32, int32, string, string) ([]*domain.Deal, int32, error) {
@@ -41,7 +46,7 @@ func (mockGRPCDeal) List(context.Context, int32, int32, string, string) ([]*doma
 func (mockGRPCDeal) Update(_ context.Context, id string, _ service.UpdateDealInput) (*domain.Deal, error) {
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
-	return &domain.Deal{ID: uid, CustomerID: uuid.New(), VehicleID: uuid.New(), Amount: "1", Stage: "d", CreatedAt: now, UpdatedAt: now}, nil
+	return &domain.Deal{ID: uid, CustomerID: uuid.New(), VehicleID: uuid.New(), Amount: testDealAmountStub, Stage: testDealStageStub, CreatedAt: now, UpdatedAt: now}, nil
 }
 
 func (mockGRPCDeal) Delete(context.Context, string) error { return nil }
@@ -154,7 +159,7 @@ func TestDealsGRPC_UpdateNF(t *testing.T) {
 	s := grpc.NewServer()
 	dealsv1.RegisterDealsServiceServer(s, NewServer(&stubDealUpdateNF{}))
 	cli := dialDeal(t, s)
-	a := "1"
+	a := testDealAmountStub
 	_, err := cli.UpdateDeal(context.Background(), &dealsv1.UpdateDealRequest{Id: uuid.New().String(), Amount: &a})
 	if err == nil || status.Code(err) != codes.NotFound {
 		t.Fatalf("%v", err)

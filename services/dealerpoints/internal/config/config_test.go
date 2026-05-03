@@ -2,6 +2,12 @@ package config
 
 import "testing"
 
+const (
+	testPostgresDSNOverride = "postgres://x"
+	testJWTSecretOverride   = "j"
+	testHTTPPortOverride    = 7772
+)
+
 func TestLoad_Defaults(t *testing.T) {
 	t.Setenv("DEALER_POINTS_GRPC_PORT", "")
 	c := Load()
@@ -20,10 +26,10 @@ func TestLoad_InvalidPort(t *testing.T) {
 
 func TestLoad_Custom(t *testing.T) {
 	t.Setenv("DEALER_POINTS_HTTP_PORT", "7772")
-	t.Setenv("POSTGRES_DSN", "postgres://x")
-	t.Setenv("JWT_SECRET", "j")
+	t.Setenv("POSTGRES_DSN", testPostgresDSNOverride)
+	t.Setenv("JWT_SECRET", testJWTSecretOverride)
 	c := Load()
-	if c.HTTPPort != 7772 || c.PostgresDSN != "postgres://x" || c.JWTSecret != "j" {
+	if c.HTTPPort != testHTTPPortOverride || c.PostgresDSN != testPostgresDSNOverride || c.JWTSecret != testJWTSecretOverride {
 		t.Fatal(c)
 	}
 }

@@ -16,6 +16,11 @@ import (
 	customersv1 "github.com/dealer/dealer/pkg/pb/customers/v1"
 )
 
+const (
+	testGRPCCustomerName  = "A"
+	testGRPCCustomerEmail = "a@b.c"
+)
+
 type grpcCustomerMock struct{}
 
 func (grpcCustomerMock) Create(_ context.Context, in service.CreateCustomerInput) (*domain.Customer, error) {
@@ -92,9 +97,9 @@ func TestServer_CreateCustomer(t *testing.T) {
 	customersv1.RegisterCustomersServiceServer(s, NewServer(grpcCustomerMock{}))
 	cli := dialTestServer(t, s)
 	resp, err := cli.CreateCustomer(context.Background(), &customersv1.CreateCustomerRequest{
-		Name: "A", Email: "a@b.c",
+		Name: testGRPCCustomerName, Email: testGRPCCustomerEmail,
 	})
-	if err != nil || resp.GetCustomer().GetName() != "A" {
+	if err != nil || resp.GetCustomer().GetName() != testGRPCCustomerName {
 		t.Fatalf("err=%v resp=%v", err, resp)
 	}
 }
@@ -184,7 +189,7 @@ func TestServer_CreateCustomer_Err(t *testing.T) {
 	s := grpc.NewServer()
 	customersv1.RegisterCustomersServiceServer(s, NewServer(&stubCreateErr{}))
 	cli := dialTestServer(t, s)
-	_, err := cli.CreateCustomer(context.Background(), &customersv1.CreateCustomerRequest{Name: "A"})
+	_, err := cli.CreateCustomer(context.Background(), &customersv1.CreateCustomerRequest{Name: testGRPCCustomerName})
 	if err == nil {
 		t.Fatal("want err")
 	}

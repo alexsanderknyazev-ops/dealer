@@ -21,6 +21,14 @@ import (
 	authv1 "github.com/dealer/dealer/pkg/pb/auth/v1"
 )
 
+const (
+	testGRPCJWTSecret       = "s"
+	testGRPCRefreshPrefix   = "rt:"
+	testGRPCRegisterPass    = "password123"
+	testGRPCEmailOK       = "g@grpc.test"
+	testGRPCEmailDup      = "dup@x"
+)
+
 type grpcUserFake struct {
 	byEmail map[string]*domain.User
 	byID    map[uuid.UUID]*domain.User
@@ -80,7 +88,7 @@ func newAuthSvc(t *testing.T) (*service.AuthService, func()) {
 	rdb := redis.NewClient(&redis.Options{Addr: mr.Addr()})
 	repo := &grpcUserFake{byEmail: map[string]*domain.User{}, byID: map[uuid.UUID]*domain.User{}}
 	svc := service.NewAuthService(repo, rdb, nil, service.AuthConfig{
-		JWTSecret: "s", AccessTTL: time.Hour, RefreshTTL: time.Hour, RefreshPrefix: "rt:",
+		JWTSecret: testGRPCJWTSecret, AccessTTL: time.Hour, RefreshTTL: time.Hour, RefreshPrefix: testGRPCRefreshPrefix,
 	})
 	cleanup := func() {
 		_ = rdb.Close()
@@ -109,14 +117,14 @@ func TestAuthGRPC_RegisterLoginRefreshValidate(t *testing.T) {
 	authv1.RegisterAuthServiceServer(s, NewServer(svc))
 	cli := dialAuth(t, s)
 	ctx := context.Background()
-	reg, err := cli.Register(ctx, &authv1.RegisterRequest{Email: "g@grpc.test", Password: "password123", Name: "G"})
+	reg, err := cli.Register(ctx, &authv1.RegisterRequest{Email: testGRPCEmailOK, Password: testGRPCRegisterPass, Name: "G"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if reg.AccessToken == "" || reg.RefreshToken == "" {
 		t.Fatal("tokens")
 	}
-	_, err = cli.Login(ctx, &authv1.LoginRequest{Email: "g@grpc.test", Password: "bad"})
+	_, err = cli.Login(ctx, &authv1.LoginRequest{Email: testGRPCEmailOK, Password: "bad"})
 	if err == nil || status.Code(err) != codes.Unauthenticated {
 		t.Fatalf("login %v", err)
 	}
@@ -150,11 +158,11 @@ func TestAuthGRPC_RegisterDuplicate(t *testing.T) {
 	authv1.RegisterAuthServiceServer(s, NewServer(svc))
 	cli := dialAuth(t, s)
 	ctx := context.Background()
-	_, err := cli.Register(ctx, &authv1.RegisterRequest{Email: "dup@x", Password: "password123", Name: "A"})
+	_, err := cli.Register(ctx, &authv1.RegisterRequest{Email: testGRPCEmailDup, Password: testGRPCRegisterPass, Name: "A"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = cli.Register(ctx, &authv1.RegisterRequest{Email: "dup@x", Password: "password123", Name: "B"})
+	_, err = cli.Register(ctx, &authv1.RegisterRequest{Email: testGRPCEmailDup, Password: testGRPCRegisterPass, Name: "B"})
 	if err == nil || status.Code(err) != codes.AlreadyExists {
 		t.Fatalf("%v", err)
 	}

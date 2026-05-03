@@ -20,6 +20,15 @@ import (
 	"github.com/dealer/dealer/auth-service/internal/service"
 )
 
+const (
+	testJWTSecretHS       = "hs"
+	testJWTRedisPrefix    = "rt:"
+	testRegisterPassword  = "password123"
+	httpAuthBearerSpace   = "Bearer "
+	testSPAIndexHTML      = "<html></html>"
+	testSPAJS             = "//x"
+)
+
 type httpUserFake struct {
 	byEmail map[string]*domain.User
 	byID    map[uuid.UUID]*domain.User
@@ -63,7 +72,7 @@ func testAuthHTTP(t *testing.T) (*http.ServeMux, func()) {
 	rdb := redis.NewClient(&redis.Options{Addr: mr.Addr()})
 	repo := &httpUserFake{byEmail: map[string]*domain.User{}, byID: map[uuid.UUID]*domain.User{}}
 	svc := service.NewAuthService(repo, rdb, nil, service.AuthConfig{
-		JWTSecret: "hs", AccessTTL: time.Hour, RefreshTTL: time.Hour, RefreshPrefix: "rt:",
+		JWTSecret: testJWTSecretHS, AccessTTL: time.Hour, RefreshTTL: time.Hour, RefreshPrefix: testJWTRedisPrefix,
 	})
 	h := NewHandler(svc)
 	mux := http.NewServeMux()
@@ -102,7 +111,7 @@ func TestAuthHTTP_RegisterLoginMe(t *testing.T) {
 			t.Fatal(w.Code)
 		}
 	})
-	body, _ := json.Marshal(map[string]string{"email": "h@http.test", "password": "password123", "name": "H"})
+	body, _ := json.Marshal(map[string]string{"email": "h@http.test", "password": testRegisterPassword, "name": "H"})
 	req := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader(body))
 	setRequestJSONContentType(req)
 	w := httptest.NewRecorder()
@@ -115,7 +124,7 @@ func TestAuthHTTP_RegisterLoginMe(t *testing.T) {
 	at := reg["access_token"].(string)
 
 	req2 := httptest.NewRequest(http.MethodGet, pathAPIMe, nil)
-	req2.Header.Set("Authorization", "Bearer "+at)
+	req2.Header.Set("Authorization", httpAuthBearerSpace+at)
 	w2 := httptest.NewRecorder()
 	mux.ServeHTTP(w2, req2)
 	if w2.Code != http.StatusOK {
@@ -143,7 +152,7 @@ func TestAuthHTTP_RegisterConflict(t *testing.T) {
 	mux, cleanup := testAuthHTTP(t)
 	defer cleanup()
 	regBody := func(email string) []byte {
-		b, _ := json.Marshal(map[string]string{"email": email, "password": "password123", "name": "N"})
+		b, _ := json.Marshal(map[string]string{"email": email, "password": testRegisterPassword, "name": "N"})
 		return b
 	}
 	req := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader(regBody("conf@x")))
@@ -165,7 +174,7 @@ func TestAuthHTTP_RegisterConflict(t *testing.T) {
 func TestAuthHTTP_Refresh(t *testing.T) {
 	mux, cleanup := testAuthHTTP(t)
 	defer cleanup()
-	body, _ := json.Marshal(map[string]string{"email": "r@http.test", "password": "password123", "name": "R"})
+	body, _ := json.Marshal(map[string]string{"email": "r@http.test", "password": testRegisterPassword, "name": "R"})
 	req := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader(body))
 	setRequestJSONContentType(req)
 	w := httptest.NewRecorder()
@@ -201,8 +210,8 @@ func TestAuthHTTP_Refresh(t *testing.T) {
 
 func TestSPAFileServer(t *testing.T) {
 	fs := fstest.MapFS{
-		"index.html": &fstest.MapFile{Data: []byte("<html></html>")},
-		"app.js":     &fstest.MapFile{Data: []byte("//x")},
+		"index.html": &fstest.MapFile{Data: []byte(testSPAIndexHTML)},
+		"app.js":     &fstest.MapFile{Data: []byte(testSPAJS)},
 	}
 	h := SPAFileServer(http.FS(fs))
 
@@ -213,7 +222,7 @@ func TestSPAFileServer(t *testing.T) {
 			t.Fatal(w.Code)
 		}
 		b, _ := io.ReadAll(w.Body)
-		if string(b) != "<html></html>" {
+		if string(b) != testSPAIndexHTML {
 			t.Fatal(string(b))
 		}
 	})

@@ -18,6 +18,13 @@ import (
 	"github.com/dealer/dealer/customers-service/internal/service"
 )
 
+const (
+	testJWTHMACSecret   = "sec"
+	testJWTUserID       = "u"
+	testJWTUserEmail    = "e@e"
+	httpAuthBearerSpace = "Bearer "
+)
+
 func assertHTTPStatus(t *testing.T, w *httptest.ResponseRecorder, want int) {
 	t.Helper()
 	if w.Code != want {
@@ -101,19 +108,19 @@ func (m *mockCustomerAPI) Delete(_ context.Context, id string) error {
 
 func bearer(secret string) string {
 	claims := &jwt.Claims{
-		UserID: "u",
-		Email:  "e@e",
+		UserID: testJWTUserID,
+		Email:  testJWTUserEmail,
 		RegisteredClaims: jwtlib.RegisteredClaims{
 			ExpiresAt: jwtlib.NewNumericDate(time.Now().Add(time.Hour)),
 		},
 	}
 	tok := jwtlib.NewWithClaims(jwtlib.SigningMethodHS256, claims)
 	s, _ := tok.SignedString([]byte(secret))
-	return "Bearer " + s
+	return httpAuthBearerSpace + s
 }
 
 func TestHandler_Options(t *testing.T) {
-	h := NewHandler(&mockCustomerAPI{}, "sec")
+	h := NewHandler(&mockCustomerAPI{}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodOptions, pathAPICustomers, nil)
@@ -123,7 +130,7 @@ func TestHandler_Options(t *testing.T) {
 }
 
 func TestHandler_List_Unauthorized(t *testing.T) {
-	h := NewHandler(&mockCustomerAPI{}, "sec")
+	h := NewHandler(&mockCustomerAPI{}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodGet, pathAPICustomers, nil)
@@ -133,47 +140,47 @@ func TestHandler_List_Unauthorized(t *testing.T) {
 }
 
 func TestHandler_List_ServiceError(t *testing.T) {
-	h := NewHandler(&mockCustomerAPI{listErr: errors.New("db")}, "sec")
+	h := NewHandler(&mockCustomerAPI{listErr: errors.New("db")}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodGet, pathAPICustomers, nil)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusInternalServerError)
 }
 
 func TestHandler_List_OK(t *testing.T) {
-	h := NewHandler(&mockCustomerAPI{list: []*domain.Customer{}, total: 0}, "sec")
+	h := NewHandler(&mockCustomerAPI{list: []*domain.Customer{}, total: 0}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodGet, pathAPICustomers+"?limit=5&offset=0", nil)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatusBody(t, w, http.StatusOK)
 }
 
 func TestHandler_Create_BadBody(t *testing.T) {
-	h := NewHandler(&mockCustomerAPI{}, "sec")
+	h := NewHandler(&mockCustomerAPI{}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader([]byte("{")))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusBadRequest)
 }
 
 func TestHandler_Create_NameRequired(t *testing.T) {
-	h := NewHandler(&mockCustomerAPI{}, "sec")
+	h := NewHandler(&mockCustomerAPI{}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	body, _ := json.Marshal(map[string]string{"email": "a@b.c"})
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader(body))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusBadRequest)
@@ -181,11 +188,11 @@ func TestHandler_Create_NameRequired(t *testing.T) {
 
 func TestHandler_Get_NotFound(t *testing.T) {
 	nf := "00000000-0000-0000-0000-000000000001"
-	h := NewHandler(&mockCustomerAPI{notFoundID: nf}, "sec")
+	h := NewHandler(&mockCustomerAPI{notFoundID: nf}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodGet, pathCustomerByID(nf), nil)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusNotFound)
@@ -193,11 +200,11 @@ func TestHandler_Get_NotFound(t *testing.T) {
 
 func TestHandler_Get_InternalErr(t *testing.T) {
 	id := uuid.New().String()
-	h := NewHandler(&mockCustomerAPI{getErr: errors.New("db")}, "sec")
+	h := NewHandler(&mockCustomerAPI{getErr: errors.New("db")}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodGet, pathCustomerByID(id), nil)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusInternalServerError)
@@ -205,37 +212,37 @@ func TestHandler_Get_InternalErr(t *testing.T) {
 
 func TestHandler_Get_OK(t *testing.T) {
 	id := uuid.New().String()
-	h := NewHandler(&mockCustomerAPI{}, "sec")
+	h := NewHandler(&mockCustomerAPI{}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodGet, pathCustomerByID(id), nil)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatusBody(t, w, http.StatusOK)
 }
 
 func TestHandler_Create_ServiceError(t *testing.T) {
-	h := NewHandler(&mockCustomerAPI{createErr: errors.New("db")}, "sec")
+	h := NewHandler(&mockCustomerAPI{createErr: errors.New("db")}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	body, _ := json.Marshal(map[string]string{"name": "A", "email": "a@b.c"})
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader(body))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusInternalServerError)
 }
 
 func TestHandler_Create_OK(t *testing.T) {
-	h := NewHandler(&mockCustomerAPI{}, "sec")
+	h := NewHandler(&mockCustomerAPI{}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	body, _ := json.Marshal(map[string]string{"name": "A", "email": "a@b.c"})
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader(body))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusOK)
@@ -243,13 +250,13 @@ func TestHandler_Create_OK(t *testing.T) {
 
 func TestHandler_Update_NotFound(t *testing.T) {
 	nf := "00000000-0000-0000-0000-000000000002"
-	h := NewHandler(&mockCustomerAPI{notFoundID: nf}, "sec")
+	h := NewHandler(&mockCustomerAPI{notFoundID: nf}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	body, _ := json.Marshal(map[string]string{"name": "Z"})
 	req := httptest.NewRequest(http.MethodPut, pathCustomerByID(nf), bytes.NewReader(body))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusNotFound)
@@ -257,12 +264,12 @@ func TestHandler_Update_NotFound(t *testing.T) {
 
 func TestHandler_Update_BadBody(t *testing.T) {
 	id := uuid.New().String()
-	h := NewHandler(&mockCustomerAPI{}, "sec")
+	h := NewHandler(&mockCustomerAPI{}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodPut, pathCustomerByID(id), bytes.NewReader([]byte("x")))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusBadRequest)
@@ -270,11 +277,11 @@ func TestHandler_Update_BadBody(t *testing.T) {
 
 func TestHandler_Delete_NotFound(t *testing.T) {
 	nf := "00000000-0000-0000-0000-000000000003"
-	h := NewHandler(&mockCustomerAPI{notFoundID: nf}, "sec")
+	h := NewHandler(&mockCustomerAPI{notFoundID: nf}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodDelete, pathCustomerByID(nf), nil)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusNotFound)
@@ -282,18 +289,18 @@ func TestHandler_Delete_NotFound(t *testing.T) {
 
 func TestHandler_Update_Delete_NoContent(t *testing.T) {
 	id := uuid.New().String()
-	h := NewHandler(&mockCustomerAPI{}, "sec")
+	h := NewHandler(&mockCustomerAPI{}, testJWTHMACSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	body, _ := json.Marshal(map[string]string{"name": "Z"})
 	req := httptest.NewRequest(http.MethodPut, pathCustomerByID(id), bytes.NewReader(body))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer("sec"))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusOK)
 	req2 := httptest.NewRequest(http.MethodDelete, pathCustomerByID(id), nil)
-	req2.Header.Set("Authorization", bearer("sec"))
+	req2.Header.Set("Authorization", bearer(testJWTHMACSecret))
 	w2 := httptest.NewRecorder()
 	mux.ServeHTTP(w2, req2)
 	assertHTTPStatus(t, w2, http.StatusNoContent)

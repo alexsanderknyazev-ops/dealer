@@ -18,6 +18,15 @@ import (
 	"github.com/dealer/dealer/services/deals/internal/service"
 )
 
+const (
+	testJWTSecret       = "s"
+	testBearerUserID    = "u"
+	testBearerEmail     = "e"
+	httpAuthBearerSpace = "Bearer "
+	testDealAmountStub  = "1"
+	testDealStageStub   = "d"
+)
+
 type mockDeal struct {
 	listErr   error
 	createErr error
@@ -45,7 +54,7 @@ func (m *mockDeal) Get(_ context.Context, id string) (*domain.Deal, error) {
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
 	cid, vid := uuid.New(), uuid.New()
-	return &domain.Deal{ID: uid, CustomerID: cid, VehicleID: vid, Amount: "1", Stage: "d", CreatedAt: now, UpdatedAt: now}, nil
+	return &domain.Deal{ID: uid, CustomerID: cid, VehicleID: vid, Amount: testDealAmountStub, Stage: testDealStageStub, CreatedAt: now, UpdatedAt: now}, nil
 }
 
 func (m *mockDeal) List(_ context.Context, _, _ int32, _, _ string) ([]*domain.Deal, int32, error) {
@@ -62,7 +71,7 @@ func (m *mockDeal) Update(_ context.Context, id string, in service.UpdateDealInp
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
 	cid, vid := uuid.New(), uuid.New()
-	d := &domain.Deal{ID: uid, CustomerID: cid, VehicleID: vid, Amount: "1", Stage: "d", CreatedAt: now, UpdatedAt: now}
+	d := &domain.Deal{ID: uid, CustomerID: cid, VehicleID: vid, Amount: testDealAmountStub, Stage: testDealStageStub, CreatedAt: now, UpdatedAt: now}
 	if in.Amount != nil {
 		d.Amount = *in.Amount
 	}
@@ -77,16 +86,15 @@ func (m *mockDeal) Delete(_ context.Context, id string) error {
 }
 
 func bearerDeal(secret string) string {
-	cl := &jwt.Claims{UserID: "u", Email: "e", RegisteredClaims: jwtlib.RegisteredClaims{
+	cl := &jwt.Claims{UserID: testBearerUserID, Email: testBearerEmail, RegisteredClaims: jwtlib.RegisteredClaims{
 		ExpiresAt: jwtlib.NewNumericDate(time.Now().Add(time.Hour)),
 	}}
 	s, _ := jwtlib.NewWithClaims(jwtlib.SigningMethodHS256, cl).SignedString([]byte(secret))
-	return "Bearer " + s
+	return httpAuthBearerSpace + s
 }
 
 func TestDealsHTTP(t *testing.T) {
-	sec := "s"
-	h := NewHandler(&mockDeal{}, sec)
+	h := NewHandler(&mockDeal{}, testJWTSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
@@ -106,7 +114,7 @@ func TestDealsHTTP(t *testing.T) {
 	})
 	t.Run("list", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, pathAPIDeals, nil)
-		req.Header.Set("Authorization", bearerDeal(sec))
+		req.Header.Set("Authorization", bearerDeal(testJWTSecret))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusOK {
@@ -116,7 +124,7 @@ func TestDealsHTTP(t *testing.T) {
 	t.Run("create_missing_ids", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, pathAPIDeals, bytes.NewReader([]byte("{}")))
 		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", bearerDeal(sec))
+		req.Header.Set("Authorization", bearerDeal(testJWTSecret))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusBadRequest {
@@ -128,7 +136,7 @@ func TestDealsHTTP(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"customer_id": cid, "vehicle_id": vid, "amount": "10"})
 		req := httptest.NewRequest(http.MethodPost, pathAPIDeals, bytes.NewReader(body))
 		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", bearerDeal(sec))
+		req.Header.Set("Authorization", bearerDeal(testJWTSecret))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusOK {
@@ -136,11 +144,11 @@ func TestDealsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("list_err", func(t *testing.T) {
-		h2 := NewHandler(&mockDeal{listErr: errors.New("db")}, sec)
+		h2 := NewHandler(&mockDeal{listErr: errors.New("db")}, testJWTSecret)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		req := httptest.NewRequest(http.MethodGet, pathAPIDeals, nil)
-		req.Header.Set("Authorization", bearerDeal(sec))
+		req.Header.Set("Authorization", bearerDeal(testJWTSecret))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
 		if w.Code != http.StatusInternalServerError {
@@ -149,11 +157,11 @@ func TestDealsHTTP(t *testing.T) {
 	})
 	nf := "00000000-0000-0000-0000-000000000088"
 	t.Run("get_nf", func(t *testing.T) {
-		h2 := NewHandler(&mockDeal{nf: nf}, sec)
+		h2 := NewHandler(&mockDeal{nf: nf}, testJWTSecret)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		req := httptest.NewRequest(http.MethodGet, pathDealByID(nf), nil)
-		req.Header.Set("Authorization", bearerDeal(sec))
+		req.Header.Set("Authorization", bearerDeal(testJWTSecret))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
 		if w.Code != http.StatusNotFound {
@@ -165,14 +173,14 @@ func TestDealsHTTP(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"amount": "99"})
 		req := httptest.NewRequest(http.MethodPut, pathDealByID(id), bytes.NewReader(body))
 		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", bearerDeal(sec))
+		req.Header.Set("Authorization", bearerDeal(testJWTSecret))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusOK {
 			t.Fatal(w.Code)
 		}
 		req2 := httptest.NewRequest(http.MethodDelete, pathDealByID(id), nil)
-		req2.Header.Set("Authorization", bearerDeal(sec))
+		req2.Header.Set("Authorization", bearerDeal(testJWTSecret))
 		w2 := httptest.NewRecorder()
 		mux.ServeHTTP(w2, req2)
 		if w2.Code != http.StatusNoContent {
@@ -180,14 +188,14 @@ func TestDealsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("create_err", func(t *testing.T) {
-		h2 := NewHandler(&mockDeal{createErr: errors.New("db")}, sec)
+		h2 := NewHandler(&mockDeal{createErr: errors.New("db")}, testJWTSecret)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		cid, vid := uuid.New().String(), uuid.New().String()
 		body, _ := json.Marshal(map[string]string{"customer_id": cid, "vehicle_id": vid})
 		req := httptest.NewRequest(http.MethodPost, pathAPIDeals, bytes.NewReader(body))
 		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", bearerDeal(sec))
+		req.Header.Set("Authorization", bearerDeal(testJWTSecret))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
 		if w.Code != http.StatusBadRequest {
@@ -195,11 +203,11 @@ func TestDealsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("get_internal", func(t *testing.T) {
-		h2 := NewHandler(&mockDeal{getErr: errors.New("db")}, sec)
+		h2 := NewHandler(&mockDeal{getErr: errors.New("db")}, testJWTSecret)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		req := httptest.NewRequest(http.MethodGet, pathDealByID(uuid.New().String()), nil)
-		req.Header.Set("Authorization", bearerDeal(sec))
+		req.Header.Set("Authorization", bearerDeal(testJWTSecret))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
 		if w.Code != http.StatusInternalServerError {
@@ -209,7 +217,7 @@ func TestDealsHTTP(t *testing.T) {
 	t.Run("put_bad_json", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPut, pathDealByID(id), bytes.NewReader([]byte("x")))
 		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", bearerDeal(sec))
+		req.Header.Set("Authorization", bearerDeal(testJWTSecret))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusBadRequest {
@@ -217,11 +225,11 @@ func TestDealsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("delete_nf", func(t *testing.T) {
-		h2 := NewHandler(&mockDeal{nf: nf}, sec)
+		h2 := NewHandler(&mockDeal{nf: nf}, testJWTSecret)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		req := httptest.NewRequest(http.MethodDelete, pathDealByID(nf), nil)
-		req.Header.Set("Authorization", bearerDeal(sec))
+		req.Header.Set("Authorization", bearerDeal(testJWTSecret))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
 		if w.Code != http.StatusNotFound {

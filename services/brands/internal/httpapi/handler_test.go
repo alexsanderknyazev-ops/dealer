@@ -18,6 +18,15 @@ import (
 	"github.com/dealer/dealer/services/brands/internal/service"
 )
 
+const (
+	testJWTSecret          = "s"
+	testBearerUserID       = "u"
+	testBearerEmail        = "e"
+	httpAuthBearerSpace    = "Bearer "
+	testBrandNameFromGet   = "B"
+	testBrandNameDefault   = "x"
+)
+
 type mockBrand struct {
 	list      []*domain.Brand
 	total     int32
@@ -44,7 +53,7 @@ func (m *mockBrand) Get(_ context.Context, id string) (*domain.Brand, error) {
 	}
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
-	return &domain.Brand{ID: uid, Name: "B", CreatedAt: now, UpdatedAt: now}, nil
+	return &domain.Brand{ID: uid, Name: testBrandNameFromGet, CreatedAt: now, UpdatedAt: now}, nil
 }
 
 func (m *mockBrand) List(_ context.Context, _, _ int32, _ string) ([]*domain.Brand, int32, error) {
@@ -60,7 +69,7 @@ func (m *mockBrand) Update(_ context.Context, id string, name *string) (*domain.
 	}
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
-	b := &domain.Brand{ID: uid, Name: "x", CreatedAt: now, UpdatedAt: now}
+	b := &domain.Brand{ID: uid, Name: testBrandNameDefault, CreatedAt: now, UpdatedAt: now}
 	if name != nil {
 		b.Name = *name
 	}
@@ -75,16 +84,15 @@ func (m *mockBrand) Delete(_ context.Context, id string) error {
 }
 
 func tok(secret string) string {
-	cl := &jwt.Claims{UserID: "u", Email: "e", RegisteredClaims: jwtlib.RegisteredClaims{
+	cl := &jwt.Claims{UserID: testBearerUserID, Email: testBearerEmail, RegisteredClaims: jwtlib.RegisteredClaims{
 		ExpiresAt: jwtlib.NewNumericDate(time.Now().Add(time.Hour)),
 	}}
 	s, _ := jwtlib.NewWithClaims(jwtlib.SigningMethodHS256, cl).SignedString([]byte(secret))
-	return "Bearer " + s
+	return httpAuthBearerSpace + s
 }
 
 func TestBrandsHTTP(t *testing.T) {
-	sec := "s"
-	h := NewHandler(&mockBrand{list: []*domain.Brand{}, total: 0}, sec)
+	h := NewHandler(&mockBrand{list: []*domain.Brand{}, total: 0}, testJWTSecret)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
@@ -104,7 +112,7 @@ func TestBrandsHTTP(t *testing.T) {
 	})
 	t.Run("list", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, pathAPIBrands, nil)
-		req.Header.Set("Authorization", tok(sec))
+		req.Header.Set("Authorization", tok(testJWTSecret))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusOK {
@@ -114,7 +122,7 @@ func TestBrandsHTTP(t *testing.T) {
 	t.Run("create_bad", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, pathAPIBrands, bytes.NewReader([]byte("{}")))
 		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", tok(sec))
+		req.Header.Set("Authorization", tok(testJWTSecret))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusBadRequest {
@@ -125,7 +133,7 @@ func TestBrandsHTTP(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"name": "  X  "})
 		req := httptest.NewRequest(http.MethodPost, pathAPIBrands, bytes.NewReader(body))
 		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", tok(sec))
+		req.Header.Set("Authorization", tok(testJWTSecret))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusOK {
@@ -133,11 +141,11 @@ func TestBrandsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("list_err", func(t *testing.T) {
-		h2 := NewHandler(&mockBrand{listErr: errors.New("db")}, sec)
+		h2 := NewHandler(&mockBrand{listErr: errors.New("db")}, testJWTSecret)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		req := httptest.NewRequest(http.MethodGet, pathAPIBrands, nil)
-		req.Header.Set("Authorization", tok(sec))
+		req.Header.Set("Authorization", tok(testJWTSecret))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
 		if w.Code != http.StatusInternalServerError {
@@ -146,11 +154,11 @@ func TestBrandsHTTP(t *testing.T) {
 	})
 	nf := "00000000-0000-0000-0000-000000000077"
 	t.Run("get_nf", func(t *testing.T) {
-		h2 := NewHandler(&mockBrand{nf: nf}, sec)
+		h2 := NewHandler(&mockBrand{nf: nf}, testJWTSecret)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		req := httptest.NewRequest(http.MethodGet, pathBrandByID(nf), nil)
-		req.Header.Set("Authorization", tok(sec))
+		req.Header.Set("Authorization", tok(testJWTSecret))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
 		if w.Code != http.StatusNotFound {
@@ -160,7 +168,7 @@ func TestBrandsHTTP(t *testing.T) {
 	id := uuid.New().String()
 	t.Run("get_ok", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, pathBrandByID(id), nil)
-		req.Header.Set("Authorization", tok(sec))
+		req.Header.Set("Authorization", tok(testJWTSecret))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusOK {
@@ -168,13 +176,13 @@ func TestBrandsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("update_nf", func(t *testing.T) {
-		h2 := NewHandler(&mockBrand{nf: nf}, sec)
+		h2 := NewHandler(&mockBrand{nf: nf}, testJWTSecret)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		body, _ := json.Marshal(map[string]string{"name": "Z"})
 		req := httptest.NewRequest(http.MethodPut, pathBrandByID(nf), bytes.NewReader(body))
 		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", tok(sec))
+		req.Header.Set("Authorization", tok(testJWTSecret))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
 		if w.Code != http.StatusNotFound {
@@ -182,11 +190,11 @@ func TestBrandsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("delete_nf", func(t *testing.T) {
-		h2 := NewHandler(&mockBrand{nf: nf}, sec)
+		h2 := NewHandler(&mockBrand{nf: nf}, testJWTSecret)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		req := httptest.NewRequest(http.MethodDelete, pathBrandByID(nf), nil)
-		req.Header.Set("Authorization", tok(sec))
+		req.Header.Set("Authorization", tok(testJWTSecret))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
 		if w.Code != http.StatusNotFound {
@@ -194,13 +202,13 @@ func TestBrandsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("create_svc_err", func(t *testing.T) {
-		h2 := NewHandler(&mockBrand{createErr: errors.New("db")}, sec)
+		h2 := NewHandler(&mockBrand{createErr: errors.New("db")}, testJWTSecret)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		body, _ := json.Marshal(map[string]string{"name": "A"})
 		req := httptest.NewRequest(http.MethodPost, pathAPIBrands, bytes.NewReader(body))
 		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", tok(sec))
+		req.Header.Set("Authorization", tok(testJWTSecret))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
 		if w.Code != http.StatusInternalServerError {
@@ -211,14 +219,14 @@ func TestBrandsHTTP(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"name": "Z"})
 		req := httptest.NewRequest(http.MethodPut, pathBrandByID(id), bytes.NewReader(body))
 		setRequestJSONContentType(req)
-		req.Header.Set("Authorization", tok(sec))
+		req.Header.Set("Authorization", tok(testJWTSecret))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusOK {
 			t.Fatal(w.Code)
 		}
 		req2 := httptest.NewRequest(http.MethodDelete, pathBrandByID(id), nil)
-		req2.Header.Set("Authorization", tok(sec))
+		req2.Header.Set("Authorization", tok(testJWTSecret))
 		w2 := httptest.NewRecorder()
 		mux.ServeHTTP(w2, req2)
 		if w2.Code != http.StatusNoContent {
@@ -226,11 +234,11 @@ func TestBrandsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("get_internal", func(t *testing.T) {
-		h2 := NewHandler(&mockBrand{getErr: errors.New("db")}, sec)
+		h2 := NewHandler(&mockBrand{getErr: errors.New("db")}, testJWTSecret)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		req := httptest.NewRequest(http.MethodGet, pathBrandByID(uuid.New().String()), nil)
-		req.Header.Set("Authorization", tok(sec))
+		req.Header.Set("Authorization", tok(testJWTSecret))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
 		if w.Code != http.StatusInternalServerError {

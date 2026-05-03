@@ -19,11 +19,19 @@ import (
 	vehiclesv1 "github.com/dealer/dealer/pkg/pb/vehicles/v1"
 )
 
+const (
+	testVehDefaultStatus = "available"
+	testVehStubVIN       = "v"
+	testVehStubMake      = "m"
+	testVehStubYear      = int32(1)
+	testVehStubStatus    = "a"
+)
+
 func testVehicleFromCreateInput(in service.CreateVehicleInput) *domain.Vehicle {
 	now := time.Now().UTC()
 	st := in.Status
 	if st == "" {
-		st = "available"
+		st = testVehDefaultStatus
 	}
 	return &domain.Vehicle{
 		ID: uuid.New(), VIN: in.VIN, Make: in.Make, Model: in.Model, Year: in.Year, MileageKm: in.MileageKm, Price: in.Price, Status: st,
@@ -41,7 +49,7 @@ func (mockGRPCVeh) Create(_ context.Context, in service.CreateVehicleInput) (*do
 func (mockGRPCVeh) Get(_ context.Context, id string) (*domain.Vehicle, error) {
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
-	return &domain.Vehicle{ID: uid, VIN: "v", Make: "m", Model: "m", Year: 1, Status: "a", CreatedAt: now, UpdatedAt: now}, nil
+	return &domain.Vehicle{ID: uid, VIN: testVehStubVIN, Make: testVehStubMake, Model: testVehStubMake, Year: testVehStubYear, Status: testVehStubStatus, CreatedAt: now, UpdatedAt: now}, nil
 }
 
 func (mockGRPCVeh) List(context.Context, domain.VehicleListFilter) ([]*domain.Vehicle, int32, error) {
@@ -51,7 +59,7 @@ func (mockGRPCVeh) List(context.Context, domain.VehicleListFilter) ([]*domain.Ve
 func (mockGRPCVeh) Update(_ context.Context, id string, _ service.UpdateVehicleInput) (*domain.Vehicle, error) {
 	uid, _ := uuid.Parse(id)
 	now := time.Now().UTC()
-	return &domain.Vehicle{ID: uid, VIN: "v", Make: "m", Model: "m", Year: 1, Status: "a", CreatedAt: now, UpdatedAt: now}, nil
+	return &domain.Vehicle{ID: uid, VIN: testVehStubVIN, Make: testVehStubMake, Model: testVehStubMake, Year: testVehStubYear, Status: testVehStubStatus, CreatedAt: now, UpdatedAt: now}, nil
 }
 
 func (mockGRPCVeh) Delete(context.Context, string) error { return nil }
@@ -244,7 +252,7 @@ func (stubVehProto) Get(_ context.Context, id string) (*domain.Vehicle, error) {
 	b, d, l, w := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 	now := time.Now().UTC()
 	return &domain.Vehicle{
-		ID: uid, VIN: "v", Make: "m", Model: "m", Year: 1, Status: "a",
+		ID: uid, VIN: testVehStubVIN, Make: testVehStubMake, Model: testVehStubMake, Year: testVehStubYear, Status: testVehStubStatus,
 		BrandID: &b, DealerPointID: &d, LegalEntityID: &l, WarehouseID: &w,
 		CreatedAt: now, UpdatedAt: now,
 	}, nil

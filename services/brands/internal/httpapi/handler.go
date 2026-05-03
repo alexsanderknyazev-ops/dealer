@@ -13,11 +13,11 @@ import (
 )
 
 type Handler struct {
-	svc       *service.BrandService
+	svc       service.BrandAPI
 	jwtSecret string
 }
 
-func NewHandler(svc *service.BrandService, jwtSecret string) *Handler {
+func NewHandler(svc service.BrandAPI, jwtSecret string) *Handler {
 	return &Handler{svc: svc, jwtSecret: jwtSecret}
 }
 

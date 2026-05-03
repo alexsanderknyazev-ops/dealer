@@ -9,7 +9,6 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/dealer/dealer/services/parts/internal/domain"
-	"github.com/dealer/dealer/services/parts/internal/repository"
 )
 
 var ErrNotFound = errors.New("part not found")
@@ -21,13 +20,35 @@ type StockRow struct {
 	Quantity    int32
 }
 
-type PartService struct {
-	repo       *repository.PartRepository
-	folderRepo *repository.FolderRepository
-	stockRepo  *repository.PartStockRepository
+type partRepository interface {
+	Create(ctx context.Context, p *domain.Part) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Part, error)
+	List(ctx context.Context, limit, offset int32, search, categoryFilter string, folderID, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) ([]*domain.Part, int32, error)
+	Update(ctx context.Context, p *domain.Part) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-func NewPartService(repo *repository.PartRepository, folderRepo *repository.FolderRepository, stockRepo *repository.PartStockRepository) *PartService {
+type folderRepository interface {
+	Create(ctx context.Context, f *domain.PartFolder) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.PartFolder, error)
+	ListByParent(ctx context.Context, parentID *uuid.UUID) ([]*domain.PartFolder, error)
+	Update(ctx context.Context, f *domain.PartFolder) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+type partStockRepository interface {
+	ListByPart(ctx context.Context, partID uuid.UUID) ([]*domain.PartStock, error)
+	Upsert(ctx context.Context, partID, warehouseID uuid.UUID, quantity int32) error
+	ReplaceForPart(ctx context.Context, partID uuid.UUID, rows []struct{ WarehouseID uuid.UUID; Quantity int32 }) error
+}
+
+type PartService struct {
+	repo       partRepository
+	folderRepo folderRepository
+	stockRepo  partStockRepository
+}
+
+func NewPartService(repo partRepository, folderRepo folderRepository, stockRepo partStockRepository) *PartService {
 	return &PartService{repo: repo, folderRepo: folderRepo, stockRepo: stockRepo}
 }
 

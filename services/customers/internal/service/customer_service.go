@@ -9,18 +9,36 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/dealer/dealer/customers-service/internal/domain"
-	"github.com/dealer/dealer/customers-service/internal/repository"
 )
 
 var ErrNotFound = errors.New("customer not found")
 
-type CustomerService struct {
-	repo *repository.CustomerRepository
+// CustomerAPI — контракт для HTTP/gRPC (моки в тестах).
+type CustomerAPI interface {
+	Create(ctx context.Context, name, email, phone, customerType, inn, address, notes string) (*domain.Customer, error)
+	Get(ctx context.Context, id string) (*domain.Customer, error)
+	List(ctx context.Context, limit, offset int32, search string) ([]*domain.Customer, int32, error)
+	Update(ctx context.Context, id string, name, email, phone, customerType, inn, address, notes *string) (*domain.Customer, error)
+	Delete(ctx context.Context, id string) error
 }
 
-func NewCustomerService(repo *repository.CustomerRepository) *CustomerService {
+type customerRepository interface {
+	Create(ctx context.Context, c *domain.Customer) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Customer, error)
+	List(ctx context.Context, limit, offset int32, search string) ([]*domain.Customer, int32, error)
+	Update(ctx context.Context, c *domain.Customer) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+type CustomerService struct {
+	repo customerRepository
+}
+
+func NewCustomerService(repo customerRepository) *CustomerService {
 	return &CustomerService{repo: repo}
 }
+
+var _ CustomerAPI = (*CustomerService)(nil)
 
 func (s *CustomerService) Create(ctx context.Context, name, email, phone, customerType, inn, address, notes string) (*domain.Customer, error) {
 	if customerType == "" {

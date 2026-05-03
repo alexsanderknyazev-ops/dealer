@@ -14,10 +14,10 @@ import (
 
 type Server struct {
 	vehiclesv1.UnimplementedVehiclesServiceServer
-	svc *service.VehicleService
+	svc service.VehicleAPI
 }
 
-func NewServer(svc *service.VehicleService) *Server {
+func NewServer(svc service.VehicleAPI) *Server {
 	return &Server{svc: svc}
 }
 

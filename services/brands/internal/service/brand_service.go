@@ -9,18 +9,36 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/dealer/dealer/services/brands/internal/domain"
-	"github.com/dealer/dealer/services/brands/internal/repository"
 )
 
 var ErrNotFound = errors.New("brand not found")
 
-type BrandService struct {
-	repo *repository.BrandRepository
+// BrandAPI — для HTTP/gRPC и тестов.
+type BrandAPI interface {
+	Create(ctx context.Context, name string) (*domain.Brand, error)
+	Get(ctx context.Context, id string) (*domain.Brand, error)
+	List(ctx context.Context, limit, offset int32, search string) ([]*domain.Brand, int32, error)
+	Update(ctx context.Context, id string, name *string) (*domain.Brand, error)
+	Delete(ctx context.Context, id string) error
 }
 
-func NewBrandService(repo *repository.BrandRepository) *BrandService {
+type brandRepository interface {
+	Create(ctx context.Context, b *domain.Brand) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Brand, error)
+	List(ctx context.Context, limit, offset int32, search string) ([]*domain.Brand, int32, error)
+	Update(ctx context.Context, b *domain.Brand) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+type BrandService struct {
+	repo brandRepository
+}
+
+func NewBrandService(repo brandRepository) *BrandService {
 	return &BrandService{repo: repo}
 }
+
+var _ BrandAPI = (*BrandService)(nil)
 
 func (s *BrandService) Create(ctx context.Context, name string) (*domain.Brand, error) {
 	now := time.Now().UTC()

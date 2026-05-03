@@ -9,7 +9,6 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/dealer/dealer/services/dealerpoints/internal/domain"
-	"github.com/dealer/dealer/services/dealerpoints/internal/repository"
 )
 
 var (
@@ -18,16 +17,43 @@ var (
 	ErrWarehouseNotFound   = errors.New("warehouse not found")
 )
 
+type dealerPointRepository interface {
+	Create(ctx context.Context, d *domain.DealerPoint) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.DealerPoint, error)
+	List(ctx context.Context, limit, offset int32, search string) ([]*domain.DealerPoint, int32, error)
+	Update(ctx context.Context, d *domain.DealerPoint) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+type legalEntityRepository interface {
+	Create(ctx context.Context, e *domain.LegalEntity) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.LegalEntity, error)
+	List(ctx context.Context, limit, offset int32, search string) ([]*domain.LegalEntity, int32, error)
+	ListByDealerPoint(ctx context.Context, dealerPointID uuid.UUID, limit, offset int32) ([]*domain.LegalEntity, int32, error)
+	Update(ctx context.Context, e *domain.LegalEntity) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	LinkToDealerPoint(ctx context.Context, dealerPointID, legalEntityID uuid.UUID) error
+	UnlinkFromDealerPoint(ctx context.Context, dealerPointID, legalEntityID uuid.UUID) error
+}
+
+type warehouseRepository interface {
+	Create(ctx context.Context, w *domain.Warehouse) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Warehouse, error)
+	List(ctx context.Context, limit, offset int32, dealerPointID, legalEntityID *uuid.UUID, typeFilter string) ([]*domain.Warehouse, int32, error)
+	Update(ctx context.Context, w *domain.Warehouse) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
 type DealerPointsService struct {
-	dpRepo *repository.DealerPointRepository
-	leRepo *repository.LegalEntityRepository
-	whRepo *repository.WarehouseRepository
+	dpRepo dealerPointRepository
+	leRepo legalEntityRepository
+	whRepo warehouseRepository
 }
 
 func NewDealerPointsService(
-	dpRepo *repository.DealerPointRepository,
-	leRepo *repository.LegalEntityRepository,
-	whRepo *repository.WarehouseRepository,
+	dpRepo dealerPointRepository,
+	leRepo legalEntityRepository,
+	whRepo warehouseRepository,
 ) *DealerPointsService {
 	return &DealerPointsService{dpRepo: dpRepo, leRepo: leRepo, whRepo: whRepo}
 }

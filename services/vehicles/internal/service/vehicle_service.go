@@ -9,16 +9,32 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/dealer/dealer/services/vehicles/internal/domain"
-	"github.com/dealer/dealer/services/vehicles/internal/repository"
 )
 
 var ErrNotFound = errors.New("vehicle not found")
 
-type VehicleService struct {
-	repo *repository.VehicleRepository
+type vehicleRepository interface {
+	Create(ctx context.Context, v *domain.Vehicle) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Vehicle, error)
+	List(ctx context.Context, limit, offset int32, search, statusFilter string, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) ([]*domain.Vehicle, int32, error)
+	Update(ctx context.Context, v *domain.Vehicle) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-func NewVehicleService(repo *repository.VehicleRepository) *VehicleService {
+// VehicleAPI — HTTP/gRPC и тесты.
+type VehicleAPI interface {
+	Create(ctx context.Context, vin, make, model string, year int32, mileageKm int64, price, status, color, notes string, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) (*domain.Vehicle, error)
+	Get(ctx context.Context, id string) (*domain.Vehicle, error)
+	List(ctx context.Context, limit, offset int32, search, statusFilter string, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) ([]*domain.Vehicle, int32, error)
+	Update(ctx context.Context, id string, vin, make, model *string, year *int32, mileageKm *int64, price, status, color, notes *string, brandID *uuid.UUID, clearBrand bool, dealerPointID, legalEntityID, warehouseID *uuid.UUID, clearDealerPoint, clearLegalEntity, clearWarehouse bool) (*domain.Vehicle, error)
+	Delete(ctx context.Context, id string) error
+}
+
+type VehicleService struct {
+	repo vehicleRepository
+}
+
+func NewVehicleService(repo vehicleRepository) *VehicleService {
 	return &VehicleService{repo: repo}
 }
 

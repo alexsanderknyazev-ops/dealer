@@ -9,16 +9,32 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/dealer/dealer/services/deals/internal/domain"
-	"github.com/dealer/dealer/services/deals/internal/repository"
 )
 
 var ErrNotFound = errors.New("deal not found")
 
-type DealService struct {
-	repo *repository.DealRepository
+type dealRepository interface {
+	Create(ctx context.Context, d *domain.Deal) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Deal, error)
+	List(ctx context.Context, limit, offset int32, stageFilter, customerID string) ([]*domain.Deal, int32, error)
+	Update(ctx context.Context, d *domain.Deal) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-func NewDealService(repo *repository.DealRepository) *DealService {
+// DealAPI — HTTP/gRPC и тесты.
+type DealAPI interface {
+	Create(ctx context.Context, customerID, vehicleID, amount, stage, assignedTo, notes string) (*domain.Deal, error)
+	Get(ctx context.Context, id string) (*domain.Deal, error)
+	List(ctx context.Context, limit, offset int32, stageFilter, customerID string) ([]*domain.Deal, int32, error)
+	Update(ctx context.Context, id string, customerID, vehicleID, amount, stage, assignedTo, notes *string) (*domain.Deal, error)
+	Delete(ctx context.Context, id string) error
+}
+
+type DealService struct {
+	repo dealRepository
+}
+
+func NewDealService(repo dealRepository) *DealService {
 	return &DealService{repo: repo}
 }
 

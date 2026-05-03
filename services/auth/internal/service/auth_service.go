@@ -13,7 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/dealer/dealer/auth-service/internal/domain"
-	"github.com/dealer/dealer/auth-service/internal/repository"
 )
 
 var (
@@ -42,9 +41,15 @@ type EventPublisher interface {
 	Publish(ctx context.Context, key, value []byte) error
 }
 
+type userRepository interface {
+	Create(ctx context.Context, u *domain.User) error
+	GetByEmail(ctx context.Context, email string) (*domain.User, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
+}
+
 // AuthService — бизнес-логика авторизации и аутентификации.
 type AuthService struct {
-	repo      *repository.UserRepository
+	repo      userRepository
 	rdb       *redis.Client
 	publisher EventPublisher
 	cfg       AuthConfig
@@ -52,7 +57,7 @@ type AuthService struct {
 
 // NewAuthService создаёт сервис авторизации.
 func NewAuthService(
-	repo *repository.UserRepository,
+	repo userRepository,
 	rdb *redis.Client,
 	publisher EventPublisher,
 	cfg AuthConfig,

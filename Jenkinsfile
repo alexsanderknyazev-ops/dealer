@@ -31,12 +31,12 @@ pipeline {
     booleanParam(
       name: 'DEPLOY_MINIKUBE',
       defaultValue: false,
-      description: 'После push: kubectl apply в Minikube. Либо ~/.kube в Jenkins, либо (fallback) docker exec в контейнер minikube при общем docker.sock'
+      description: 'После push: kubectl apply k8s/dealer-stack.yaml. Нужен либо JENKINS_HOME/.kube/config в агенте, либо запущенный Minikube (docker) и доступный docker.sock. Если не настроено — оставьте false.'
     )
     string(
       name: 'MINIKUBE_CONTAINER',
       defaultValue: 'minikube',
-      description: 'Имя контейнера Minikube (docker ps), для kubectl через docker exec если нет JENKINS_HOME/.kube/config'
+      description: 'Имя Docker-контейнера с kubectl (docker ps). Если пусто/не найден — пайплайн попробует первый контейнер с «minikube» в имени среди running.'
     )
     string(
       name: 'K8S_PULL_REGISTRY',
@@ -286,9 +286,25 @@ else
     USE_DOCKER_EXEC=1
     echo "kubeconfig в Jenkins нет — kubectl через docker exec \$MK"
   else
-    echo "Нет \$JHOME/.kube/config и Docker-контейнер '\$MK' не найден."
-    echo "Смонтируйте хостовый ~/.kube в Jenkins (-v ~/.kube:/var/jenkins_home/.kube) или задайте MINIKUBE_CONTAINER."
-    exit 1
+    MK_AUTO="\$(docker ps --format '{{.Names}}' 2>/dev/null | grep -E 'minikube' | head -n1 || true)"
+    if [ -n "\$MK_AUTO" ] && docker inspect "\$MK_AUTO" >/dev/null 2>&1; then
+      echo "Контейнер '\$MK' не найден — использую running-контейнер '\$MK_AUTO' (проверьте MINIKUBE_CONTAINER при следующем запуске)."
+      MK="\$MK_AUTO"
+      USE_DOCKER_EXEC=1
+    else
+      echo "=== Деплой: нет Kubernetes-доступа ==="
+      echo "Нет файла \$JHOME/.kube/config и не найден Docker-контейнер для kubectl (параметр MINIKUBE_CONTAINER='\${MK}')."
+      echo ""
+      echo "Что сделать:"
+      echo "  A) Скопируйте kubeconfig на агент Jenkins (например volume: хостовый ~/.kube -> /var/jenkins_home/.kube)."
+      echo "  B) Запустите minikube на хосте с Docker driver и убедитесь, что Jenkins видит тот же docker.sock (docker ps показывает контейнер minikube)."
+      echo "  C) Укажите в job параметр MINIKUBE_CONTAINER = точное имя из «docker ps» (например minikube для профиля по умолчанию)."
+      echo "  D) Отключите параметр DEPLOY_MINIKUBE, если деплой пока не нужен."
+      echo ""
+      echo "Запущенные контейнеры (имена):"
+      docker ps --format '{{.Names}}' 2>/dev/null | head -30 || echo "(docker ps недоступен)"
+      exit 1
+    fi
   fi
 fi
 

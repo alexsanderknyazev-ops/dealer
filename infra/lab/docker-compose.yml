@@ -1,0 +1,32 @@
+# Лабораторный стек: Jenkins + Registry :5050 (как в Jenkinsfile / Skopeo).
+# Запуск:  cd infra/lab && cp env.example .env && vi .env && docker compose up -d --build
+services:
+  registry:
+    image: registry:2
+    container_name: lab-registry
+    ports:
+      - "5050:5000"
+    volumes:
+      - registry_data:/var/lib/registry
+    restart: unless-stopped
+
+  jenkins:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    container_name: lab-jenkins
+    restart: unless-stopped
+    ports:
+      - "9080:8080"
+      - "50000:50000"
+    environment:
+      TZ: UTC
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${KUBECONFIG_HOST_PATH}:/var/jenkins_home/.kube/config:ro
+      - ${MINIKUBE_HOME}:/var/jenkins_home/.minikube:ro
+
+volumes:
+  jenkins_home: {}
+  registry_data: {}

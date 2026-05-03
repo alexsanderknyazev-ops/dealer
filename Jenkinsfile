@@ -10,6 +10,7 @@
 //      Доступ к API: либо kubeconfig на агенте (любой драйвер minikube: qemu2, kvm, docker, …), либо ветка docker exec — только при --driver=docker (контейнер-нода на хосте).
 //
 // Деплой k8s/dealer-stack.yaml поднимает Postgres, Redis, Zookeeper, Kafka и 7 сервисов в namespace dealer (см. параметр K8S_NAMESPACE).
+// Локальный Jenkins + registry + монтирование kubeconfig: см. infra/lab/README.md
 // =============================================================================
 
 pipeline {
@@ -32,7 +33,12 @@ pipeline {
     booleanParam(
       name: 'DEPLOY_MINIKUBE',
       defaultValue: false,
-      description: 'После push: kubectl apply k8s/dealer-stack.yaml. Нужен JENKINS_HOME/.kube/config (рекомендуется для qemu2/kvm/hyperkit) или Minikube с --driver=docker + docker.sock на агенте. При qemu2 отдельная VM — контейнера minikube на Docker хоста нет.'
+      description: 'После push: kubectl apply k8s/dealer-stack.yaml. Нужен kubeconfig: JENKINS_HOME/.kube/config или параметр KUBECONFIG_PATH (qemu2/kvm); либо minikube --driver=docker + docker.sock. При qemu2 контейнера minikube на хосте нет.'
+    )
+    string(
+      name: 'KUBECONFIG_PATH',
+      defaultValue: '',
+      description: 'Необязательно: абсолютный путь к kubeconfig внутри агента (если не JENKINS_HOME/.kube/config). Удобно при volume, напр. /var/jenkins_home/secrets/kubeconfig.'
     )
     string(
       name: 'MINIKUBE_CONTAINER',
@@ -47,8 +53,8 @@ pipeline {
     // Локальная загрузка образа в dockerd ноды minikube (см. комментарий в stage Deploy).
     booleanParam(
       name: 'K8S_CTR_IMPORT_IMAGE',
-      defaultValue: true,
-      description: 'Только при ветке docker exec (minikube --driver=docker): save|load в dockerd ноды; imagePullPolicy Never. Для qemu2/kvm — false: образы из K8S_PULL_REGISTRY (VM тянет по сети).'
+      defaultValue: false,
+      description: 'По умолчанию false (qemu2/kvm: pull из K8S_PULL_REGISTRY). true только при minikube --driver=docker + ветка docker exec: save|load в dockerd ноды; imagePullPolicy Never.'
     )
     string(
       name: 'K8S_NAMESPACE',
@@ -255,11 +261,17 @@ command -v docker
 # --- Контекст: kubeconfig в Jenkins (любой драйвер) или docker exec в контейнер-ноду (только minikube --driver=docker) ---
 JHOME="\${JENKINS_HOME:-\$HOME}"
 MK='${params.MINIKUBE_CONTAINER}'
+KCFG_SRC="\$JHOME/.kube/config"
+KP='${params.KUBECONFIG_PATH}'
+if [ -n "\$KP" ]; then
+  if [ ! -f "\$KP" ]; then echo "KUBECONFIG_PATH задан, но файл не найден: \$KP" >&2; exit 1; fi
+  KCFG_SRC="\$KP"
+fi
 USE_DOCKER_EXEC=0
 KUBECTL=""
 
-# Ветка A: есть ~/.kube/config в агенте — kubectl скачивается в /tmp, kubeconfig правится (127.0.0.1 → host.docker.internal для API из контейнера).
-if [ -f "\$JHOME/.kube/config" ]; then
+# Ветка A: есть kubeconfig (JENKINS_HOME/.kube/config или KUBECONFIG_PATH) — kubectl в /tmp, 127.0.0.1 → host.docker.internal для API из контейнера Jenkins.
+if [ -f "\$KCFG_SRC" ]; then
   ARCH="\$(uname -m)"
   case "\$ARCH" in aarch64|arm64) KARCH=arm64 ;; x86_64) KARCH=amd64 ;; *) echo "unsupported arch: \$ARCH"; exit 1 ;; esac
   KVER="\$(curl -fsSL https://dl.k8s.io/release/stable.txt)"
@@ -269,7 +281,7 @@ if [ -f "\$JHOME/.kube/config" ]; then
     chmod +x "\$KUBECTL"
   fi
   KCFG="/tmp/kubeconfig-jenkins-\${BUILD_NUMBER}"
-  cp "\$JHOME/.kube/config" "\$KCFG"
+  cp "\$KCFG_SRC" "\$KCFG"
   export KUBECONFIG="\$KCFG"
   sed -i.bak 's|127.0.0.1|host.docker.internal|g' "\$KCFG"
   CLUSTER="\$( "\$KUBECTL" config view --minify -o jsonpath='{.clusters[0].name}' 2>/dev/null || echo minikube )"
@@ -294,10 +306,10 @@ else
       USE_DOCKER_EXEC=1
     else
       echo "=== Деплой: нет Kubernetes-доступа ==="
-      echo "Нет файла \$JHOME/.kube/config и не найден Docker-контейнер-нода minikube (MINIKUBE_CONTAINER='\${MK}')."
+      echo "Нет kubeconfig (\$JHOME/.kube/config или KUBECONFIG_PATH='\${KP}') и не найден Docker-контейнер-нода minikube (MINIKUBE_CONTAINER='\${MK}')."
       echo ""
       echo "Что сделать:"
-      echo "  A) Скопируйте kubeconfig на агент (volume: ~/.kube -> JENKINS_HOME/.kube). Для minikube qemu2/kvm/hyperkit отдельная VM — контейнера minikube на Docker хоста нет; только kubeconfig (API VM, часто IP:8443)."
+      echo "  A) Смонтируйте kubeconfig в контейнер Jenkins: volume хост ~/.kube/config -> /var/jenkins_home/.kube/config, либо другой путь + параметр KUBECONFIG_PATH. Для qemu2/kvm отдельная VM — контейнера minikube на Docker хоста нет."
       echo "  B) Только если minikube --driver=docker: Jenkins должен видеть тот же docker.sock; docker ps показывает контейнер ноды (часто minikube)."
       echo "  C) Для docker driver: MINIKUBE_CONTAINER = имя из «docker ps»."
       echo "  D) Отключите DEPLOY_MINIKUBE, если деплой не нужен."

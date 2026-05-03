@@ -202,6 +202,9 @@ spec:
       labels:
         app: kafka
     spec:
+      # Иначе Kubernetes подставляет KAFKA_* из Service links; KAFKA_PORT ломает
+      # /etc/confluent/docker/configure (exit: «port is deprecated…») — CrashLoopBackOff.
+      enableServiceLinks: false
       containers:
         - name: kafka
           image: confluentinc/cp-kafka:7.5.0

@@ -1,8 +1,8 @@
 // Команда создаёт пользователя admin, если такого ещё нет.
 //
-// Использование:
+// Использование (POSTGRES_DSN обязателен, без значения по умолчанию):
 //
-//	POSTGRES_DSN="postgres://dealer:dealer_secret@127.0.0.1:5433/dealer?sslmode=disable" \
+//	POSTGRES_DSN="postgres://USER:PASSWORD@HOST:PORT/dealer?sslmode=disable" \
 //	ADMIN_EMAIL=admin@dealer.local \
 //	ADMIN_PASSWORD=admin123 \
 //	go run ./cmd/seed-admin
@@ -28,7 +28,7 @@ import (
 func main() {
 	dsn := os.Getenv("POSTGRES_DSN")
 	if dsn == "" {
-		dsn = "postgres://dealer:dealer_secret@127.0.0.1:5433/dealer?sslmode=disable"
+		log.Fatal("POSTGRES_DSN is required (no default; see .env.example)")
 	}
 	email := os.Getenv("ADMIN_EMAIL")
 	if email == "" {

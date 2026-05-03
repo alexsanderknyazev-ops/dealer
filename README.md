@@ -18,14 +18,18 @@
 ## Запуск инфраструктуры
 
 ```bash
+cp .env.example .env   # при необходимости поправьте POSTGRES_PASSWORD и POSTGRES_DSN
 docker compose up -d
 ```
+
+Пароль БД в репозитории не хранится: в `docker-compose.yml` используется `POSTGRES_PASSWORD` из `.env` (или значение по умолчанию `changeme` только для локального стенда — смените его).
 
 **После первого запуска (или новой БД)** примените миграции и при необходимости создайте админа и тестовые данные:
 
 ```bash
+export POSTGRES_DSN="postgres://dealer:ВАШ_ПАРОЛЬ@127.0.0.1:5433/dealer?sslmode=disable"  # пароль как в .env / POSTGRES_PASSWORD
 make migrate                                    # создать таблицы users, customers, vehicles, deals, parts
-POSTGRES_DSN="postgres://dealer:dealer_secret@127.0.0.1:5433/dealer?sslmode=disable" make seed-admin  # админ admin@dealer.local / admin123
+make seed-admin                                 # админ admin@dealer.local / admin123 (нужен POSTGRES_DSN)
 make seed-data                                  # тестовые клиенты и автомобили (если таблицы пусты)
 ```
 
@@ -46,13 +50,14 @@ make docker-up
 
 # Либо только инфраструктура, сервис локально:
 docker compose up -d postgres redis zookeeper kafka
-# Миграции (порт 5433 при доступе с хоста к Docker)
-psql "postgres://dealer:dealer_secret@127.0.0.1:5433/dealer?sslmode=disable" -f migrations/001_users.up.sql
-psql "..." -f migrations/002_roles.up.sql
-psql "..." -f migrations/003_customers.up.sql
-psql "..." -f migrations/004_vehicles.up.sql
+# Миграции (порт 5433 при доступе с хоста к Docker); задайте DSN с паролем из .env
+export POSTGRES_DSN="postgres://dealer:ВАШ_ПАРОЛЬ@127.0.0.1:5433/dealer?sslmode=disable"
+psql "$POSTGRES_DSN" -f migrations/001_users.up.sql
+psql "$POSTGRES_DSN" -f migrations/002_roles.up.sql
+psql "$POSTGRES_DSN" -f migrations/003_customers.up.sql
+psql "$POSTGRES_DSN" -f migrations/004_vehicles.up.sql
 # Создать пользователя admin (по умолчанию admin@dealer.local / admin123)
-POSTGRES_DSN="postgres://dealer:dealer_secret@127.0.0.1:5433/dealer?sslmode=disable" make seed-admin
+make seed-admin
 # Тестовые клиенты и автомобили (только если таблицы пусты)
 make seed-data
 # Запуск сервисов (несколько терминалов)

@@ -16,7 +16,7 @@ func Load() *Config {
 	return &Config{
 		GRPCPort:    getEnvInt("DEALS_GRPC_PORT", 50054),
 		HTTPPort:    getEnvInt("DEALS_HTTP_PORT", 8083),
-		PostgresDSN: getEnv("POSTGRES_DSN", "postgres://dealer:dealer_secret@127.0.0.1:5433/dealer?sslmode=disable"),
+		PostgresDSN: getEnv("POSTGRES_DSN", ""),
 		JWTSecret:   getEnv("JWT_SECRET", "change-me-in-production"),
 	}
 }

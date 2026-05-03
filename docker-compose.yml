@@ -3,7 +3,8 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: dealer
-      POSTGRES_PASSWORD: dealer_secret
+      # Set POSTGRES_PASSWORD in .env (see .env.example). Do not commit real secrets.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       POSTGRES_DB: dealer
     ports:
       - "5433:5432"
@@ -59,7 +60,7 @@ services:
       AUTH_GRPC_PORT: "50051"
       AUTH_HTTP_PORT: "8080"
       STATIC_DIR: "/app/web"
-      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       REDIS_ADDR: "redis:6379"
       REDIS_PASSWORD: ""
       REDIS_DB: "0"
@@ -102,7 +103,7 @@ services:
     environment:
       CUSTOMERS_GRPC_PORT: "50052"
       CUSTOMERS_HTTP_PORT: "8081"
-      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
     depends_on:
       postgres:
@@ -118,7 +119,7 @@ services:
     environment:
       VEHICLES_GRPC_PORT: "50053"
       VEHICLES_HTTP_PORT: "8082"
-      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
     depends_on:
       postgres:
@@ -134,7 +135,7 @@ services:
     environment:
       DEALS_GRPC_PORT: "50054"
       DEALS_HTTP_PORT: "8083"
-      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
     depends_on:
       postgres:
@@ -150,7 +151,7 @@ services:
     environment:
       PARTS_GRPC_PORT: "50055"
       PARTS_HTTP_PORT: "8084"
-      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
     depends_on:
       postgres:
@@ -166,7 +167,7 @@ services:
     environment:
       BRANDS_GRPC_PORT: "50056"
       BRANDS_HTTP_PORT: "8085"
-      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
     depends_on:
       postgres:
@@ -182,7 +183,7 @@ services:
     environment:
       DEALER_POINTS_GRPC_PORT: "50057"
       DEALER_POINTS_HTTP_PORT: "8086"
-      POSTGRES_DSN: "postgres://dealer:dealer_secret@postgres:5432/dealer?sslmode=disable"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
     depends_on:
       postgres:

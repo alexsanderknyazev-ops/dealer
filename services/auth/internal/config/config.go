@@ -42,7 +42,7 @@ func Load() *Config {
 		PartsServiceURL:    getEnv("PARTS_SERVICE_URL", ""),
 		BrandsServiceURL:   getEnv("BRANDS_SERVICE_URL", ""),
 		DealerPointsServiceURL: getEnv("DEALER_POINTS_SERVICE_URL", ""),
-		PostgresDSN:  getEnv("POSTGRES_DSN", "postgres://dealer:dealer_secret@127.0.0.1:5432/dealer?sslmode=disable"),
+		PostgresDSN:  getEnv("POSTGRES_DSN", ""),
 		RedisAddr:    getEnv("REDIS_ADDR", "127.0.0.1:6379"),
 		RedisPass:    getEnv("REDIS_PASSWORD", ""),
 		RedisDB:      getEnvInt("REDIS_DB", 0),

@@ -82,6 +82,11 @@ pipeline {
       defaultValue: '5432',
       description: 'Порт Postgres: 5432 in-cluster; 5433 если БД на хосте (property.yaml)'
     )
+    string(
+      name: 'POSTGRES_PASSWORD',
+      defaultValue: 'changeme',
+      description: 'Пароль БД dealer для k8s (плейсхолдер __POSTGRES_PASSWORD__ в dealer-stack.yaml). Смените вне лаборатории; для sed избегайте символов | \\ & в значении.'
+    )
   }
 
   // Переменные окружения для стадий Sonar/Go (версии инструментов; SONAR_HOST_URL — к Sonar в Docker на хосте).
@@ -375,6 +380,7 @@ NS='${params.K8S_NAMESPACE}'
 K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
 K8S_DB_HOST='${params.K8S_DB_HOST}'
 K8S_DB_PORT='${params.K8S_DB_PORT}'
+POSTGRES_PASSWORD='${params.POSTGRES_PASSWORD ?: 'changeme'}'
 BOOTSTRAP_DEV='${params.K8S_BOOTSTRAP_DEV_DATA ?: "true"}'
 DELETE_NS_BEFORE='${params.K8S_DELETE_NS_BEFORE_DEPLOY ?: "true"}'
 INFRA_DPL=(postgres redis zookeeper kafka)
@@ -416,6 +422,7 @@ render_stack() {
   sed \\
     -e "s|__K8S_DB_HOST__|\${K8S_DB_HOST}|g" \\
     -e "s|__K8S_DB_PORT__|\${K8S_DB_PORT}|g" \\
+    -e "s|__POSTGRES_PASSWORD__|\${POSTGRES_PASSWORD}|g" \\
     -e "s|__IMG_AUTH__|\${IMG_AUTH}|g" \\
     -e "s|__IMG_CUSTOMERS__|\${IMG_CUSTOMERS}|g" \\
     -e "s|__IMG_VEHICLES__|\${IMG_VEHICLES}|g" \\
@@ -465,7 +472,7 @@ done
 if [ "\$BOOTSTRAP_DEV" = "true" ]; then
   echo "=== K8S_BOOTSTRAP_DEV_DATA: миграции и тестовые данные ==="
   kctl -n "\$NS" wait --for=condition=available "deployment/postgres" --timeout=180s
-  HAS_USERS=\$(kctl -n "\$NS" exec "deployment/postgres" -- env PGPASSWORD=dealer_secret psql -U dealer -d dealer -qtAc "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='users');")
+  HAS_USERS=\$(kctl -n "\$NS" exec "deployment/postgres" -- env PGPASSWORD="\$POSTGRES_PASSWORD" psql -U dealer -d dealer -qtAc "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='users');")
   if [ "\$HAS_USERS" != "t" ]; then
     echo "Применяю миграции (пустая БД)…"
     for f in \\
@@ -473,7 +480,7 @@ if [ "\$BOOTSTRAP_DEV" = "true" ]; then
       005_deals.up.sql 006_parts.up.sql 007_part_folders.up.sql 008_brands.up.sql \\
       009_dealer_points.up.sql 010_part_stock.up.sql; do
       test -f "\${WORKSPACE}/migrations/\$f"
-      kctl -n "\$NS" exec -i "deployment/postgres" -- env PGPASSWORD=dealer_secret psql -U dealer -d dealer -v ON_ERROR_STOP=1 -f - < "\${WORKSPACE}/migrations/\$f"
+      kctl -n "\$NS" exec -i "deployment/postgres" -- env PGPASSWORD="\$POSTGRES_PASSWORD" psql -U dealer -d dealer -v ON_ERROR_STOP=1 -f - < "\${WORKSPACE}/migrations/\$f"
     done
   else
     echo "Таблица users уже есть — миграции пропускаем."
@@ -481,7 +488,7 @@ if [ "\$BOOTSTRAP_DEV" = "true" ]; then
   for f in seed_test_data.sql seed_dealer_brands.sql seed_parts.sql; do
     test -f "\${WORKSPACE}/migrations/\$f"
     echo "Сид: \$f"
-    kctl -n "\$NS" exec -i "deployment/postgres" -- env PGPASSWORD=dealer_secret psql -U dealer -d dealer -v ON_ERROR_STOP=1 -f - < "\${WORKSPACE}/migrations/\$f"
+    kctl -n "\$NS" exec -i "deployment/postgres" -- env PGPASSWORD="\$POSTGRES_PASSWORD" psql -U dealer -d dealer -v ON_ERROR_STOP=1 -f - < "\${WORKSPACE}/migrations/\$f"
   done
   echo "Bootstrap SQL готов."
 fi
@@ -492,7 +499,7 @@ done
 
 if [ "\$BOOTSTRAP_DEV" = "true" ]; then
   echo "=== seed-admin (admin@dealer.local / admin123 по умолчанию) ==="
-  SEED_DSN="postgres://dealer:dealer_secret@\${K8S_DB_HOST}:\${K8S_DB_PORT}/dealer?sslmode=disable"
+  SEED_DSN="postgres://dealer:\${POSTGRES_PASSWORD}@\${K8S_DB_HOST}:\${K8S_DB_PORT}/dealer?sslmode=disable"
   kctl -n "\$NS" exec "deployment/auth-service" -- env POSTGRES_DSN="\$SEED_DSN" /seed-admin
 fi
 """

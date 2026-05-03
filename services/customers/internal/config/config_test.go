@@ -13,8 +13,11 @@ func TestLoad_Defaults(t *testing.T) {
 	if c.GRPCPort != 50052 || c.HTTPPort != 8081 {
 		t.Fatalf("ports grpc=%d http=%d", c.GRPCPort, c.HTTPPort)
 	}
-	if c.PostgresDSN == "" || c.JWTSecret == "" {
-		t.Fatal("empty defaults")
+	if c.PostgresDSN != "" {
+		t.Fatalf("PostgresDSN: want empty when unset, got %q", c.PostgresDSN)
+	}
+	if c.JWTSecret != "change-me-in-production" {
+		t.Fatalf("JWTSecret default: got %q", c.JWTSecret)
 	}
 }
 

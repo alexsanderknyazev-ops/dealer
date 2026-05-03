@@ -61,7 +61,7 @@ func (s *Server) GetCustomer(ctx context.Context, req *customersv1.GetCustomerRe
 }
 
 func (s *Server) ListCustomers(ctx context.Context, req *customersv1.ListCustomersRequest) (*customersv1.ListCustomersResponse, error) {
-	list, total, err := s.svc.List(ctx, req.Limit, req.Offset, req.Search)
+	list, total, err := s.svc.List(ctx, domain.CustomerListParams{Limit: req.Limit, Offset: req.Offset, Search: req.Search})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

@@ -15,6 +15,8 @@ import (
 	"github.com/dealer/dealer/auth-service/internal/domain"
 )
 
+const testUserEmail = "u@test.local"
+
 type fakeUserRepo struct {
 	byEmail map[string]*domain.User
 	byID    map[uuid.UUID]*domain.User
@@ -94,24 +96,24 @@ func TestRegister_Login_Refresh_Logout(t *testing.T) {
 	s := NewAuthService(repo, rdb, pub, testCfg())
 	ctx := context.Background()
 
-	u, at, rt, exp, err := s.Register(ctx, "u@test.local", "pass12345", "U", "")
-	if err != nil || at == "" || rt == "" || exp.IsZero() || u.Email != "u@test.local" {
+	u, at, rt, exp, err := s.Register(ctx, testUserEmail, "pass12345", "U", "")
+	if err != nil || at == "" || rt == "" || exp.IsZero() || u.Email != testUserEmail {
 		t.Fatalf("reg err=%v at=%q", err, at)
 	}
 	if pub.n != 1 {
 		t.Fatalf("publish calls %d", pub.n)
 	}
 
-	_, _, _, _, err = s.Register(ctx, "u@test.local", "x", "x", "")
+	_, _, _, _, err = s.Register(ctx, testUserEmail, "x", "x", "")
 	if err != ErrUserExists {
 		t.Fatalf("want exists got %v", err)
 	}
 
-	u2, at2, rt2, _, err := s.Login(ctx, "u@test.local", "pass12345")
+	u2, at2, rt2, _, err := s.Login(ctx, testUserEmail, "pass12345")
 	if err != nil || u2.ID != u.ID || at2 == "" || rt2 == "" {
 		t.Fatalf("login %v", err)
 	}
-	_, _, _, _, err = s.Login(ctx, "u@test.local", "wrong")
+	_, _, _, _, err = s.Login(ctx, testUserEmail, "wrong")
 	if err != ErrBadCredentials {
 		t.Fatalf("login bad %v", err)
 	}

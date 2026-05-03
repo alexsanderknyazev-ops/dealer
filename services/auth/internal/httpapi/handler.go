@@ -22,24 +22,31 @@ func NewHandler(svc *service.AuthService) *Handler {
 
 // RegisterRoutes вешает маршруты на mux.
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc(http.MethodPost+" "+pathAPIRegister, h.cors(h.handleRegister))
-	mux.HandleFunc(http.MethodPost+" "+pathAPILogin, h.cors(h.handleLogin))
-	mux.HandleFunc(http.MethodPost+" "+pathAPIRefresh, h.cors(h.handleRefresh))
-	mux.HandleFunc(http.MethodPost+" "+pathAPILogout, h.cors(h.handleLogout))
-	mux.HandleFunc(http.MethodGet+" "+pathAPIMe, h.cors(h.handleMe))
+	mainRoutes := []struct {
+		method  string
+		path    string
+		handler http.HandlerFunc
+	}{
+		{http.MethodPost, pathAPIRegister, h.handleRegister},
+		{http.MethodPost, pathAPILogin, h.handleLogin},
+		{http.MethodPost, pathAPIRefresh, h.handleRefresh},
+		{http.MethodPost, pathAPILogout, h.handleLogout},
+		{http.MethodGet, pathAPIMe, h.handleMe},
+	}
+	for _, r := range mainRoutes {
+		mux.HandleFunc(r.method+" "+r.path, h.cors(r.handler))
+	}
 	// OPTIONS для CORS preflight только для auth-путей (общий OPTIONS /api/ конфликтует с прокси /api/customers и /api/vehicles в Go 1.22)
-	mux.HandleFunc(http.MethodOptions+" "+pathAPIRegister, h.cors(nil))
-	mux.HandleFunc(http.MethodOptions+" "+pathAPILogin, h.cors(nil))
-	mux.HandleFunc(http.MethodOptions+" "+pathAPIRefresh, h.cors(nil))
-	mux.HandleFunc(http.MethodOptions+" "+pathAPILogout, h.cors(nil))
-	mux.HandleFunc(http.MethodOptions+" "+pathAPIMe, h.cors(nil))
+	for _, p := range authPathsWithOptions {
+		mux.HandleFunc(http.MethodOptions+" "+p, h.cors(nil))
+	}
 }
 
 func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", headerCORSAllowHeader)
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -158,7 +165,7 @@ func (h *Handler) handleMe(w http.ResponseWriter, r *http.Request) {
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(headerContentType, mimeApplicationJSON)
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(v)
 }
@@ -167,24 +174,35 @@ func writeJSON(w http.ResponseWriter, code int, v any) {
 func SPAFileServer(root http.FileSystem) http.Handler {
 	fs := http.FileServer(root)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet && r.Method != http.MethodHead {
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
-		clean := path.Clean(r.URL.Path)
-		if clean == "/" || clean == "" {
-			serveIndex(root, w, r)
-			return
-		}
-		name := strings.TrimPrefix(clean, "/")
-		if f, err := root.Open(name); err == nil {
-			f.Close()
-			fs.ServeHTTP(w, r)
-			return
-		}
-		// Нет такого файла — отдаём index.html для клиентского роутинга (SPA)
-		serveIndex(root, w, r)
+		serveSPAOrStatic(root, fs, w, r)
 	})
+}
+
+func serveSPAOrStatic(root http.FileSystem, fs http.Handler, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	clean := path.Clean(r.URL.Path)
+	if clean == "/" || clean == "" {
+		serveIndex(root, w, r)
+		return
+	}
+	name := strings.TrimPrefix(clean, "/")
+	if tryServeExistingFile(root, fs, w, r, name) {
+		return
+	}
+	serveIndex(root, w, r)
+}
+
+func tryServeExistingFile(root http.FileSystem, fs http.Handler, w http.ResponseWriter, r *http.Request, name string) bool {
+	f, err := root.Open(name)
+	if err != nil {
+		return false
+	}
+	_ = f.Close()
+	fs.ServeHTTP(w, r)
+	return true
 }
 
 // serveIndex отдаёт index.html без редиректов (обход поведения FileServer для корня).
@@ -199,7 +217,7 @@ func serveIndex(root http.FileSystem, w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "index.html not found", http.StatusNotFound)
 		return
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set(headerContentType, mimeHTMLUTF8)
 	w.WriteHeader(http.StatusOK)
 	_, _ = io.Copy(w, f)
 }

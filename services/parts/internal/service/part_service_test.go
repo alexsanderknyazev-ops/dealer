@@ -86,10 +86,7 @@ func (f *fakeStock) Upsert(_ context.Context, partID, _ uuid.UUID, quantity int3
 	return nil
 }
 
-func (f *fakeStock) ReplaceForPart(_ context.Context, partID uuid.UUID, rows []struct {
-	WarehouseID uuid.UUID
-	Quantity    int32
-}) error {
+func (f *fakeStock) ReplaceForPart(_ context.Context, partID uuid.UUID, rows []domain.PartWarehouseQty) error {
 	var sum int32
 	for _, r := range rows {
 		sum += r.Quantity
@@ -143,7 +140,7 @@ func (f *fakeFolderRepo) Delete(_ context.Context, id uuid.UUID) error {
 func TestPartService_Create_DefaultUnit(t *testing.T) {
 	pr := &fakePartRepo{parts: map[uuid.UUID]*domain.Part{}}
 	s := NewPartService(pr, &fakeFolderRepo{}, &fakeStock{repo: pr})
-	p, err := s.Create(context.Background(), "SKU1", "N", "cat", nil, nil, nil, nil, nil, 0, "", "10", "", "", nil)
+	p, err := s.Create(context.Background(), CreatePartInput{SKU: "SKU1", Name: "N", Category: "cat", Price: "10"})
 	if err != nil || p.Unit != "шт" {
 		t.Fatalf("%v %+v", err, p)
 	}
@@ -167,7 +164,7 @@ func TestPartService_Create_WithWarehouseQty(t *testing.T) {
 	st := &fakeStock{repo: pr}
 	s := NewPartService(pr, &fakeFolderRepo{}, st)
 	wid := uuid.New()
-	p, err := s.Create(context.Background(), "S2", "N", "c", nil, nil, nil, nil, &wid, 5, "", "", "", "", nil)
+	p, err := s.Create(context.Background(), CreatePartInput{SKU: "S2", Name: "N", Category: "c", WarehouseID: &wid, Quantity: 5})
 	if err != nil || p.Quantity != 5 {
 		t.Fatalf("%v q=%d", err, p.Quantity)
 	}
@@ -191,16 +188,12 @@ func TestPartService_Update_Delete_ListStock(t *testing.T) {
 	pr := &fakePartRepo{parts: map[uuid.UUID]*domain.Part{}}
 	st := &fakeStock{repo: pr}
 	s := NewPartService(pr, &fakeFolderRepo{}, st)
-	p, err := s.Create(context.Background(), "U1", "Part", "c", nil, nil, nil, nil, nil, 0, "шт", "1", "", "", nil)
+	p, err := s.Create(context.Background(), CreatePartInput{SKU: "U1", Name: "Part", Category: "c", Unit: "шт", Price: "1"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	sku := "U2"
-	upd, err := s.Update(context.Background(), p.ID.String(),
-		&sku, nil, nil,
-		nil, nil, nil, nil, nil,
-		nil, nil, nil, nil, nil,
-	)
+	upd, err := s.Update(context.Background(), p.ID.String(), UpdatePartInput{SKU: &sku})
 	if err != nil || upd.SKU != "U2" {
 		t.Fatalf("%v", err)
 	}

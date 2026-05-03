@@ -53,7 +53,7 @@ func (r *PartStockRepository) Delete(ctx context.Context, partID, warehouseID uu
 	return err
 }
 
-func (r *PartStockRepository) ReplaceForPart(ctx context.Context, partID uuid.UUID, rows []struct{ WarehouseID uuid.UUID; Quantity int32 }) error {
+func (r *PartStockRepository) ReplaceForPart(ctx context.Context, partID uuid.UUID, rows []domain.PartWarehouseQty) error {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return err

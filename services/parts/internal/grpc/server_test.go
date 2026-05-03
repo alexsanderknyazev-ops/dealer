@@ -72,10 +72,7 @@ func (f *gprStock) Upsert(_ context.Context, partID, _ uuid.UUID, quantity int32
 	return nil
 }
 
-func (f *gprStock) ReplaceForPart(_ context.Context, partID uuid.UUID, rows []struct {
-	WarehouseID uuid.UUID
-	Quantity    int32
-}) error {
+func (f *gprStock) ReplaceForPart(_ context.Context, partID uuid.UUID, rows []domain.PartWarehouseQty) error {
 	var sum int32
 	for _, r := range rows {
 		sum += r.Quantity

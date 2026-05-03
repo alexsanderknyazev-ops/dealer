@@ -96,7 +96,12 @@ func strPtr(s string) *string {
 }
 
 func (s *Server) CreatePart(ctx context.Context, req *partsv1.CreatePartRequest) (*partsv1.CreatePartResponse, error) {
-	p, err := s.svc.Create(ctx, req.Sku, req.Name, req.Category, parseUUIDOpt(req.FolderId), parseUUIDOpt(req.BrandId), parseUUIDOpt(req.DealerPointId), parseUUIDOpt(req.LegalEntityId), parseUUIDOpt(req.WarehouseId), req.Quantity, req.Unit, req.Price, req.Location, req.Notes, nil)
+	p, err := s.svc.Create(ctx, service.CreatePartInput{
+		SKU: req.Sku, Name: req.Name, Category: req.Category,
+		FolderID: parseUUIDOpt(req.FolderId), BrandID: parseUUIDOpt(req.BrandId), DealerPointID: parseUUIDOpt(req.DealerPointId),
+		LegalEntityID: parseUUIDOpt(req.LegalEntityId), WarehouseID: parseUUIDOpt(req.WarehouseId),
+		Quantity: req.Quantity, Unit: req.Unit, Price: req.Price, Location: req.Location, Notes: req.Notes,
+	})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -115,7 +120,11 @@ func (s *Server) GetPart(ctx context.Context, req *partsv1.GetPartRequest) (*par
 }
 
 func (s *Server) ListParts(ctx context.Context, req *partsv1.ListPartsRequest) (*partsv1.ListPartsResponse, error) {
-	list, total, err := s.svc.List(ctx, req.Limit, req.Offset, req.Search, req.Category, parseUUIDOpt(req.FolderId), parseUUIDOpt(req.BrandId), parseUUIDOpt(req.DealerPointId), parseUUIDOpt(req.LegalEntityId), parseUUIDOpt(req.WarehouseId))
+	list, total, err := s.svc.List(ctx, domain.PartListFilter{
+		Limit: req.Limit, Offset: req.Offset, Search: req.Search, CategoryFilter: req.Category,
+		FolderID: parseUUIDOpt(req.FolderId), BrandID: parseUUIDOpt(req.BrandId), DealerPointID: parseUUIDOpt(req.DealerPointId),
+		LegalEntityID: parseUUIDOpt(req.LegalEntityId), WarehouseID: parseUUIDOpt(req.WarehouseId),
+	})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -127,26 +136,26 @@ func (s *Server) ListParts(ctx context.Context, req *partsv1.ListPartsRequest) (
 }
 
 func (s *Server) UpdatePart(ctx context.Context, req *partsv1.UpdatePartRequest) (*partsv1.UpdatePartResponse, error) {
-	var folderIDOpt, brandIDOpt, dealerPointIDOpt, legalEntityIDOpt, warehouseIDOpt *string
+	in := service.UpdatePartInput{
+		SKU: req.Sku, Name: req.Name, Category: req.Category, Quantity: req.Quantity,
+		Unit: req.Unit, Price: req.Price, Location: req.Location, Notes: req.Notes,
+	}
 	if req.FolderId != nil {
-		folderIDOpt = strPtr(req.GetFolderId())
+		in.FolderID = strPtr(req.GetFolderId())
 	}
 	if req.BrandId != nil {
-		brandIDOpt = strPtr(req.GetBrandId())
+		in.BrandID = strPtr(req.GetBrandId())
 	}
 	if req.DealerPointId != nil {
-		dealerPointIDOpt = strPtr(req.GetDealerPointId())
+		in.DealerPointID = strPtr(req.GetDealerPointId())
 	}
 	if req.LegalEntityId != nil {
-		legalEntityIDOpt = strPtr(req.GetLegalEntityId())
+		in.LegalEntityID = strPtr(req.GetLegalEntityId())
 	}
 	if req.WarehouseId != nil {
-		warehouseIDOpt = strPtr(req.GetWarehouseId())
+		in.WarehouseID = strPtr(req.GetWarehouseId())
 	}
-	p, err := s.svc.Update(ctx, req.Id,
-		req.Sku, req.Name, req.Category, folderIDOpt, brandIDOpt, dealerPointIDOpt, legalEntityIDOpt, warehouseIDOpt, req.Quantity,
-		req.Unit, req.Price, req.Location, req.Notes,
-	)
+	p, err := s.svc.Update(ctx, req.Id, in)
 	if err != nil {
 		if errors.Is(err, service.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, "part not found")

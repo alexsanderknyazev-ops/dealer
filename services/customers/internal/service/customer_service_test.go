@@ -50,7 +50,7 @@ func (f *fakeCustomerRepo) GetByID(_ context.Context, id uuid.UUID) (*domain.Cus
 	return c, nil
 }
 
-func (f *fakeCustomerRepo) List(_ context.Context, _, _ int32, _ string) ([]*domain.Customer, int32, error) {
+func (f *fakeCustomerRepo) List(_ context.Context, _ domain.CustomerListParams) ([]*domain.Customer, int32, error) {
 	if f.err != nil {
 		return nil, 0, f.err
 	}
@@ -123,11 +123,11 @@ func TestCustomerService_Get_OK(t *testing.T) {
 func TestCustomerService_List_LimitClamp(t *testing.T) {
 	r := &fakeCustomerRepo{list: []*domain.Customer{}, total: 0}
 	s := NewCustomerService(r)
-	_, _, err := s.List(context.Background(), 0, 0, "")
+	_, _, err := s.List(context.Background(), domain.CustomerListParams{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, err = s.List(context.Background(), 200, 0, "")
+	_, _, err = s.List(context.Background(), domain.CustomerListParams{Limit: 200})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,7 +183,7 @@ func TestCustomerService_Get_RepoErr(t *testing.T) {
 func TestCustomerService_List_Err(t *testing.T) {
 	r := &fakeCustomerRepo{err: errors.New("db")}
 	s := NewCustomerService(r)
-	_, _, err := s.List(context.Background(), 10, 0, "")
+	_, _, err := s.List(context.Background(), domain.CustomerListParams{Limit: 10})
 	if err == nil {
 		t.Fatal("want err")
 	}

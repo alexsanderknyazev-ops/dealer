@@ -1,3 +1,12 @@
+import {
+  AUTH_PATH_LOGIN,
+  AUTH_PATH_LOGOUT,
+  AUTH_PATH_ME,
+  AUTH_PATH_REFRESH,
+  AUTH_PATH_REGISTER,
+} from './apiPaths'
+import { HTTP_HEADER_CONTENT_TYPE, HTTP_MIME_JSON } from './httpHeaders'
+
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export type RegisterPayload = { email: string; password: string; name?: string; phone?: string }
@@ -16,7 +25,7 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...opts,
     headers: {
-      'Content-Type': 'application/json',
+      [HTTP_HEADER_CONTENT_TYPE]: HTTP_MIME_JSON,
       ...opts.headers,
     },
   })
@@ -26,29 +35,29 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
 }
 
 export async function register(p: RegisterPayload): Promise<AuthResponse> {
-  return request<AuthResponse>('/api/register', { method: 'POST', body: JSON.stringify(p) })
+  return request<AuthResponse>(AUTH_PATH_REGISTER, { method: 'POST', body: JSON.stringify(p) })
 }
 
 export async function login(p: LoginPayload): Promise<AuthResponse> {
-  return request<AuthResponse>('/api/login', { method: 'POST', body: JSON.stringify(p) })
+  return request<AuthResponse>(AUTH_PATH_LOGIN, { method: 'POST', body: JSON.stringify(p) })
 }
 
 export async function refresh(refreshToken: string): Promise<RefreshResponse> {
-  return request<RefreshResponse>('/api/refresh', {
+  return request<RefreshResponse>(AUTH_PATH_REFRESH, {
     method: 'POST',
     body: JSON.stringify({ refresh_token: refreshToken }),
   })
 }
 
 export async function logout(refreshToken: string): Promise<void> {
-  await request('/api/logout', {
+  await request(AUTH_PATH_LOGOUT, {
     method: 'POST',
     body: JSON.stringify({ refresh_token: refreshToken }),
   })
 }
 
 export async function me(accessToken: string): Promise<MeResponse> {
-  return request<MeResponse>('/api/me', {
+  return request<MeResponse>(AUTH_PATH_ME, {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
 }

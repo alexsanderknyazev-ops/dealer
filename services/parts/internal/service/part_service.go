@@ -14,10 +14,24 @@ import (
 var ErrNotFound = errors.New("part not found")
 var ErrFolderNotFound = errors.New("folder not found")
 
-// StockRow — склад и количество для остатков запчасти
-type StockRow struct {
-	WarehouseID uuid.UUID
-	Quantity    int32
+// StockRow — alias для строк остатков (HTTP JSON и ReplaceStock).
+type StockRow = domain.PartWarehouseQty
+
+// CreatePartInput is the payload for Create.
+type CreatePartInput struct {
+	SKU, Name, Category string
+	FolderID, BrandID, DealerPointID, LegalEntityID, WarehouseID *uuid.UUID
+	Quantity                         int32
+	Unit, Price, Location, Notes       string
+	InitialStock                     []StockRow
+}
+
+// UpdatePartInput holds optional fields for Update (optional string IDs follow HTTP clear semantics).
+type UpdatePartInput struct {
+	SKU, Name, Category *string
+	FolderID, BrandID, DealerPointID, LegalEntityID, WarehouseID *string
+	Quantity *int32
+	Unit, Price, Location, Notes *string
 }
 
 type partRepository interface {
@@ -39,10 +53,7 @@ type folderRepository interface {
 type partStockRepository interface {
 	ListByPart(ctx context.Context, partID uuid.UUID) ([]*domain.PartStock, error)
 	Upsert(ctx context.Context, partID, warehouseID uuid.UUID, quantity int32) error
-	ReplaceForPart(ctx context.Context, partID uuid.UUID, rows []struct {
-		WarehouseID uuid.UUID
-		Quantity    int32
-	}) error
+	ReplaceForPart(ctx context.Context, partID uuid.UUID, rows []domain.PartWarehouseQty) error
 }
 
 type PartService struct {
@@ -55,48 +66,41 @@ func NewPartService(repo partRepository, folderRepo folderRepository, stockRepo 
 	return &PartService{repo: repo, folderRepo: folderRepo, stockRepo: stockRepo}
 }
 
-func (s *PartService) Create(ctx context.Context, sku, name, category string, folderID, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID, quantity int32, unit, price, location, notes string, initialStock []StockRow) (*domain.Part, error) {
+func (s *PartService) Create(ctx context.Context, in CreatePartInput) (*domain.Part, error) {
+	unit := in.Unit
 	if unit == "" {
 		unit = "шт"
 	}
 	now := time.Now().UTC()
 	p := &domain.Part{
 		ID:            uuid.New(),
-		SKU:           sku,
-		Name:          name,
-		Category:      category,
-		FolderID:      folderID,
-		BrandID:       brandID,
-		DealerPointID: dealerPointID,
-		LegalEntityID: legalEntityID,
-		WarehouseID:   warehouseID,
+		SKU:           in.SKU,
+		Name:          in.Name,
+		Category:      in.Category,
+		FolderID:      in.FolderID,
+		BrandID:       in.BrandID,
+		DealerPointID: in.DealerPointID,
+		LegalEntityID: in.LegalEntityID,
+		WarehouseID:   in.WarehouseID,
 		Quantity:      0, // пересчитается из part_stock триггером
 		Unit:          unit,
-		Price:         price,
-		Location:      location,
-		Notes:         notes,
+		Price:         in.Price,
+		Location:      in.Location,
+		Notes:         in.Notes,
 		CreatedAt:     now,
 		UpdatedAt:     now,
 	}
 	if err := s.repo.Create(ctx, p); err != nil {
 		return nil, err
 	}
-	if len(initialStock) > 0 {
-		rows := make([]struct {
-			WarehouseID uuid.UUID
-			Quantity    int32
-		}, len(initialStock))
-		for i, row := range initialStock {
-			rows[i].WarehouseID = row.WarehouseID
-			rows[i].Quantity = row.Quantity
-		}
-		if err := s.stockRepo.ReplaceForPart(ctx, p.ID, rows); err != nil {
+	if len(in.InitialStock) > 0 {
+		if err := s.stockRepo.ReplaceForPart(ctx, p.ID, in.InitialStock); err != nil {
 			return nil, err
 		}
 		// перечитать part — quantity обновлён триггером
 		p, _ = s.repo.GetByID(ctx, p.ID)
-	} else if warehouseID != nil && quantity > 0 {
-		if err := s.stockRepo.Upsert(ctx, p.ID, *warehouseID, quantity); err != nil {
+	} else if in.WarehouseID != nil && in.Quantity > 0 {
+		if err := s.stockRepo.Upsert(ctx, p.ID, *in.WarehouseID, in.Quantity); err != nil {
 			return nil, err
 		}
 		p, _ = s.repo.GetByID(ctx, p.ID)
@@ -119,18 +123,15 @@ func (s *PartService) Get(ctx context.Context, id string) (*domain.Part, error) 
 	return p, nil
 }
 
-func (s *PartService) List(ctx context.Context, limit, offset int32, search, categoryFilter string, folderID, brandID, dealerPointID, legalEntityID, warehouseID *uuid.UUID) ([]*domain.Part, int32, error) {
-	if limit <= 0 || limit > 100 {
-		limit = 20
+func (s *PartService) List(ctx context.Context, filter domain.PartListFilter) ([]*domain.Part, int32, error) {
+	f := filter
+	if f.Limit <= 0 || f.Limit > 100 {
+		f.Limit = 20
 	}
-	return s.repo.List(ctx, domain.PartListFilter{
-		Limit: limit, Offset: offset, Search: search, CategoryFilter: categoryFilter,
-		FolderID: folderID, BrandID: brandID, DealerPointID: dealerPointID,
-		LegalEntityID: legalEntityID, WarehouseID: warehouseID,
-	})
+	return s.repo.List(ctx, f)
 }
 
-func (s *PartService) Update(ctx context.Context, id string, sku, name, category *string, folderIDOpt, brandIDOpt, dealerPointIDOpt, legalEntityIDOpt, warehouseIDOpt *string, quantity *int32, unit, price, location, notes *string) (*domain.Part, error) {
+func (s *PartService) Update(ctx context.Context, id string, in UpdatePartInput) (*domain.Part, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, ErrNotFound
@@ -139,77 +140,77 @@ func (s *PartService) Update(ctx context.Context, id string, sku, name, category
 	if err != nil {
 		return nil, ErrNotFound
 	}
-	if sku != nil {
-		existing.SKU = *sku
+	if in.SKU != nil {
+		existing.SKU = *in.SKU
 	}
-	if name != nil {
-		existing.Name = *name
+	if in.Name != nil {
+		existing.Name = *in.Name
 	}
-	if category != nil {
-		existing.Category = *category
+	if in.Category != nil {
+		existing.Category = *in.Category
 	}
-	if folderIDOpt != nil {
-		if *folderIDOpt == "" {
+	if in.FolderID != nil {
+		if *in.FolderID == "" {
 			existing.FolderID = nil
 		} else {
-			fid, err := uuid.Parse(*folderIDOpt)
+			fid, err := uuid.Parse(*in.FolderID)
 			if err == nil {
 				existing.FolderID = &fid
 			}
 		}
 	}
-	if brandIDOpt != nil {
-		if *brandIDOpt == "" {
+	if in.BrandID != nil {
+		if *in.BrandID == "" {
 			existing.BrandID = nil
 		} else {
-			bid, err := uuid.Parse(*brandIDOpt)
+			bid, err := uuid.Parse(*in.BrandID)
 			if err == nil {
 				existing.BrandID = &bid
 			}
 		}
 	}
-	if dealerPointIDOpt != nil {
-		if *dealerPointIDOpt == "" {
+	if in.DealerPointID != nil {
+		if *in.DealerPointID == "" {
 			existing.DealerPointID = nil
 		} else {
-			did, err := uuid.Parse(*dealerPointIDOpt)
+			did, err := uuid.Parse(*in.DealerPointID)
 			if err == nil {
 				existing.DealerPointID = &did
 			}
 		}
 	}
-	if legalEntityIDOpt != nil {
-		if *legalEntityIDOpt == "" {
+	if in.LegalEntityID != nil {
+		if *in.LegalEntityID == "" {
 			existing.LegalEntityID = nil
 		} else {
-			lid, err := uuid.Parse(*legalEntityIDOpt)
+			lid, err := uuid.Parse(*in.LegalEntityID)
 			if err == nil {
 				existing.LegalEntityID = &lid
 			}
 		}
 	}
-	if warehouseIDOpt != nil {
-		if *warehouseIDOpt == "" {
+	if in.WarehouseID != nil {
+		if *in.WarehouseID == "" {
 			existing.WarehouseID = nil
 		} else {
-			wid, err := uuid.Parse(*warehouseIDOpt)
+			wid, err := uuid.Parse(*in.WarehouseID)
 			if err == nil {
 				existing.WarehouseID = &wid
 			}
 		}
 	}
 	// quantity теперь хранится в part_stock и пересчитывается триггером; прямое изменение parts.quantity не делаем
-	if unit != nil {
-		existing.Unit = *unit
+	if in.Unit != nil {
+		existing.Unit = *in.Unit
 	}
-	if price != nil {
-		existing.Price = *price
+	if in.Price != nil {
+		existing.Price = *in.Price
 	}
-	if location != nil {
-		existing.Location = *location
+	if in.Location != nil {
+		existing.Location = *in.Location
 	}
-	if notes != nil {
-		existing.Notes = *notes
+	if in.Notes != nil {
+		existing.Notes = *in.Notes
 	}
 	existing.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, existing); err != nil {
@@ -241,18 +242,12 @@ func (s *PartService) ReplaceStock(ctx context.Context, partID string, rows []St
 	if err != nil {
 		return ErrNotFound
 	}
-	repoRows := make([]struct {
-		WarehouseID uuid.UUID
-		Quantity    int32
-	}, 0, len(rows))
+	repoRows := make([]domain.PartWarehouseQty, 0, len(rows))
 	for _, row := range rows {
 		if row.Quantity < 0 {
 			continue
 		}
-		repoRows = append(repoRows, struct {
-			WarehouseID uuid.UUID
-			Quantity    int32
-		}{row.WarehouseID, row.Quantity})
+		repoRows = append(repoRows, row)
 	}
 	return s.stockRepo.ReplaceForPart(ctx, uid, repoRows)
 }

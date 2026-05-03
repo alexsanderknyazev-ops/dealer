@@ -18,3 +18,9 @@ type Customer struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
+
+// CustomerListParams is pagination and search for listing customers.
+type CustomerListParams struct {
+	Limit, Offset int32
+	Search        string
+}

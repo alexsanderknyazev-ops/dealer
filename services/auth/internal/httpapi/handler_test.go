@@ -75,6 +75,13 @@ func testAuthHTTP(t *testing.T) (*http.ServeMux, func()) {
 	return mux, cleanup
 }
 
+// newPostRefresh builds a POST /api/refresh with JSON Content-Type (path literal only here).
+func newPostRefresh(body io.Reader) *http.Request {
+	r := httptest.NewRequest(http.MethodPost, pathAPIRefresh, body)
+	setRequestJSONContentType(r)
+	return r
+}
+
 func TestAuthHTTP_RegisterLoginMe(t *testing.T) {
 	mux, cleanup := testAuthHTTP(t)
 	defer cleanup()
@@ -88,7 +95,7 @@ func TestAuthHTTP_RegisterLoginMe(t *testing.T) {
 	})
 	t.Run("register_bad_json", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader([]byte("{")))
-		req.Header.Set("Content-Type", "application/json")
+		setRequestJSONContentType(req)
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
 		if w.Code != http.StatusBadRequest {
@@ -97,7 +104,7 @@ func TestAuthHTTP_RegisterLoginMe(t *testing.T) {
 	})
 	body, _ := json.Marshal(map[string]string{"email": "h@http.test", "password": "password123", "name": "H"})
 	req := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	setRequestJSONContentType(req)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
@@ -124,7 +131,7 @@ func TestAuthHTTP_RegisterLoginMe(t *testing.T) {
 
 	lb, _ := json.Marshal(map[string]string{"email": "h@http.test", "password": "wrong"})
 	req4 := httptest.NewRequest(http.MethodPost, pathAPILogin, bytes.NewReader(lb))
-	req4.Header.Set("Content-Type", "application/json")
+	setRequestJSONContentType(req4)
 	w4 := httptest.NewRecorder()
 	mux.ServeHTTP(w4, req4)
 	if w4.Code != http.StatusUnauthorized {
@@ -140,14 +147,14 @@ func TestAuthHTTP_RegisterConflict(t *testing.T) {
 		return b
 	}
 	req := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader(regBody("conf@x")))
-	req.Header.Set("Content-Type", "application/json")
+	setRequestJSONContentType(req)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		t.Fatal(w.Code)
 	}
 	req2 := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader(regBody("conf@x")))
-	req2.Header.Set("Content-Type", "application/json")
+	setRequestJSONContentType(req2)
 	w2 := httptest.NewRecorder()
 	mux.ServeHTTP(w2, req2)
 	if w2.Code != http.StatusConflict {
@@ -160,7 +167,7 @@ func TestAuthHTTP_Refresh(t *testing.T) {
 	defer cleanup()
 	body, _ := json.Marshal(map[string]string{"email": "r@http.test", "password": "password123", "name": "R"})
 	req := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	setRequestJSONContentType(req)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	var reg map[string]any
@@ -168,8 +175,7 @@ func TestAuthHTTP_Refresh(t *testing.T) {
 	rt := reg["refresh_token"].(string)
 
 	rb, _ := json.Marshal(map[string]string{"refresh_token": ""})
-	req2 := httptest.NewRequest(http.MethodPost, pathAPIRefresh, bytes.NewReader(rb))
-	req2.Header.Set("Content-Type", "application/json")
+	req2 := newPostRefresh(bytes.NewReader(rb))
 	w2 := httptest.NewRecorder()
 	mux.ServeHTTP(w2, req2)
 	if w2.Code != http.StatusBadRequest {
@@ -177,8 +183,7 @@ func TestAuthHTTP_Refresh(t *testing.T) {
 	}
 
 	rb2, _ := json.Marshal(map[string]string{"refresh_token": "invalid"})
-	req3 := httptest.NewRequest(http.MethodPost, pathAPIRefresh, bytes.NewReader(rb2))
-	req3.Header.Set("Content-Type", "application/json")
+	req3 := newPostRefresh(bytes.NewReader(rb2))
 	w3 := httptest.NewRecorder()
 	mux.ServeHTTP(w3, req3)
 	if w3.Code != http.StatusUnauthorized {
@@ -186,8 +191,7 @@ func TestAuthHTTP_Refresh(t *testing.T) {
 	}
 
 	rb3, _ := json.Marshal(map[string]string{"refresh_token": rt})
-	req4 := httptest.NewRequest(http.MethodPost, pathAPIRefresh, bytes.NewReader(rb3))
-	req4.Header.Set("Content-Type", "application/json")
+	req4 := newPostRefresh(bytes.NewReader(rb3))
 	w4 := httptest.NewRecorder()
 	mux.ServeHTTP(w4, req4)
 	if w4.Code != http.StatusOK {

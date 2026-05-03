@@ -95,7 +95,10 @@ func (h *Handler) handleList(w http.ResponseWriter, r *http.Request) {
 	legalEntityID := parseUUIDOpt(r.URL.Query().Get("legal_entity_id"))
 	warehouseID := parseUUIDOpt(r.URL.Query().Get("warehouse_id"))
 
-	list, total, err := h.svc.List(r.Context(), int32(limit), int32(offset), search, categoryFilter, folderID, brandID, dealerPointID, legalEntityID, warehouseID)
+	list, total, err := h.svc.List(r.Context(), domain.PartListFilter{
+		Limit: int32(limit), Offset: int32(offset), Search: search, CategoryFilter: categoryFilter,
+		FolderID: folderID, BrandID: brandID, DealerPointID: dealerPointID, LegalEntityID: legalEntityID, WarehouseID: warehouseID,
+	})
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
@@ -143,7 +146,13 @@ func (h *Handler) handleCreate(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	p, err := h.svc.Create(r.Context(), req.SKU, req.Name, req.Category, parseUUIDOpt(req.FolderID), parseUUIDOpt(req.BrandID), parseUUIDOpt(req.DealerPointID), parseUUIDOpt(req.LegalEntityID), parseUUIDOpt(req.WarehouseID), req.Quantity, req.Unit, req.Price, req.Location, req.Notes, initialStock)
+	p, err := h.svc.Create(r.Context(), service.CreatePartInput{
+		SKU: req.SKU, Name: req.Name, Category: req.Category,
+		FolderID: parseUUIDOpt(req.FolderID), BrandID: parseUUIDOpt(req.BrandID), DealerPointID: parseUUIDOpt(req.DealerPointID),
+		LegalEntityID: parseUUIDOpt(req.LegalEntityID), WarehouseID: parseUUIDOpt(req.WarehouseID),
+		Quantity: req.Quantity, Unit: req.Unit, Price: req.Price, Location: req.Location, Notes: req.Notes,
+		InitialStock: initialStock,
+	})
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
@@ -218,7 +227,11 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	p, err := h.svc.Update(r.Context(), id, req.SKU, req.Name, req.Category, req.FolderID, req.BrandID, req.DealerPointID, req.LegalEntityID, req.WarehouseID, req.Quantity, req.Unit, req.Price, req.Location, req.Notes)
+	p, err := h.svc.Update(r.Context(), id, service.UpdatePartInput{
+		SKU: req.SKU, Name: req.Name, Category: req.Category, FolderID: req.FolderID, BrandID: req.BrandID,
+		DealerPointID: req.DealerPointID, LegalEntityID: req.LegalEntityID, WarehouseID: req.WarehouseID,
+		Quantity: req.Quantity, Unit: req.Unit, Price: req.Price, Location: req.Location, Notes: req.Notes,
+	})
 	if err != nil {
 		if err == service.ErrNotFound {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})

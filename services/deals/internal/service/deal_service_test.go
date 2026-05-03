@@ -79,7 +79,7 @@ func TestDealService_Create_DefaultStage(t *testing.T) {
 	r := &memDealRepo{byID: map[uuid.UUID]*domain.Deal{}}
 	s := NewDealService(r)
 	cid, vid := uuid.New(), uuid.New()
-	d, err := s.Create(context.Background(), cid.String(), vid.String(), "100", "", "", "")
+	d, err := s.Create(context.Background(), CreateDealInput{CustomerID: cid.String(), VehicleID: vid.String(), Amount: "100"})
 	if err != nil || d.Stage != "draft" {
 		t.Fatalf("%v %+v", err, d)
 	}
@@ -87,7 +87,7 @@ func TestDealService_Create_DefaultStage(t *testing.T) {
 
 func TestDealService_Create_InvalidCustomer(t *testing.T) {
 	s := NewDealService(&memDealRepo{})
-	_, err := s.Create(context.Background(), "bad", uuid.New().String(), "", "", "", "")
+	_, err := s.Create(context.Background(), CreateDealInput{CustomerID: "bad", VehicleID: uuid.New().String()})
 	if err == nil || err.Error() != "invalid customer_id" {
 		t.Fatalf("%v", err)
 	}
@@ -110,7 +110,7 @@ func TestDealService_Update_AssignedEmptyClears(t *testing.T) {
 	s := NewDealService(r)
 	cid, vid := uuid.New(), uuid.New()
 	a := uuid.New()
-	d, _ := s.Create(context.Background(), cid.String(), vid.String(), "1", "open", a.String(), "")
+	d, _ := s.Create(context.Background(), CreateDealInput{CustomerID: cid.String(), VehicleID: vid.String(), Amount: "1", Stage: "open", AssignedTo: a.String()})
 	empty := ""
 	d2, err := s.Update(context.Background(), d.ID.String(), UpdateDealInput{AssignedTo: &empty})
 	if err != nil || d2.AssignedTo != nil {
@@ -128,7 +128,7 @@ func TestDealService_List_DefaultLimit(t *testing.T) {
 
 func TestDealService_Create_Err(t *testing.T) {
 	s := NewDealService(&memDealRepo{byID: map[uuid.UUID]*domain.Deal{}, err: errors.New("db")})
-	_, err := s.Create(context.Background(), uuid.New().String(), uuid.New().String(), "", "", "", "")
+	_, err := s.Create(context.Background(), CreateDealInput{CustomerID: uuid.New().String(), VehicleID: uuid.New().String()})
 	if err == nil {
 		t.Fatal("want err")
 	}
@@ -150,7 +150,7 @@ func TestDealService_Update_GetExisting(t *testing.T) {
 	r := &memDealRepo{byID: map[uuid.UUID]*domain.Deal{}}
 	s := NewDealService(r)
 	cid, vid := uuid.New(), uuid.New()
-	d, _ := s.Create(context.Background(), cid.String(), vid.String(), "10", "x", "", "")
+	d, _ := s.Create(context.Background(), CreateDealInput{CustomerID: cid.String(), VehicleID: vid.String(), Amount: "10", Stage: "x"})
 	amt := "20"
 	d2, err := s.Update(context.Background(), d.ID.String(), UpdateDealInput{Amount: &amt})
 	if err != nil || d2.Amount != "20" {
@@ -179,7 +179,7 @@ func TestDealService_Update_UpdateFails(t *testing.T) {
 	r := &memDealRepo{byID: map[uuid.UUID]*domain.Deal{}, updateErr: errors.New("db")}
 	s := NewDealService(r)
 	cid, vid := uuid.New(), uuid.New()
-	d, _ := s.Create(context.Background(), cid.String(), vid.String(), "1", "x", "", "")
+	d, _ := s.Create(context.Background(), CreateDealInput{CustomerID: cid.String(), VehicleID: vid.String(), Amount: "1", Stage: "x"})
 	x := "2"
 	_, err := s.Update(context.Background(), d.ID.String(), UpdateDealInput{Amount: &x})
 	if err == nil {

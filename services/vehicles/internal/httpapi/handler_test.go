@@ -18,6 +18,19 @@ import (
 	"github.com/dealer/dealer/services/vehicles/internal/service"
 )
 
+func testVehicleFromCreateInput(in service.CreateVehicleInput) *domain.Vehicle {
+	now := time.Now().UTC()
+	st := in.Status
+	if st == "" {
+		st = "available"
+	}
+	return &domain.Vehicle{
+		ID: uuid.New(), VIN: in.VIN, Make: in.Make, Model: in.Model, Year: in.Year, MileageKm: in.MileageKm, Price: in.Price, Status: st,
+		Color: in.Color, Notes: in.Notes, BrandID: in.BrandID, DealerPointID: in.DealerPointID, LegalEntityID: in.LegalEntityID, WarehouseID: in.WarehouseID,
+		CreatedAt: now, UpdatedAt: now,
+	}
+}
+
 type mockVehicle struct {
 	listErr   error
 	createErr error
@@ -29,12 +42,7 @@ func (m *mockVehicle) Create(_ context.Context, in service.CreateVehicleInput) (
 	if m.createErr != nil {
 		return nil, m.createErr
 	}
-	now := time.Now().UTC()
-	return &domain.Vehicle{
-		ID: uuid.New(), VIN: in.VIN, Make: in.Make, Model: in.Model, Year: in.Year, MileageKm: in.MileageKm, Price: in.Price, Status: in.Status,
-		Color: in.Color, Notes: in.Notes, BrandID: in.BrandID, DealerPointID: in.DealerPointID, LegalEntityID: in.LegalEntityID, WarehouseID: in.WarehouseID,
-		CreatedAt: now, UpdatedAt: now,
-	}, nil
+	return testVehicleFromCreateInput(in), nil
 }
 
 func (m *mockVehicle) Get(_ context.Context, id string) (*domain.Vehicle, error) {

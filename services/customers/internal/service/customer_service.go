@@ -39,7 +39,7 @@ type UpdateCustomerInput struct {
 type CustomerAPI interface {
 	Create(ctx context.Context, in CreateCustomerInput) (*domain.Customer, error)
 	Get(ctx context.Context, id string) (*domain.Customer, error)
-	List(ctx context.Context, limit, offset int32, search string) ([]*domain.Customer, int32, error)
+	List(ctx context.Context, p domain.CustomerListParams) ([]*domain.Customer, int32, error)
 	Update(ctx context.Context, id string, in UpdateCustomerInput) (*domain.Customer, error)
 	Delete(ctx context.Context, id string) error
 }
@@ -47,7 +47,7 @@ type CustomerAPI interface {
 type customerRepository interface {
 	Create(ctx context.Context, c *domain.Customer) error
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Customer, error)
-	List(ctx context.Context, limit, offset int32, search string) ([]*domain.Customer, int32, error)
+	List(ctx context.Context, p domain.CustomerListParams) ([]*domain.Customer, int32, error)
 	Update(ctx context.Context, c *domain.Customer) error
 	Delete(ctx context.Context, id uuid.UUID) error
 }
@@ -101,11 +101,12 @@ func (s *CustomerService) Get(ctx context.Context, id string) (*domain.Customer,
 	return c, nil
 }
 
-func (s *CustomerService) List(ctx context.Context, limit, offset int32, search string) ([]*domain.Customer, int32, error) {
-	if limit <= 0 || limit > 100 {
-		limit = 20
+func (s *CustomerService) List(ctx context.Context, p domain.CustomerListParams) ([]*domain.Customer, int32, error) {
+	lp := p
+	if lp.Limit <= 0 || lp.Limit > 100 {
+		lp.Limit = 20
 	}
-	return s.repo.List(ctx, limit, offset, search)
+	return s.repo.List(ctx, lp)
 }
 
 func (s *CustomerService) Update(ctx context.Context, id string, in UpdateCustomerInput) (*domain.Customer, error) {

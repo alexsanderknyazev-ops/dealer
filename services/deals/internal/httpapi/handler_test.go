@@ -25,14 +25,14 @@ type mockDeal struct {
 	nf        string
 }
 
-func (m *mockDeal) Create(_ context.Context, customerID, vehicleID, amount, stage, assignedTo, notes string) (*domain.Deal, error) {
+func (m *mockDeal) Create(_ context.Context, in service.CreateDealInput) (*domain.Deal, error) {
 	if m.createErr != nil {
 		return nil, m.createErr
 	}
 	now := time.Now().UTC()
-	cid, _ := uuid.Parse(customerID)
-	vid, _ := uuid.Parse(vehicleID)
-	return &domain.Deal{ID: uuid.New(), CustomerID: cid, VehicleID: vid, Amount: amount, Stage: stage, Notes: notes, CreatedAt: now, UpdatedAt: now}, nil
+	cid, _ := uuid.Parse(in.CustomerID)
+	vid, _ := uuid.Parse(in.VehicleID)
+	return &domain.Deal{ID: uuid.New(), CustomerID: cid, VehicleID: vid, Amount: in.Amount, Stage: in.Stage, Notes: in.Notes, CreatedAt: now, UpdatedAt: now}, nil
 }
 
 func (m *mockDeal) Get(_ context.Context, id string) (*domain.Deal, error) {

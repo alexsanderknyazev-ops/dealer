@@ -42,7 +42,9 @@ func toProto(d *domain.Deal) *dealsv1.Deal {
 }
 
 func (s *Server) CreateDeal(ctx context.Context, req *dealsv1.CreateDealRequest) (*dealsv1.CreateDealResponse, error) {
-	d, err := s.svc.Create(ctx, req.CustomerId, req.VehicleId, req.Amount, req.Stage, req.AssignedTo, req.Notes)
+	d, err := s.svc.Create(ctx, service.CreateDealInput{
+		CustomerID: req.CustomerId, VehicleID: req.VehicleId, Amount: req.Amount, Stage: req.Stage, AssignedTo: req.AssignedTo, Notes: req.Notes,
+	})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

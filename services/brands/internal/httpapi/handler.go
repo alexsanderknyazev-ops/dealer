@@ -22,11 +22,21 @@ func NewHandler(svc service.BrandAPI, jwtSecret string) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc(http.MethodGet+" "+pathAPIBrands, h.cors(h.auth(h.handleList)))
-	mux.HandleFunc(http.MethodPost+" "+pathAPIBrands, h.cors(h.auth(h.handleCreate)))
-	mux.HandleFunc(http.MethodGet+" "+pathAPIBrands+"/{id}", h.cors(h.auth(h.handleGet)))
-	mux.HandleFunc(http.MethodPut+" "+pathAPIBrands+"/{id}", h.cors(h.auth(h.handleUpdate)))
-	mux.HandleFunc(http.MethodDelete+" "+pathAPIBrands+"/{id}", h.cors(h.auth(h.handleDelete)))
+	idPath := pathAPIBrands + "/{id}"
+	routes := []struct {
+		method  string
+		path    string
+		handler http.HandlerFunc
+	}{
+		{http.MethodGet, pathAPIBrands, h.handleList},
+		{http.MethodPost, pathAPIBrands, h.handleCreate},
+		{http.MethodGet, idPath, h.handleGet},
+		{http.MethodPut, idPath, h.handleUpdate},
+		{http.MethodDelete, idPath, h.handleDelete},
+	}
+	for _, r := range routes {
+		mux.HandleFunc(r.method+" "+r.path, h.cors(h.auth(r.handler)))
+	}
 	mux.HandleFunc(http.MethodOptions+" "+pathAPIBrands, h.cors(nil))
 }
 
@@ -34,7 +44,7 @@ func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", headerCORSAllowHeaders)
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -174,7 +184,7 @@ func brandToMap(b *domain.Brand) map[string]any {
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(headerContentType, mimeApplicationJSON)
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(v)
 }

@@ -35,7 +35,7 @@ func (grpcCustomerMock) Get(_ context.Context, id string) (*domain.Customer, err
 	return &domain.Customer{ID: uid, Name: "N", Email: "e", CreatedAt: now, UpdatedAt: now}, nil
 }
 
-func (grpcCustomerMock) List(_ context.Context, _, _ int32, _ string) ([]*domain.Customer, int32, error) {
+func (grpcCustomerMock) List(_ context.Context, _ domain.CustomerListParams) ([]*domain.Customer, int32, error) {
 	return []*domain.Customer{}, 0, nil
 }
 
@@ -208,7 +208,7 @@ func TestServer_ListCustomers_InternalErr(t *testing.T) {
 
 type stubListErr struct{ grpcCustomerMock }
 
-func (stubListErr) List(context.Context, int32, int32, string) ([]*domain.Customer, int32, error) {
+func (stubListErr) List(context.Context, domain.CustomerListParams) ([]*domain.Customer, int32, error) {
 	return nil, 0, context.Canceled
 }
 

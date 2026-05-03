@@ -33,6 +33,12 @@ type Part struct {
 	UpdatedAt     time.Time
 }
 
+// PartWarehouseQty is one warehouse line for create/replace stock APIs.
+type PartWarehouseQty struct {
+	WarehouseID uuid.UUID
+	Quantity    int32
+}
+
 // PartStock — остаток запчасти на конкретном складе (одна запчасть может быть на нескольких складах)
 type PartStock struct {
 	PartID      uuid.UUID

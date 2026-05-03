@@ -21,11 +21,11 @@ import (
 
 type mockGRPCDeal struct{}
 
-func (mockGRPCDeal) Create(_ context.Context, customerID, vehicleID, amount, stage, assignedTo, notes string) (*domain.Deal, error) {
+func (mockGRPCDeal) Create(_ context.Context, in service.CreateDealInput) (*domain.Deal, error) {
 	now := time.Now().UTC()
-	cid, _ := uuid.Parse(customerID)
-	vid, _ := uuid.Parse(vehicleID)
-	return &domain.Deal{ID: uuid.New(), CustomerID: cid, VehicleID: vid, Amount: amount, Stage: stage, Notes: notes, CreatedAt: now, UpdatedAt: now}, nil
+	cid, _ := uuid.Parse(in.CustomerID)
+	vid, _ := uuid.Parse(in.VehicleID)
+	return &domain.Deal{ID: uuid.New(), CustomerID: cid, VehicleID: vid, Amount: in.Amount, Stage: in.Stage, Notes: in.Notes, CreatedAt: now, UpdatedAt: now}, nil
 }
 
 func (mockGRPCDeal) Get(_ context.Context, id string) (*domain.Deal, error) {
@@ -114,7 +114,7 @@ func TestDealsGRPC_CreateErr(t *testing.T) {
 
 type stubDealCreateErr struct{ mockGRPCDeal }
 
-func (stubDealCreateErr) Create(context.Context, string, string, string, string, string, string) (*domain.Deal, error) {
+func (stubDealCreateErr) Create(context.Context, service.CreateDealInput) (*domain.Deal, error) {
 	return nil, errors.New("db")
 }
 

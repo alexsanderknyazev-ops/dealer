@@ -13,6 +13,11 @@ import (
 
 var ErrNotFound = errors.New("deal not found")
 
+// CreateDealInput is the payload for Create (keeps DealAPI arity within Sonar limits).
+type CreateDealInput struct {
+	CustomerID, VehicleID, Amount, Stage, AssignedTo, Notes string
+}
+
 // UpdateDealInput carries optional fields for Update (keeps DealAPI parameter count within limits).
 type UpdateDealInput struct {
 	CustomerID *string
@@ -33,7 +38,7 @@ type dealRepository interface {
 
 // DealAPI — HTTP/gRPC и тесты.
 type DealAPI interface {
-	Create(ctx context.Context, customerID, vehicleID, amount, stage, assignedTo, notes string) (*domain.Deal, error)
+	Create(ctx context.Context, in CreateDealInput) (*domain.Deal, error)
 	Get(ctx context.Context, id string) (*domain.Deal, error)
 	List(ctx context.Context, limit, offset int32, stageFilter, customerID string) ([]*domain.Deal, int32, error)
 	Update(ctx context.Context, id string, in UpdateDealInput) (*domain.Deal, error)
@@ -48,21 +53,22 @@ func NewDealService(repo dealRepository) *DealService {
 	return &DealService{repo: repo}
 }
 
-func (s *DealService) Create(ctx context.Context, customerID, vehicleID, amount, stage, assignedTo, notes string) (*domain.Deal, error) {
+func (s *DealService) Create(ctx context.Context, in CreateDealInput) (*domain.Deal, error) {
+	stage := in.Stage
 	if stage == "" {
 		stage = "draft"
 	}
-	cid, err := uuid.Parse(customerID)
+	cid, err := uuid.Parse(in.CustomerID)
 	if err != nil {
 		return nil, errors.New("invalid customer_id")
 	}
-	vid, err := uuid.Parse(vehicleID)
+	vid, err := uuid.Parse(in.VehicleID)
 	if err != nil {
 		return nil, errors.New("invalid vehicle_id")
 	}
 	var assigned *uuid.UUID
-	if assignedTo != "" {
-		if a, err := uuid.Parse(assignedTo); err == nil {
+	if in.AssignedTo != "" {
+		if a, err := uuid.Parse(in.AssignedTo); err == nil {
 			assigned = &a
 		}
 	}
@@ -71,10 +77,10 @@ func (s *DealService) Create(ctx context.Context, customerID, vehicleID, amount,
 		ID:         uuid.New(),
 		CustomerID: cid,
 		VehicleID:  vid,
-		Amount:     amount,
+		Amount:     in.Amount,
 		Stage:      stage,
 		AssignedTo: assigned,
-		Notes:      notes,
+		Notes:      in.Notes,
 		CreatedAt:  now,
 		UpdatedAt:  now,
 	}

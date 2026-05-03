@@ -99,7 +99,9 @@ func (h *Handler) handleCreate(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "customer_id and vehicle_id required"})
 		return
 	}
-	d, err := h.svc.Create(r.Context(), req.CustomerID, req.VehicleID, req.Amount, req.Stage, req.AssignedTo, req.Notes)
+	d, err := h.svc.Create(r.Context(), service.CreateDealInput{
+		CustomerID: req.CustomerID, VehicleID: req.VehicleID, Amount: req.Amount, Stage: req.Stage, AssignedTo: req.AssignedTo, Notes: req.Notes,
+	})
 	if err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return

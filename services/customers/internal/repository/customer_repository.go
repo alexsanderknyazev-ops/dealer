@@ -44,7 +44,8 @@ func (r *CustomerRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain
 	return &c, nil
 }
 
-func (r *CustomerRepository) List(ctx context.Context, limit, offset int32, search string) ([]*domain.Customer, int32, error) {
+func (r *CustomerRepository) List(ctx context.Context, p domain.CustomerListParams) ([]*domain.Customer, int32, error) {
+	limit, offset, search := p.Limit, p.Offset, p.Search
 	searchPattern := "%" + search + "%"
 	var total int32
 	if search != "" {

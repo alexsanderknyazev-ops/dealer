@@ -66,7 +66,7 @@ func (m *mockCustomerAPI) Get(_ context.Context, id string) (*domain.Customer, e
 	return &domain.Customer{ID: uid, Name: "N", Email: "e@e", CreatedAt: now, UpdatedAt: now}, nil
 }
 
-func (m *mockCustomerAPI) List(_ context.Context, _, _ int32, _ string) ([]*domain.Customer, int32, error) {
+func (m *mockCustomerAPI) List(_ context.Context, _ domain.CustomerListParams) ([]*domain.Customer, int32, error) {
 	if m.listErr != nil {
 		return nil, 0, m.listErr
 	}

@@ -69,7 +69,7 @@ func (h *Handler) handleList(w http.ResponseWriter, r *http.Request) {
 	}
 	search := r.URL.Query().Get("search")
 
-	list, total, err := h.svc.List(r.Context(), int32(limit), int32(offset), search)
+	list, total, err := h.svc.List(r.Context(), domain.CustomerListParams{Limit: int32(limit), Offset: int32(offset), Search: search})
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return

@@ -7,6 +7,7 @@
 //   3. SonarQube — sonar-scanner + Node, токен из credentials.
 //   4. Docker build and push — все 7 сервисов (build/*.Dockerfile), Skopeo push в registry.
 //   5. Deploy to Minikube (опционально) — kubectl apply k8s/dealer-stack.yaml, rollout по каждому Deployment.
+//      Доступ к API: либо kubeconfig на агенте (любой драйвер minikube: qemu2, kvm, docker, …), либо ветка docker exec — только при --driver=docker (контейнер-нода на хосте).
 //
 // Деплой k8s/dealer-stack.yaml поднимает Postgres, Redis, Zookeeper, Kafka и 7 сервисов в namespace dealer (см. параметр K8S_NAMESPACE).
 // =============================================================================
@@ -31,12 +32,12 @@ pipeline {
     booleanParam(
       name: 'DEPLOY_MINIKUBE',
       defaultValue: false,
-      description: 'После push: kubectl apply k8s/dealer-stack.yaml. Нужен либо JENKINS_HOME/.kube/config в агенте, либо запущенный Minikube (docker) и доступный docker.sock. Если не настроено — оставьте false.'
+      description: 'После push: kubectl apply k8s/dealer-stack.yaml. Нужен JENKINS_HOME/.kube/config (рекомендуется для qemu2/kvm/hyperkit) или Minikube с --driver=docker + docker.sock на агенте. При qemu2 отдельная VM — контейнера minikube на Docker хоста нет.'
     )
     string(
       name: 'MINIKUBE_CONTAINER',
       defaultValue: 'minikube',
-      description: 'Имя Docker-контейнера с kubectl (docker ps). Если пусто/не найден — пайплайн попробует первый контейнер с «minikube» в имени среди running.'
+      description: 'Только для minikube --driver=docker: имя контейнера-ноды (docker ps). При qemu2/kvm игнорируйте; настройте .kube/config с API VM.'
     )
     string(
       name: 'K8S_PULL_REGISTRY',
@@ -47,7 +48,7 @@ pipeline {
     booleanParam(
       name: 'K8S_CTR_IMPORT_IMAGE',
       defaultValue: true,
-      description: 'Только при docker exec minikube: docker save | docker load внутри ноды (cri-dockerd); imagePullPolicy Never. Не использовать ctr — kubelet не видит k8s.io import'
+      description: 'Только при ветке docker exec (minikube --driver=docker): save|load в dockerd ноды; imagePullPolicy Never. Для qemu2/kvm — false: образы из K8S_PULL_REGISTRY (VM тянет по сети).'
     )
     string(
       name: 'K8S_NAMESPACE',
@@ -251,7 +252,7 @@ set -eux
 cd "\${WORKSPACE}"
 command -v docker
 
-# --- Контекст: kubeconfig в Jenkins или доступ к контейнеру minikube по docker.sock ---
+# --- Контекст: kubeconfig в Jenkins (любой драйвер) или docker exec в контейнер-ноду (только minikube --driver=docker) ---
 JHOME="\${JENKINS_HOME:-\$HOME}"
 MK='${params.MINIKUBE_CONTAINER}'
 USE_DOCKER_EXEC=0
@@ -281,7 +282,7 @@ if [ -f "\$JHOME/.kube/config" ]; then
   fi
   "\$KUBECTL" cluster-info
 else
-  # Ветка B: kubeconfig нет — kubectl выполняется внутри контейнера minikube (имя из MINIKUBE_CONTAINER).
+  # Ветка B: kubeconfig нет — kubectl через docker exec в контейнер-ноду (только драйвер docker у minikube).
   if docker inspect "\$MK" >/dev/null 2>&1; then
     USE_DOCKER_EXEC=1
     echo "kubeconfig в Jenkins нет — kubectl через docker exec \$MK"
@@ -293,13 +294,14 @@ else
       USE_DOCKER_EXEC=1
     else
       echo "=== Деплой: нет Kubernetes-доступа ==="
-      echo "Нет файла \$JHOME/.kube/config и не найден Docker-контейнер для kubectl (параметр MINIKUBE_CONTAINER='\${MK}')."
+      echo "Нет файла \$JHOME/.kube/config и не найден Docker-контейнер-нода minikube (MINIKUBE_CONTAINER='\${MK}')."
       echo ""
       echo "Что сделать:"
-      echo "  A) Скопируйте kubeconfig на агент Jenkins (например volume: хостовый ~/.kube -> /var/jenkins_home/.kube)."
-      echo "  B) Запустите minikube на хосте с Docker driver и убедитесь, что Jenkins видит тот же docker.sock (docker ps показывает контейнер minikube)."
-      echo "  C) Укажите в job параметр MINIKUBE_CONTAINER = точное имя из «docker ps» (например minikube для профиля по умолчанию)."
-      echo "  D) Отключите параметр DEPLOY_MINIKUBE, если деплой пока не нужен."
+      echo "  A) Скопируйте kubeconfig на агент (volume: ~/.kube -> JENKINS_HOME/.kube). Для minikube qemu2/kvm/hyperkit отдельная VM — контейнера minikube на Docker хоста нет; только kubeconfig (API VM, часто IP:8443)."
+      echo "  B) Только если minikube --driver=docker: Jenkins должен видеть тот же docker.sock; docker ps показывает контейнер ноды (часто minikube)."
+      echo "  C) Для docker driver: MINIKUBE_CONTAINER = имя из «docker ps»."
+      echo "  D) Отключите DEPLOY_MINIKUBE, если деплой не нужен."
+      echo "  E) При qemu2: K8S_CTR_IMPORT_IMAGE=false, образы из registry (K8S_PULL_REGISTRY), доступного из VM."
       echo ""
       echo "Запущенные контейнеры (имена):"
       docker ps --format '{{.Names}}' 2>/dev/null | head -30 || echo "(docker ps недоступен)"

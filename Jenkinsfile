@@ -1,14 +1,14 @@
 // =============================================================================
-// Jenkinsfile — CI для users-go (лабораторный контур: Jenkins + Sonar + registry + Minikube)
+// Jenkinsfile — CI dealer (Jenkins + Sonar + registry + Minikube)
 // =============================================================================
 // Поток стадий:
 //   1. Checkout — код из SCM.
-//   2. Go test + coverage — ставим Go в агенте, go test, coverage.out (без docker run -v workspace: демон не видит файлы).
-//   3. SonarQube — sonar-scanner + Node (сенсоры), токен из credentials.
-//   4. Docker build and push — docker build локальный тег; Skopeo push в HTTP registry (без insecure-registry на демоне).
-//   5. Deploy to Minikube (опционально) — kubectl apply k8s/user-service-registry.yaml; см. комментарии внутри stage.
+//   2. Go test + coverage — go test, coverage.out.
+//   3. SonarQube — sonar-scanner + Node, токен из credentials.
+//   4. Docker build and push — все 7 сервисов (build/*.Dockerfile), Skopeo push в registry.
+//   5. Deploy to Minikube (опционально) — kubectl apply k8s/dealer-stack.yaml, rollout по каждому Deployment.
 //
-// Параметры ниже задают registry, имя образа, включение деплоя, БД и т.д. (подробности — в description каждого параметра).
+// В кластере нужны Postgres (и при auth — Redis/Kafka) в том же namespace или доступные по DNS из env.
 // =============================================================================
 
 pipeline {
@@ -21,21 +21,11 @@ pipeline {
       defaultValue: '',
       description: 'Доп. аргументы sonar-scanner (переопределяют properties), напр. -Dsonar.projectKey=КЛЮЧ_ИЗ_SONAR_UI'
     )
-    // --- Docker registry / имя образа (Skopeo push после docker build) ---
+    // --- Docker registry (Skopeo push после сборки всех сервисов) ---
     string(
       name: 'DOCKER_REGISTRY',
       defaultValue: 'host.docker.internal:5050',
       description: 'Docker registry host:port. Jenkins в Docker → host.docker.internal:5050; агент на хосте → localhost:5050'
-    )
-    string(
-      name: 'DOCKER_IMAGE',
-      defaultValue: 'auth-service',
-      description: 'Имя образа в реестре (без registry-префикса), совпадает с тегом docker build'
-    )
-    string(
-      name: 'DOCKERFILE',
-      defaultValue: 'Dockerfile',
-      description: 'Путь к Dockerfile от корня репозитория (по умолчанию auth-service; остальные: build/*.Dockerfile)'
     )
     // --- Kubernetes / Minikube: включение деплоя, контейнер minikube, registry для pull-манифеста ---
     booleanParam(
@@ -59,11 +49,16 @@ pipeline {
       defaultValue: true,
       description: 'Только при docker exec minikube: docker save | docker load внутри ноды (cri-dockerd); imagePullPolicy Never. Не использовать ctr — kubelet не видит k8s.io import'
     )
-    // --- БД для подов user-service (плейсхолдеры в k8s/user-service-registry.yaml) ---
+    string(
+      name: 'K8S_NAMESPACE',
+      defaultValue: 'dealer',
+      description: 'Kubernetes namespace для k8s/dealer-stack.yaml'
+    )
+    // --- БД для подов (плейсхолдеры __K8S_DB_HOST__ / __K8S_DB_PORT__ в k8s/dealer-stack.yaml) ---
     string(
       name: 'K8S_DB_HOST',
       defaultValue: 'postgres',
-      description: 'DB host: Service postgres в market (k8s/postgres-market.yaml) или host.minikube.internal для Postgres на Mac'
+      description: 'Postgres host из подов (например Service postgres в namespace dealer) или host.minikube.internal'
     )
     string(
       name: 'K8S_DB_PORT',
@@ -190,56 +185,62 @@ cd "\${WORKSPACE}"
       }
     }
 
-    // --- Сборка образа на Docker-демоне агента и публикация в registry (Skopeo, теги BUILD_NUMBER и latest) ---
+    // --- Сборка всех микросервисов (build/*.Dockerfile) и push в registry ---
     stage('Docker build and push') {
       steps {
         sh """#!/bin/bash
 set -eux
 command -v docker
-# Сборка классическим builder; push в HTTP registry:2 через skopeo (--dest-tls-verify=false), без insecure-registries на демоне.
 export DOCKER_BUILDKIT=0
 export BUILDKIT_PROGRESS=plain
 
 cd "\${WORKSPACE}"
 REG='${params.DOCKER_REGISTRY}'
-NAME='${params.DOCKER_IMAGE}'
-DOCKERFILE='${params.DOCKERFILE}'
 TAG='${env.BUILD_NUMBER}'
-FULL="\${REG}/\${NAME}:\${TAG}"
-LATEST="\${REG}/\${NAME}:latest"
 LOCAL_TAG="jenkins-\${TAG}"
-
-test -f "\${DOCKERFILE}" || { echo "Dockerfile not found: \${DOCKERFILE}"; exit 1; }
-docker build -f "\${DOCKERFILE}" -t "\${NAME}:\${LOCAL_TAG}" .
 
 SKOPEO_IMG='quay.io/skopeo/stable:latest'
 docker pull -q "\${SKOPEO_IMG}" || docker pull "\${SKOPEO_IMG}"
 
-# Skopeo в контейнере: на Linux-агенте добавляем host.docker.internal → host-gateway (доступ к registry на хосте).
 HOST_ARGS=()
 if docker run --help 2>&1 | grep -qF 'host-gateway'; then
   HOST_ARGS=(--add-host=host.docker.internal:host-gateway)
 fi
 
-# Копия образа с docker-daemon (локальный тег) в HTTP registry (--dest-tls-verify=false).
 run_skopeo_copy() {
-  local dest="\$1"
+  local name="\$1"
+  local dest="\$2"
   docker run --rm \\
     "\${HOST_ARGS[@]}" \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
     "\${SKOPEO_IMG}" \\
     copy --dest-tls-verify=false \\
-    "docker-daemon:\${NAME}:\${LOCAL_TAG}" \\
+    "docker-daemon:\${name}:\${LOCAL_TAG}" \\
     "docker://\${dest}"
 }
 
-run_skopeo_copy "\${FULL}"
-run_skopeo_copy "\${LATEST}"
+for entry in \\
+  'auth-service:build/auth-service.Dockerfile' \\
+  'customers-service:build/customers-service.Dockerfile' \\
+  'vehicles-service:build/vehicles-service.Dockerfile' \\
+  'deals-service:build/deals-service.Dockerfile' \\
+  'parts-service:build/parts-service.Dockerfile' \\
+  'brands-service:build/brands-service.Dockerfile' \\
+  'dealer-points-service:build/dealer-points-service.Dockerfile'
+do
+  NAME="\${entry%%:*}"
+  DOCKERFILE="\${entry#*:}"
+  test -f "\${DOCKERFILE}" || { echo "Dockerfile not found: \${DOCKERFILE}"; exit 1; }
+  echo "=== docker build \${NAME} (\${DOCKERFILE}) ==="
+  docker build -f "\${DOCKERFILE}" -t "\${NAME}:\${LOCAL_TAG}" .
+  run_skopeo_copy "\${NAME}" "\${REG}/\${NAME}:\${TAG}"
+  run_skopeo_copy "\${NAME}" "\${REG}/\${NAME}:latest"
+done
 """
       }
     }
 
-    // --- Деплой в Minikube: kubectl apply из k8s/user-service-registry.yaml (только если DEPLOY_MINIKUBE=true) ---
+    // --- Деплой в Minikube: k8s/dealer-stack.yaml (все сервисы), только если DEPLOY_MINIKUBE=true ---
     stage('Deploy to Minikube') {
       when {
         expression { return params.DEPLOY_MINIKUBE }
@@ -316,78 +317,89 @@ if [ "\$USE_DOCKER_EXEC" = 1 ]; then
   docker exec -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" cluster-info
 fi
 
-# --- Имя образа на демоне Jenkins и тег билда; IMG по умолчанию — pull из registry (если не включён локальный импорт) ---
-NAME='${params.DOCKER_IMAGE}'
+# --- Подготовка образов и манифеста k8s/dealer-stack.yaml ---
 TAG='${env.BUILD_NUMBER}'
-LOCAL_REF="\${NAME}:jenkins-\${TAG}"
+LOCAL_TAG="jenkins-\${TAG}"
 CTR_IMP='${params.K8S_CTR_IMPORT_IMAGE}'
-K8S_CTR_IMPORT=0
-IMG='${params.K8S_PULL_REGISTRY}/${params.DOCKER_IMAGE}:${env.BUILD_NUMBER}'
-
-# Локальный импорт в minikube (K8S_CTR_IMPORT_IMAGE=true + ветка docker exec): kubelet идёт через cri-dockerd → dockerd,
-# поэтому «docker save | docker load» в контейнер minikube; в манифесте — image users-go:jenkins-N и imagePullPolicy Never.
-if [ "\$USE_DOCKER_EXEC" = 1 ] && [ "\$CTR_IMP" = "true" ]; then
-  docker image inspect "\$LOCAL_REF" >/dev/null
-  # Minikube kic: kubelet → cri-dockerd → dockerd. Образы должны быть в «docker images» внутри ноды, не только в ctr -n k8s.io.
-  if ! docker exec "\$MK" sh -c 'command -v docker >/dev/null 2>&1'; then
-    echo "В \$MK нет docker — отключите K8S_CTR_IMPORT_IMAGE или обновите minikube" >&2
-    exit 1
-  fi
-  echo "Загрузка \$LOCAL_REF в docker внутри \$MK (docker load для cri-dockerd)…"
-  docker save "\$LOCAL_REF" | docker exec -i "\$MK" docker load
-  IMG="\$LOCAL_REF"
-  K8S_CTR_IMPORT=1
-  echo "Деплой с локальным образом \$IMG и imagePullPolicy Never"
-  echo "Образы docker в minikube (фрагмент):"
-  docker exec "\$MK" docker images 2>/dev/null | grep -F "jenkins-\${TAG}" | head -8 || true
-fi
-
-# --- Подстановка БД в YAML: плейсхолдеры __K8S_DB_HOST__ / __K8S_DB_PORT__ (параметры job) ---
+NS='${params.K8S_NAMESPACE}'
+K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
 K8S_DB_HOST='${params.K8S_DB_HOST}'
 K8S_DB_PORT='${params.K8S_DB_PORT}'
+SVC_LIST=(auth-service customers-service vehicles-service deals-service parts-service brands-service dealer-points-service)
 
-# Читает k8s/user-service-registry.yaml построчно: подставляет БД, image (IMG), при K8S_CTR_IMPORT=1 меняет Always→Never.
-render_manifest() {
-  while IFS= read -r line || [[ -n "\$line" ]]; do
-    line="\${line//__K8S_DB_HOST__/\$K8S_DB_HOST}"
-    line="\${line//__K8S_DB_PORT__/\$K8S_DB_PORT}"
-    if [[ "\$line" =~ ^([[:space:]]*)image:[[:space:]].* ]]; then
-      echo "\${BASH_REMATCH[1]}image: \${IMG}"
-    elif [[ "\${K8S_CTR_IMPORT}" = 1 ]] && [[ "\$line" =~ imagePullPolicy:[[:space:]]*Always ]]; then
-      echo "\${line/Always/Never}"
-    else
-      echo "\$line"
-    fi
-  done < k8s/user-service-registry.yaml
+test -f k8s/dealer-stack.yaml
+
+PULL_POLICY=Always
+if [ "\$USE_DOCKER_EXEC" = 1 ] && [ "\$CTR_IMP" = "true" ]; then
+  if ! docker exec "\$MK" sh -c 'command -v docker >/dev/null 2>&1'; then
+    echo "В \$MK нет docker — отключите K8S_CTR_IMPORT_IMAGE" >&2
+    exit 1
+  fi
+  for NAME in "\${SVC_LIST[@]}"; do
+    LOCAL_REF="\${NAME}:\${LOCAL_TAG}"
+    docker image inspect "\$LOCAL_REF" >/dev/null
+    echo "docker load \${LOCAL_REF} → minikube…"
+    docker save "\$LOCAL_REF" | docker exec -i "\$MK" docker load
+  done
+  PULL_POLICY=Never
+  IMG_AUTH="auth-service:\${LOCAL_TAG}"
+  IMG_CUSTOMERS="customers-service:\${LOCAL_TAG}"
+  IMG_VEHICLES="vehicles-service:\${LOCAL_TAG}"
+  IMG_DEALS="deals-service:\${LOCAL_TAG}"
+  IMG_PARTS="parts-service:\${LOCAL_TAG}"
+  IMG_BRANDS="brands-service:\${LOCAL_TAG}"
+  IMG_DEALER_POINTS="dealer-points-service:\${LOCAL_TAG}"
+else
+  IMG_AUTH="\${K8S_PULL_REG}/auth-service:\${TAG}"
+  IMG_CUSTOMERS="\${K8S_PULL_REG}/customers-service:\${TAG}"
+  IMG_VEHICLES="\${K8S_PULL_REG}/vehicles-service:\${TAG}"
+  IMG_DEALS="\${K8S_PULL_REG}/deals-service:\${TAG}"
+  IMG_PARTS="\${K8S_PULL_REG}/parts-service:\${TAG}"
+  IMG_BRANDS="\${K8S_PULL_REG}/brands-service:\${TAG}"
+  IMG_DEALER_POINTS="\${K8S_PULL_REG}/dealer-points-service:\${TAG}"
+fi
+
+render_stack() {
+  sed \\
+    -e "s|__K8S_DB_HOST__|\${K8S_DB_HOST}|g" \\
+    -e "s|__K8S_DB_PORT__|\${K8S_DB_PORT}|g" \\
+    -e "s|__IMG_AUTH__|\${IMG_AUTH}|g" \\
+    -e "s|__IMG_CUSTOMERS__|\${IMG_CUSTOMERS}|g" \\
+    -e "s|__IMG_VEHICLES__|\${IMG_VEHICLES}|g" \\
+    -e "s|__IMG_DEALS__|\${IMG_DEALS}|g" \\
+    -e "s|__IMG_PARTS__|\${IMG_PARTS}|g" \\
+    -e "s|__IMG_BRANDS__|\${IMG_BRANDS}|g" \\
+    -e "s|__IMG_DEALER_POINTS__|\${IMG_DEALER_POINTS}|g" \\
+    -e "s|__PULL_POLICY__|\${PULL_POLICY}|g" \\
+    k8s/dealer-stack.yaml
 }
 
-# Проверка доступности HTTP registry с ноды minikube (только если pull из registry, без docker load).
 REG_PULL='${params.K8S_PULL_REGISTRY}'
 registry_probe() {
-  if [ "\$USE_DOCKER_EXEC" != 1 ] || [ "\${K8S_CTR_IMPORT:-0}" = 1 ]; then return 0; fi
+  if [ "\$USE_DOCKER_EXEC" != 1 ] || [ "\$CTR_IMP" = "true" ]; then return 0; fi
   if ! docker exec "\$MK" sh -c 'command -v curl >/dev/null 2>&1'; then
     echo "WARN: в minikube нет curl — проверку http://\${REG_PULL}/v2/ пропускаем"
     return 0
   fi
   if docker exec "\$MK" sh -ec "curl -sf --connect-timeout 5 http://\${REG_PULL}/v2/ >/dev/null"; then
-    echo "OK: с ноды minikube отвечает http://\${REG_PULL}/v2/ (если всё же ImagePullBackOff — добавьте insecure-registry для HTTP registry:2)"
+    echo "OK: с ноды minikube отвечает http://\${REG_PULL}/v2/"
     return 0
   fi
-  echo "=== ОШИБКА: с ноды minikube НЕ открывается http://\${REG_PULL}/v2/ (kubelet не сможет скачать образ) ===" >&2
-  echo "Запустите registry:2 на хосте :5050 и пересоздайте minikube, например:" >&2
-  echo "  minikube stop && minikube start --insecure-registry \"\${REG_PULL}\"" >&2
-  echo "Проверка вручную: minikube ssh -- curl -sI http://\${REG_PULL}/v2/" >&2
+  echo "=== ОШИБКА: с ноды minikube НЕ открывается http://\${REG_PULL}/v2/ ===" >&2
   return 1
 }
 
-# --- apply манифеста и ожидание готовности Deployment user-service в namespace market ---
 if [ "\$USE_DOCKER_EXEC" = 1 ]; then
   registry_probe
-  render_manifest | docker exec -i -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" apply -f -
-  docker exec -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" -n market rollout status deployment/user-service --timeout=180s
+  render_stack | docker exec -i -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" apply -f -
+  for d in "\${SVC_LIST[@]}"; do
+    docker exec -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" -n "\$NS" rollout status "deployment/\$d" --timeout=180s
+  done
 else
-  render_manifest | "\$KUBECTL" apply -f -
-  "\$KUBECTL" -n market rollout status deployment/user-service --timeout=180s
+  render_stack | "\$KUBECTL" apply -f -
+  for d in "\${SVC_LIST[@]}"; do
+    "\$KUBECTL" -n "\$NS" rollout status "deployment/\$d" --timeout=180s
+  done
 fi
 """
       }

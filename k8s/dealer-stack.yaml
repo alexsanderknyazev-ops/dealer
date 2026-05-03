@@ -1,0 +1,369 @@
+# Лабораторный стек dealer (7 микросервисов). Плейсхолдеры подставляет Jenkins:
+# __K8S_DB_HOST__, __K8S_DB_PORT__, __IMG_*__, __PULL_POLICY__
+# auth-service ожидает Redis и Kafka по DNS redis:6379 и kafka:29092 — поднимите их в namespace dealer
+# или замените env в Deployment auth-service.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dealer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: dealer
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: __IMG_AUTH__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50051
+            - containerPort: 8080
+          env:
+            - name: AUTH_GRPC_PORT
+              value: "50051"
+            - name: AUTH_HTTP_PORT
+              value: "8080"
+            - name: STATIC_DIR
+              value: "/app/web"
+            - name: POSTGRES_DSN
+              value: "postgres://dealer:dealer_secret@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+            - name: REDIS_ADDR
+              value: "redis:6379"
+            - name: REDIS_PASSWORD
+              value: ""
+            - name: REDIS_DB
+              value: "0"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_AUTH_EVENTS
+              value: "auth.events"
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+            - name: CUSTOMERS_SERVICE_URL
+              value: "http://customers-service.dealer.svc.cluster.local:8081"
+            - name: VEHICLES_SERVICE_URL
+              value: "http://vehicles-service.dealer.svc.cluster.local:8082"
+            - name: DEALS_SERVICE_URL
+              value: "http://deals-service.dealer.svc.cluster.local:8083"
+            - name: PARTS_SERVICE_URL
+              value: "http://parts-service.dealer.svc.cluster.local:8084"
+            - name: BRANDS_SERVICE_URL
+              value: "http://brands-service.dealer.svc.cluster.local:8085"
+            - name: DEALER_POINTS_SERVICE_URL
+              value: "http://dealer-points-service.dealer.svc.cluster.local:8086"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customers-service
+  namespace: dealer
+spec:
+  selector:
+    app: customers-service
+  ports:
+    - name: grpc
+      port: 50052
+      targetPort: 50052
+    - name: http
+      port: 8081
+      targetPort: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customers-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customers-service
+  template:
+    metadata:
+      labels:
+        app: customers-service
+    spec:
+      containers:
+        - name: customers-service
+          image: __IMG_CUSTOMERS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50052
+            - containerPort: 8081
+          env:
+            - name: CUSTOMERS_GRPC_PORT
+              value: "50052"
+            - name: CUSTOMERS_HTTP_PORT
+              value: "8081"
+            - name: POSTGRES_DSN
+              value: "postgres://dealer:dealer_secret@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vehicles-service
+  namespace: dealer
+spec:
+  selector:
+    app: vehicles-service
+  ports:
+    - name: grpc
+      port: 50053
+      targetPort: 50053
+    - name: http
+      port: 8082
+      targetPort: 8082
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehicles-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vehicles-service
+  template:
+    metadata:
+      labels:
+        app: vehicles-service
+    spec:
+      containers:
+        - name: vehicles-service
+          image: __IMG_VEHICLES__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50053
+            - containerPort: 8082
+          env:
+            - name: VEHICLES_GRPC_PORT
+              value: "50053"
+            - name: VEHICLES_HTTP_PORT
+              value: "8082"
+            - name: POSTGRES_DSN
+              value: "postgres://dealer:dealer_secret@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deals-service
+  namespace: dealer
+spec:
+  selector:
+    app: deals-service
+  ports:
+    - name: grpc
+      port: 50054
+      targetPort: 50054
+    - name: http
+      port: 8083
+      targetPort: 8083
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deals-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deals-service
+  template:
+    metadata:
+      labels:
+        app: deals-service
+    spec:
+      containers:
+        - name: deals-service
+          image: __IMG_DEALS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50054
+            - containerPort: 8083
+          env:
+            - name: DEALS_GRPC_PORT
+              value: "50054"
+            - name: DEALS_HTTP_PORT
+              value: "8083"
+            - name: POSTGRES_DSN
+              value: "postgres://dealer:dealer_secret@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: parts-service
+  namespace: dealer
+spec:
+  selector:
+    app: parts-service
+  ports:
+    - name: grpc
+      port: 50055
+      targetPort: 50055
+    - name: http
+      port: 8084
+      targetPort: 8084
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parts-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parts-service
+  template:
+    metadata:
+      labels:
+        app: parts-service
+    spec:
+      containers:
+        - name: parts-service
+          image: __IMG_PARTS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50055
+            - containerPort: 8084
+          env:
+            - name: PARTS_GRPC_PORT
+              value: "50055"
+            - name: PARTS_HTTP_PORT
+              value: "8084"
+            - name: POSTGRES_DSN
+              value: "postgres://dealer:dealer_secret@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: brands-service
+  namespace: dealer
+spec:
+  selector:
+    app: brands-service
+  ports:
+    - name: grpc
+      port: 50056
+      targetPort: 50056
+    - name: http
+      port: 8085
+      targetPort: 8085
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brands-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brands-service
+  template:
+    metadata:
+      labels:
+        app: brands-service
+    spec:
+      containers:
+        - name: brands-service
+          image: __IMG_BRANDS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50056
+            - containerPort: 8085
+          env:
+            - name: BRANDS_GRPC_PORT
+              value: "50056"
+            - name: BRANDS_HTTP_PORT
+              value: "8085"
+            - name: POSTGRES_DSN
+              value: "postgres://dealer:dealer_secret@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dealer-points-service
+  namespace: dealer
+spec:
+  selector:
+    app: dealer-points-service
+  ports:
+    - name: grpc
+      port: 50057
+      targetPort: 50057
+    - name: http
+      port: 8086
+      targetPort: 8086
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dealer-points-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dealer-points-service
+  template:
+    metadata:
+      labels:
+        app: dealer-points-service
+    spec:
+      containers:
+        - name: dealer-points-service
+          image: __IMG_DEALER_POINTS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50057
+            - containerPort: 8086
+          env:
+            - name: DEALER_POINTS_GRPC_PORT
+              value: "50057"
+            - name: DEALER_POINTS_HTTP_PORT
+              value: "8086"
+            - name: POSTGRES_DSN
+              value: "postgres://dealer:dealer_secret@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+            - name: JWT_SECRET
+              value: "change-me-in-production"

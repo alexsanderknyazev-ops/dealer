@@ -1,5 +1,4 @@
-# Образ по умолчанию из корня репозитория: auth-service + frontend/auth.
-# Сборка: docker build -t auth-service:local .
+# Сборка из корня репозитория: docker build -f build/auth-service.Dockerfile .
 FROM node:20-alpine AS frontend
 WORKDIR /app/frontend/auth
 COPY frontend/auth/ ./

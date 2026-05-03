@@ -125,6 +125,10 @@ export GOTOOLCHAIN=local
 
 go version
 cd "\${WORKSPACE}"
+# Не использовать общий /root/go/pkg/mod на агенте: при полном диске/обрыве скачивания там остаются пустые .go → «expected package, found EOF».
+export GOMODCACHE="\${WORKSPACE}/.gomodcache"
+export GOCACHE="\${WORKSPACE}/.gocache"
+mkdir -p "\${GOMODCACHE}" "\${GOCACHE}"
 go test ./... -coverprofile=coverage.out -covermode=atomic
 """
       }
@@ -133,7 +137,7 @@ go test ./... -coverprofile=coverage.out -covermode=atomic
     // --- Статический анализ SonarQube (sonar-project.properties в корне); при FAILED Quality Gate сканер падает с кодом 3 ---
     stage('SonarQube analysis') {
       environment {
-        SONAR_TOKEN = credentials('sonarqube-token-user-go')
+        SONAR_TOKEN = credentials('dealer-app')
       }
       steps {
         sh """#!/bin/bash

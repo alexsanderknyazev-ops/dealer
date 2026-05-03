@@ -30,6 +30,9 @@ services/*/*-service
 *.swo
 
 # Go (go.work коммитим для мультимодульного workspace)
+.gomodcache/
+.gocache/
+
 
 # Frontend
 node_modules/

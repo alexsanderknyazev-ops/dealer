@@ -92,20 +92,20 @@ func TestDealsHTTP(t *testing.T) {
 
 	t.Run("options", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, httptest.NewRequest(http.MethodOptions, "/api/deals", nil))
+		mux.ServeHTTP(w, httptest.NewRequest(http.MethodOptions, pathAPIDeals, nil))
 		if w.Code != http.StatusNoContent {
 			t.Fatal(w.Code)
 		}
 	})
 	t.Run("unauth", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/deals", nil))
+		mux.ServeHTTP(w, httptest.NewRequest(http.MethodGet, pathAPIDeals, nil))
 		if w.Code != http.StatusUnauthorized {
 			t.Fatal(w.Code)
 		}
 	})
 	t.Run("list", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/api/deals", nil)
+		req := httptest.NewRequest(http.MethodGet, pathAPIDeals, nil)
 		req.Header.Set("Authorization", bearerDeal(sec))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
@@ -114,7 +114,7 @@ func TestDealsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("create_missing_ids", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/api/deals", bytes.NewReader([]byte("{}")))
+		req := httptest.NewRequest(http.MethodPost, pathAPIDeals, bytes.NewReader([]byte("{}")))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", bearerDeal(sec))
 		w := httptest.NewRecorder()
@@ -126,7 +126,7 @@ func TestDealsHTTP(t *testing.T) {
 	cid, vid := uuid.New().String(), uuid.New().String()
 	t.Run("create_ok", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"customer_id": cid, "vehicle_id": vid, "amount": "10"})
-		req := httptest.NewRequest(http.MethodPost, "/api/deals", bytes.NewReader(body))
+		req := httptest.NewRequest(http.MethodPost, pathAPIDeals, bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", bearerDeal(sec))
 		w := httptest.NewRecorder()
@@ -139,7 +139,7 @@ func TestDealsHTTP(t *testing.T) {
 		h2 := NewHandler(&mockDeal{listErr: errors.New("db")}, sec)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodGet, "/api/deals", nil)
+		req := httptest.NewRequest(http.MethodGet, pathAPIDeals, nil)
 		req.Header.Set("Authorization", bearerDeal(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
@@ -152,7 +152,7 @@ func TestDealsHTTP(t *testing.T) {
 		h2 := NewHandler(&mockDeal{nf: nf}, sec)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodGet, "/api/deals/"+nf, nil)
+		req := httptest.NewRequest(http.MethodGet, pathAPIDeals+"/"+nf, nil)
 		req.Header.Set("Authorization", bearerDeal(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
@@ -163,7 +163,7 @@ func TestDealsHTTP(t *testing.T) {
 	id := uuid.New().String()
 	t.Run("put_del", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"amount": "99"})
-		req := httptest.NewRequest(http.MethodPut, "/api/deals/"+id, bytes.NewReader(body))
+		req := httptest.NewRequest(http.MethodPut, pathAPIDeals+"/"+id, bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", bearerDeal(sec))
 		w := httptest.NewRecorder()
@@ -171,7 +171,7 @@ func TestDealsHTTP(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Fatal(w.Code)
 		}
-		req2 := httptest.NewRequest(http.MethodDelete, "/api/deals/"+id, nil)
+		req2 := httptest.NewRequest(http.MethodDelete, pathAPIDeals+"/"+id, nil)
 		req2.Header.Set("Authorization", bearerDeal(sec))
 		w2 := httptest.NewRecorder()
 		mux.ServeHTTP(w2, req2)
@@ -185,7 +185,7 @@ func TestDealsHTTP(t *testing.T) {
 		h2.RegisterRoutes(m2)
 		cid, vid := uuid.New().String(), uuid.New().String()
 		body, _ := json.Marshal(map[string]string{"customer_id": cid, "vehicle_id": vid})
-		req := httptest.NewRequest(http.MethodPost, "/api/deals", bytes.NewReader(body))
+		req := httptest.NewRequest(http.MethodPost, pathAPIDeals, bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", bearerDeal(sec))
 		w := httptest.NewRecorder()
@@ -198,7 +198,7 @@ func TestDealsHTTP(t *testing.T) {
 		h2 := NewHandler(&mockDeal{getErr: errors.New("db")}, sec)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodGet, "/api/deals/"+uuid.New().String(), nil)
+		req := httptest.NewRequest(http.MethodGet, pathAPIDeals+"/"+uuid.New().String(), nil)
 		req.Header.Set("Authorization", bearerDeal(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
@@ -207,7 +207,7 @@ func TestDealsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("put_bad_json", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPut, "/api/deals/"+id, bytes.NewReader([]byte("x")))
+		req := httptest.NewRequest(http.MethodPut, pathAPIDeals+"/"+id, bytes.NewReader([]byte("x")))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", bearerDeal(sec))
 		w := httptest.NewRecorder()
@@ -220,7 +220,7 @@ func TestDealsHTTP(t *testing.T) {
 		h2 := NewHandler(&mockDeal{nf: nf}, sec)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodDelete, "/api/deals/"+nf, nil)
+		req := httptest.NewRequest(http.MethodDelete, pathAPIDeals+"/"+nf, nil)
 		req.Header.Set("Authorization", bearerDeal(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)

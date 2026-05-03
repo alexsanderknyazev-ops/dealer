@@ -22,12 +22,12 @@ func NewHandler(svc service.BrandAPI, jwtSecret string) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/brands", h.cors(h.auth(h.handleList)))
-	mux.HandleFunc("POST /api/brands", h.cors(h.auth(h.handleCreate)))
-	mux.HandleFunc("GET /api/brands/{id}", h.cors(h.auth(h.handleGet)))
-	mux.HandleFunc("PUT /api/brands/{id}", h.cors(h.auth(h.handleUpdate)))
-	mux.HandleFunc("DELETE /api/brands/{id}", h.cors(h.auth(h.handleDelete)))
-	mux.HandleFunc("OPTIONS /api/brands", h.cors(nil))
+	mux.HandleFunc(http.MethodGet+" "+pathAPIBrands, h.cors(h.auth(h.handleList)))
+	mux.HandleFunc(http.MethodPost+" "+pathAPIBrands, h.cors(h.auth(h.handleCreate)))
+	mux.HandleFunc(http.MethodGet+" "+pathAPIBrands+"/{id}", h.cors(h.auth(h.handleGet)))
+	mux.HandleFunc(http.MethodPut+" "+pathAPIBrands+"/{id}", h.cors(h.auth(h.handleUpdate)))
+	mux.HandleFunc(http.MethodDelete+" "+pathAPIBrands+"/{id}", h.cors(h.auth(h.handleDelete)))
+	mux.HandleFunc(http.MethodOptions+" "+pathAPIBrands, h.cors(nil))
 }
 
 func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {

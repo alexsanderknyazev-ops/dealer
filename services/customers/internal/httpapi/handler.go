@@ -21,12 +21,12 @@ func NewHandler(svc service.CustomerAPI, jwtSecret string) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/customers", h.cors(h.auth(h.handleList)))
-	mux.HandleFunc("POST /api/customers", h.cors(h.auth(h.handleCreate)))
-	mux.HandleFunc("GET /api/customers/{id}", h.cors(h.auth(h.handleGet)))
-	mux.HandleFunc("PUT /api/customers/{id}", h.cors(h.auth(h.handleUpdate)))
-	mux.HandleFunc("DELETE /api/customers/{id}", h.cors(h.auth(h.handleDelete)))
-	mux.HandleFunc("OPTIONS /api/customers", h.cors(nil))
+	mux.HandleFunc(http.MethodGet+" "+pathAPICustomers, h.cors(h.auth(h.handleList)))
+	mux.HandleFunc(http.MethodPost+" "+pathAPICustomers, h.cors(h.auth(h.handleCreate)))
+	mux.HandleFunc(http.MethodGet+" "+pathAPICustomers+"/{id}", h.cors(h.auth(h.handleGet)))
+	mux.HandleFunc(http.MethodPut+" "+pathAPICustomers+"/{id}", h.cors(h.auth(h.handleUpdate)))
+	mux.HandleFunc(http.MethodDelete+" "+pathAPICustomers+"/{id}", h.cors(h.auth(h.handleDelete)))
+	mux.HandleFunc(http.MethodOptions+" "+pathAPICustomers, h.cors(nil))
 }
 
 func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {

@@ -22,17 +22,17 @@ func NewHandler(svc *service.AuthService) *Handler {
 
 // RegisterRoutes вешает маршруты на mux.
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/register", h.cors(h.handleRegister))
-	mux.HandleFunc("POST /api/login", h.cors(h.handleLogin))
-	mux.HandleFunc("POST /api/refresh", h.cors(h.handleRefresh))
-	mux.HandleFunc("POST /api/logout", h.cors(h.handleLogout))
-	mux.HandleFunc("GET /api/me", h.cors(h.handleMe))
+	mux.HandleFunc(http.MethodPost+" "+pathAPIRegister, h.cors(h.handleRegister))
+	mux.HandleFunc(http.MethodPost+" "+pathAPILogin, h.cors(h.handleLogin))
+	mux.HandleFunc(http.MethodPost+" "+pathAPIRefresh, h.cors(h.handleRefresh))
+	mux.HandleFunc(http.MethodPost+" "+pathAPILogout, h.cors(h.handleLogout))
+	mux.HandleFunc(http.MethodGet+" "+pathAPIMe, h.cors(h.handleMe))
 	// OPTIONS для CORS preflight только для auth-путей (общий OPTIONS /api/ конфликтует с прокси /api/customers и /api/vehicles в Go 1.22)
-	mux.HandleFunc("OPTIONS /api/register", h.cors(nil))
-	mux.HandleFunc("OPTIONS /api/login", h.cors(nil))
-	mux.HandleFunc("OPTIONS /api/refresh", h.cors(nil))
-	mux.HandleFunc("OPTIONS /api/logout", h.cors(nil))
-	mux.HandleFunc("OPTIONS /api/me", h.cors(nil))
+	mux.HandleFunc(http.MethodOptions+" "+pathAPIRegister, h.cors(nil))
+	mux.HandleFunc(http.MethodOptions+" "+pathAPILogin, h.cors(nil))
+	mux.HandleFunc(http.MethodOptions+" "+pathAPIRefresh, h.cors(nil))
+	mux.HandleFunc(http.MethodOptions+" "+pathAPILogout, h.cors(nil))
+	mux.HandleFunc(http.MethodOptions+" "+pathAPIMe, h.cors(nil))
 }
 
 func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {

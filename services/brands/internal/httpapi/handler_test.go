@@ -90,20 +90,20 @@ func TestBrandsHTTP(t *testing.T) {
 
 	t.Run("options", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, httptest.NewRequest(http.MethodOptions, "/api/brands", nil))
+		mux.ServeHTTP(w, httptest.NewRequest(http.MethodOptions, pathAPIBrands, nil))
 		if w.Code != http.StatusNoContent {
 			t.Fatal(w.Code)
 		}
 	})
 	t.Run("unauth", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/brands", nil))
+		mux.ServeHTTP(w, httptest.NewRequest(http.MethodGet, pathAPIBrands, nil))
 		if w.Code != http.StatusUnauthorized {
 			t.Fatal(w.Code)
 		}
 	})
 	t.Run("list", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/api/brands", nil)
+		req := httptest.NewRequest(http.MethodGet, pathAPIBrands, nil)
 		req.Header.Set("Authorization", tok(sec))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
@@ -112,7 +112,7 @@ func TestBrandsHTTP(t *testing.T) {
 		}
 	})
 	t.Run("create_bad", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/api/brands", bytes.NewReader([]byte("{}")))
+		req := httptest.NewRequest(http.MethodPost, pathAPIBrands, bytes.NewReader([]byte("{}")))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", tok(sec))
 		w := httptest.NewRecorder()
@@ -123,7 +123,7 @@ func TestBrandsHTTP(t *testing.T) {
 	})
 	t.Run("create_ok", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"name": "  X  "})
-		req := httptest.NewRequest(http.MethodPost, "/api/brands", bytes.NewReader(body))
+		req := httptest.NewRequest(http.MethodPost, pathAPIBrands, bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", tok(sec))
 		w := httptest.NewRecorder()
@@ -136,7 +136,7 @@ func TestBrandsHTTP(t *testing.T) {
 		h2 := NewHandler(&mockBrand{listErr: errors.New("db")}, sec)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodGet, "/api/brands", nil)
+		req := httptest.NewRequest(http.MethodGet, pathAPIBrands, nil)
 		req.Header.Set("Authorization", tok(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
@@ -149,7 +149,7 @@ func TestBrandsHTTP(t *testing.T) {
 		h2 := NewHandler(&mockBrand{nf: nf}, sec)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodGet, "/api/brands/"+nf, nil)
+		req := httptest.NewRequest(http.MethodGet, pathAPIBrands+"/"+nf, nil)
 		req.Header.Set("Authorization", tok(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
@@ -159,7 +159,7 @@ func TestBrandsHTTP(t *testing.T) {
 	})
 	id := uuid.New().String()
 	t.Run("get_ok", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/api/brands/"+id, nil)
+		req := httptest.NewRequest(http.MethodGet, pathAPIBrands+"/"+id, nil)
 		req.Header.Set("Authorization", tok(sec))
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
@@ -172,7 +172,7 @@ func TestBrandsHTTP(t *testing.T) {
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		body, _ := json.Marshal(map[string]string{"name": "Z"})
-		req := httptest.NewRequest(http.MethodPut, "/api/brands/"+nf, bytes.NewReader(body))
+		req := httptest.NewRequest(http.MethodPut, pathAPIBrands+"/"+nf, bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", tok(sec))
 		w := httptest.NewRecorder()
@@ -185,7 +185,7 @@ func TestBrandsHTTP(t *testing.T) {
 		h2 := NewHandler(&mockBrand{nf: nf}, sec)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodDelete, "/api/brands/"+nf, nil)
+		req := httptest.NewRequest(http.MethodDelete, pathAPIBrands+"/"+nf, nil)
 		req.Header.Set("Authorization", tok(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)
@@ -198,7 +198,7 @@ func TestBrandsHTTP(t *testing.T) {
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
 		body, _ := json.Marshal(map[string]string{"name": "A"})
-		req := httptest.NewRequest(http.MethodPost, "/api/brands", bytes.NewReader(body))
+		req := httptest.NewRequest(http.MethodPost, pathAPIBrands, bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", tok(sec))
 		w := httptest.NewRecorder()
@@ -209,7 +209,7 @@ func TestBrandsHTTP(t *testing.T) {
 	})
 	t.Run("update_ok_delete_ok", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"name": "Z"})
-		req := httptest.NewRequest(http.MethodPut, "/api/brands/"+id, bytes.NewReader(body))
+		req := httptest.NewRequest(http.MethodPut, pathAPIBrands+"/"+id, bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", tok(sec))
 		w := httptest.NewRecorder()
@@ -217,7 +217,7 @@ func TestBrandsHTTP(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Fatal(w.Code)
 		}
-		req2 := httptest.NewRequest(http.MethodDelete, "/api/brands/"+id, nil)
+		req2 := httptest.NewRequest(http.MethodDelete, pathAPIBrands+"/"+id, nil)
 		req2.Header.Set("Authorization", tok(sec))
 		w2 := httptest.NewRecorder()
 		mux.ServeHTTP(w2, req2)
@@ -229,7 +229,7 @@ func TestBrandsHTTP(t *testing.T) {
 		h2 := NewHandler(&mockBrand{getErr: errors.New("db")}, sec)
 		m2 := http.NewServeMux()
 		h2.RegisterRoutes(m2)
-		req := httptest.NewRequest(http.MethodGet, "/api/brands/"+uuid.New().String(), nil)
+		req := httptest.NewRequest(http.MethodGet, pathAPIBrands+"/"+uuid.New().String(), nil)
 		req.Header.Set("Authorization", tok(sec))
 		w := httptest.NewRecorder()
 		m2.ServeHTTP(w, req)

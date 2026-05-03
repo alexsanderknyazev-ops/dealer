@@ -34,19 +34,19 @@ func parseUUIDOpt(s string) *uuid.UUID {
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	// Folders (more specific paths first)
-	mux.HandleFunc("GET /api/parts/folders", h.cors(h.auth(h.handleListFolders)))
-	mux.HandleFunc("POST /api/parts/folders", h.cors(h.auth(h.handleCreateFolder)))
-	mux.HandleFunc("GET /api/parts/folders/{id}", h.cors(h.auth(h.handleGetFolder)))
-	mux.HandleFunc("PUT /api/parts/folders/{id}", h.cors(h.auth(h.handleUpdateFolder)))
-	mux.HandleFunc("DELETE /api/parts/folders/{id}", h.cors(h.auth(h.handleDeleteFolder)))
-	mux.HandleFunc("OPTIONS /api/parts/folders", h.cors(nil))
+	mux.HandleFunc(http.MethodGet+" "+pathAPIPartsFolders, h.cors(h.auth(h.handleListFolders)))
+	mux.HandleFunc(http.MethodPost+" "+pathAPIPartsFolders, h.cors(h.auth(h.handleCreateFolder)))
+	mux.HandleFunc(http.MethodGet+" "+pathAPIPartsFolders+"/{id}", h.cors(h.auth(h.handleGetFolder)))
+	mux.HandleFunc(http.MethodPut+" "+pathAPIPartsFolders+"/{id}", h.cors(h.auth(h.handleUpdateFolder)))
+	mux.HandleFunc(http.MethodDelete+" "+pathAPIPartsFolders+"/{id}", h.cors(h.auth(h.handleDeleteFolder)))
+	mux.HandleFunc(http.MethodOptions+" "+pathAPIPartsFolders, h.cors(nil))
 	// Parts
-	mux.HandleFunc("GET /api/parts", h.cors(h.auth(h.handleList)))
-	mux.HandleFunc("POST /api/parts", h.cors(h.auth(h.handleCreate)))
-	mux.HandleFunc("GET /api/parts/{id}", h.cors(h.auth(h.handleGet)))
-	mux.HandleFunc("PUT /api/parts/{id}", h.cors(h.auth(h.handleUpdate)))
-	mux.HandleFunc("DELETE /api/parts/{id}", h.cors(h.auth(h.handleDelete)))
-	mux.HandleFunc("OPTIONS /api/parts", h.cors(nil))
+	mux.HandleFunc(http.MethodGet+" "+pathAPIParts, h.cors(h.auth(h.handleList)))
+	mux.HandleFunc(http.MethodPost+" "+pathAPIParts, h.cors(h.auth(h.handleCreate)))
+	mux.HandleFunc(http.MethodGet+" "+pathAPIParts+"/{id}", h.cors(h.auth(h.handleGet)))
+	mux.HandleFunc(http.MethodPut+" "+pathAPIParts+"/{id}", h.cors(h.auth(h.handleUpdate)))
+	mux.HandleFunc(http.MethodDelete+" "+pathAPIParts+"/{id}", h.cors(h.auth(h.handleDelete)))
+	mux.HandleFunc(http.MethodOptions+" "+pathAPIParts, h.cors(nil))
 }
 
 func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {

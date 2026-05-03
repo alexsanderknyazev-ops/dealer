@@ -81,13 +81,13 @@ func TestAuthHTTP_RegisterLoginMe(t *testing.T) {
 
 	t.Run("options_register", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, httptest.NewRequest(http.MethodOptions, "/api/register", nil))
+		mux.ServeHTTP(w, httptest.NewRequest(http.MethodOptions, pathAPIRegister, nil))
 		if w.Code != http.StatusNoContent {
 			t.Fatal(w.Code)
 		}
 	})
 	t.Run("register_bad_json", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewReader([]byte("{")))
+		req := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader([]byte("{")))
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, req)
@@ -96,7 +96,7 @@ func TestAuthHTTP_RegisterLoginMe(t *testing.T) {
 		}
 	})
 	body, _ := json.Marshal(map[string]string{"email": "h@http.test", "password": "password123", "name": "H"})
-	req := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
@@ -107,7 +107,7 @@ func TestAuthHTTP_RegisterLoginMe(t *testing.T) {
 	_ = json.NewDecoder(w.Body).Decode(&reg)
 	at := reg["access_token"].(string)
 
-	req2 := httptest.NewRequest(http.MethodGet, "/api/me", nil)
+	req2 := httptest.NewRequest(http.MethodGet, pathAPIMe, nil)
 	req2.Header.Set("Authorization", "Bearer "+at)
 	w2 := httptest.NewRecorder()
 	mux.ServeHTTP(w2, req2)
@@ -115,7 +115,7 @@ func TestAuthHTTP_RegisterLoginMe(t *testing.T) {
 		t.Fatal(w2.Code, w2.Body.String())
 	}
 
-	req3 := httptest.NewRequest(http.MethodGet, "/api/me", nil)
+	req3 := httptest.NewRequest(http.MethodGet, pathAPIMe, nil)
 	w3 := httptest.NewRecorder()
 	mux.ServeHTTP(w3, req3)
 	if w3.Code != http.StatusUnauthorized {
@@ -123,7 +123,7 @@ func TestAuthHTTP_RegisterLoginMe(t *testing.T) {
 	}
 
 	lb, _ := json.Marshal(map[string]string{"email": "h@http.test", "password": "wrong"})
-	req4 := httptest.NewRequest(http.MethodPost, "/api/login", bytes.NewReader(lb))
+	req4 := httptest.NewRequest(http.MethodPost, pathAPILogin, bytes.NewReader(lb))
 	req4.Header.Set("Content-Type", "application/json")
 	w4 := httptest.NewRecorder()
 	mux.ServeHTTP(w4, req4)
@@ -139,14 +139,14 @@ func TestAuthHTTP_RegisterConflict(t *testing.T) {
 		b, _ := json.Marshal(map[string]string{"email": email, "password": "password123", "name": "N"})
 		return b
 	}
-	req := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewReader(regBody("conf@x")))
+	req := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader(regBody("conf@x")))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		t.Fatal(w.Code)
 	}
-	req2 := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewReader(regBody("conf@x")))
+	req2 := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader(regBody("conf@x")))
 	req2.Header.Set("Content-Type", "application/json")
 	w2 := httptest.NewRecorder()
 	mux.ServeHTTP(w2, req2)
@@ -159,7 +159,7 @@ func TestAuthHTTP_Refresh(t *testing.T) {
 	mux, cleanup := testAuthHTTP(t)
 	defer cleanup()
 	body, _ := json.Marshal(map[string]string{"email": "r@http.test", "password": "password123", "name": "R"})
-	req := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, pathAPIRegister, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
@@ -168,7 +168,7 @@ func TestAuthHTTP_Refresh(t *testing.T) {
 	rt := reg["refresh_token"].(string)
 
 	rb, _ := json.Marshal(map[string]string{"refresh_token": ""})
-	req2 := httptest.NewRequest(http.MethodPost, "/api/refresh", bytes.NewReader(rb))
+	req2 := httptest.NewRequest(http.MethodPost, pathAPIRefresh, bytes.NewReader(rb))
 	req2.Header.Set("Content-Type", "application/json")
 	w2 := httptest.NewRecorder()
 	mux.ServeHTTP(w2, req2)
@@ -177,7 +177,7 @@ func TestAuthHTTP_Refresh(t *testing.T) {
 	}
 
 	rb2, _ := json.Marshal(map[string]string{"refresh_token": "invalid"})
-	req3 := httptest.NewRequest(http.MethodPost, "/api/refresh", bytes.NewReader(rb2))
+	req3 := httptest.NewRequest(http.MethodPost, pathAPIRefresh, bytes.NewReader(rb2))
 	req3.Header.Set("Content-Type", "application/json")
 	w3 := httptest.NewRecorder()
 	mux.ServeHTTP(w3, req3)
@@ -186,7 +186,7 @@ func TestAuthHTTP_Refresh(t *testing.T) {
 	}
 
 	rb3, _ := json.Marshal(map[string]string{"refresh_token": rt})
-	req4 := httptest.NewRequest(http.MethodPost, "/api/refresh", bytes.NewReader(rb3))
+	req4 := httptest.NewRequest(http.MethodPost, pathAPIRefresh, bytes.NewReader(rb3))
 	req4.Header.Set("Content-Type", "application/json")
 	w4 := httptest.NewRecorder()
 	mux.ServeHTTP(w4, req4)

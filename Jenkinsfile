@@ -34,11 +34,11 @@ pipeline {
       defaultValue: false,
       description: 'После push: kubectl apply k8s/dealer-stack.yaml. Нужен kubeconfig: JENKINS_HOME/.kube/config или параметр KUBECONFIG_PATH (qemu2/kvm); либо minikube --driver=docker + docker.sock. При qemu2 контейнера minikube на хосте нет.'
     )
-    // choice (false/true) — в части установок Jenkins стабильнее отображается, чем booleanParam.
+    // choice: первый вариант — дефолт в UI; в части Jenkins стабильнее, чем booleanParam.
     choice(
       name: 'K8S_BOOTSTRAP_DEV_DATA',
-      choices: ['false', 'true'],
-      description: 'После деплоя: миграции (если нет users), seed_test_data + seed_dealer_brands + seed_parts, /seed-admin (admin@dealer.local / admin123). Только лаборатория. Не видно в UI — см. комментарий в Jenkinsfile (первый прогон / Scan Multibranch).'
+      choices: ['true', 'false'],
+      description: 'После деплоя: миграции (если нет users), seed_test_data + seed_dealer_brands + seed_parts, /seed-admin (admin@dealer.local / admin123). Только лаборатория; на прод выставьте false. Не видно в UI — первый прогон / Scan Multibranch.'
     )
     string(
       name: 'KUBECONFIG_PATH',
@@ -369,7 +369,7 @@ NS='${params.K8S_NAMESPACE}'
 K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
 K8S_DB_HOST='${params.K8S_DB_HOST}'
 K8S_DB_PORT='${params.K8S_DB_PORT}'
-BOOTSTRAP_DEV='${params.K8S_BOOTSTRAP_DEV_DATA ?: "false"}'
+BOOTSTRAP_DEV='${params.K8S_BOOTSTRAP_DEV_DATA ?: "true"}'
 INFRA_DPL=(postgres redis zookeeper kafka)
 SVC_LIST=(auth-service customers-service vehicles-service deals-service parts-service brands-service dealer-points-service)
 

@@ -84,7 +84,7 @@ pipeline {
     string(
       name: 'POSTGRES_PASSWORD',
       defaultValue: 'changeme',
-      description: 'Пароль БД dealer для k8s (плейсхолдер __POSTGRES_PASSWORD__ в dealer-stack.yaml). Смените вне лаборатории; для sed избегайте символов | \\ & в значении.'
+      description: 'Пароль БД dealer для k8s. На деплое Jenkins кладёт его в Secret dealer-db (POSTGRES_PASSWORD, POSTGRES_DSN). Смените вне лаборатории.'
     )
   }
 
@@ -442,6 +442,7 @@ K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
 K8S_DB_HOST='${params.K8S_DB_HOST}'
 K8S_DB_PORT='${params.K8S_DB_PORT}'
 POSTGRES_PASSWORD='${params.POSTGRES_PASSWORD ?: 'changeme'}'
+POSTGRES_DSN="postgres://dealer:\${POSTGRES_PASSWORD}@\${K8S_DB_HOST}:\${K8S_DB_PORT}/dealer?sslmode=disable"
 BOOTSTRAP_DEV='${params.K8S_BOOTSTRAP_DEV_DATA ? "true" : "false"}'
 DELETE_NS_BEFORE='${params.K8S_DELETE_NS_BEFORE_DEPLOY ? "true" : "false"}'
 INFRA_DPL=(postgres redis zookeeper kafka)
@@ -483,7 +484,6 @@ render_stack() {
   sed \\
     -e "s|__K8S_DB_HOST__|\${K8S_DB_HOST}|g" \\
     -e "s|__K8S_DB_PORT__|\${K8S_DB_PORT}|g" \\
-    -e "s|__POSTGRES_PASSWORD__|\${POSTGRES_PASSWORD}|g" \\
     -e "s|__IMG_AUTH__|\${IMG_AUTH}|g" \\
     -e "s|__IMG_CUSTOMERS__|\${IMG_CUSTOMERS}|g" \\
     -e "s|__IMG_VEHICLES__|\${IMG_VEHICLES}|g" \\
@@ -518,6 +518,16 @@ if [ "\$DELETE_NS_BEFORE" = "true" ]; then
   echo "=== K8S_DELETE_NS_BEFORE_DEPLOY: удаляю namespace \$NS ==="
   kctl delete namespace "\$NS" --ignore-not-found --wait=true
 fi
+
+# Секрет БД кладём перед apply манифеста (пароль + DSN для сервисов).
+# Не логируем значения в консоль Jenkins.
+set +x
+kctl create namespace "\$NS" --dry-run=client -o yaml | kctl apply -f -
+kctl -n "\$NS" create secret generic dealer-db \
+  --from-literal=POSTGRES_PASSWORD="\$POSTGRES_PASSWORD" \
+  --from-literal=POSTGRES_DSN="\$POSTGRES_DSN" \
+  --dry-run=client -o yaml | kctl apply -f -
+set -x
 
 if [ "\$USE_DOCKER_EXEC" = 1 ]; then
   render_stack | docker exec -i -e KUBECONFIG="\$MK_KUBECONFIG" "\$MK" "\$MK_KUBECTL" apply -f -
@@ -560,8 +570,7 @@ done
 
 if [ "\$BOOTSTRAP_DEV" = "true" ]; then
   echo "=== seed-admin (admin@dealer.local / admin123 по умолчанию) ==="
-  SEED_DSN="postgres://dealer:\${POSTGRES_PASSWORD}@\${K8S_DB_HOST}:\${K8S_DB_PORT}/dealer?sslmode=disable"
-  kctl -n "\$NS" exec "deployment/auth-service" -- env POSTGRES_DSN="\$SEED_DSN" /seed-admin
+  kctl -n "\$NS" exec "deployment/auth-service" -- env POSTGRES_DSN="\$POSTGRES_DSN" /seed-admin
 fi
 
 echo "=== Как открыть приложение после деплоя ==="

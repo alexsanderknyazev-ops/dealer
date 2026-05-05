@@ -1,6 +1,6 @@
 # Лабораторный стек dealer: инфраструктура (Postgres, Redis, Zookeeper, Kafka) + 7 микросервисов.
-# Плейсхолдеры подставляет Jenkins: __K8S_DB_HOST__, __K8S_DB_PORT__, __POSTGRES_PASSWORD__, __IMG_*__, __PULL_POLICY__
-# Вне Jenkins: sed/envsubst по __POSTGRES_PASSWORD__ или задайте Secret и поменяйте манифест вручную.
+# Плейсхолдеры подставляет Jenkins: __K8S_DB_HOST__, __K8S_DB_PORT__, __IMG_*__, __PULL_POLICY__
+# Секреты БД создаются при деплое в Secret dealer-db (keys: POSTGRES_PASSWORD, POSTGRES_DSN).
 # По умолчанию K8S_DB_HOST=postgres — совпадает с Service ниже.
 # Ресурсы: небольшие requests/limits (лабораторный профиль); при OOM/throttling увеличьте limits в Deployment.
 ---
@@ -61,7 +61,10 @@ spec:
             - name: POSTGRES_USER
               value: dealer
             - name: POSTGRES_PASSWORD
-              value: "__POSTGRES_PASSWORD__"
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_PASSWORD
             - name: POSTGRES_DB
               value: dealer
           resources:
@@ -310,7 +313,10 @@ spec:
             - name: STATIC_DIR
               value: "/app/web"
             - name: POSTGRES_DSN
-              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
             - name: REDIS_ADDR
               value: "redis:6379"
             - name: REDIS_PASSWORD
@@ -389,7 +395,10 @@ spec:
             - name: CUSTOMERS_HTTP_PORT
               value: "8081"
             - name: POSTGRES_DSN
-              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
 ---
@@ -469,7 +478,10 @@ spec:
             - name: VEHICLES_HTTP_PORT
               value: "8082"
             - name: POSTGRES_DSN
-              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
 ---
@@ -526,7 +538,10 @@ spec:
             - name: DEALS_HTTP_PORT
               value: "8083"
             - name: POSTGRES_DSN
-              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
 ---
@@ -583,7 +598,10 @@ spec:
             - name: PARTS_HTTP_PORT
               value: "8084"
             - name: POSTGRES_DSN
-              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
 ---
@@ -640,7 +658,10 @@ spec:
             - name: BRANDS_HTTP_PORT
               value: "8085"
             - name: POSTGRES_DSN
-              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
 ---
@@ -697,6 +718,9 @@ spec:
             - name: DEALER_POINTS_HTTP_PORT
               value: "8086"
             - name: POSTGRES_DSN
-              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"

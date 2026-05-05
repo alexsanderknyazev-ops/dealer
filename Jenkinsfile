@@ -563,6 +563,22 @@ if [ "\$BOOTSTRAP_DEV" = "true" ]; then
   SEED_DSN="postgres://dealer:\${POSTGRES_PASSWORD}@\${K8S_DB_HOST}:\${K8S_DB_PORT}/dealer?sslmode=disable"
   kctl -n "\$NS" exec "deployment/auth-service" -- env POSTGRES_DSN="\$SEED_DSN" /seed-admin
 fi
+
+echo "=== Как открыть приложение после деплоя ==="
+ING_ADDR="\$(kctl -n "\$NS" get ingress dealer-http -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)"
+if [ -z "\$ING_ADDR" ]; then
+  ING_ADDR="\$(kctl -n "\$NS" get ingress dealer-http -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)"
+fi
+if [ -n "\$ING_ADDR" ]; then
+  echo "Ingress address: \$ING_ADDR"
+  echo "На вашей машине добавьте в /etc/hosts:"
+  echo "  \$ING_ADDR dealer.local"
+else
+  echo "Ingress address пока пустой (контроллер ещё обновляет status)."
+  echo "Проверьте позже: kubectl -n \$NS get ingress dealer-http -o wide"
+  echo "Если используете minikube + docker driver, можно взять: minikube ip"
+fi
+echo "URL: http://dealer.local/"
 """
       }
     }

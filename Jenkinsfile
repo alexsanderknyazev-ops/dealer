@@ -5,7 +5,7 @@
 //   1. Checkout — код из SCM.
 //   2. Go test + coverage — go test, coverage.out.
 //   3. SonarQube — sonar-scanner + Node, токен из credentials.
-//   4. Docker build and push — все 7 сервисов (build/*.Dockerfile), Skopeo push в registry.
+//   4. Docker build and push — вложенные stage (Docker: prepare, Docker: auth-service, …) для наглядности в UI; логика в scripts/ci/jenkins-docker.sh; тег = services/<svc>/VERSION; skip если тег уже в registry.
 //   5. Deploy to Minikube (опционально) — при K8S_DELETE_NS_BEFORE_DEPLOY удаление namespace, apply, rollout; при K8S_BOOTSTRAP_DEV_DATA — миграции, сиды, seed-admin.
 //      Доступ к API: либо kubeconfig на агенте (любой драйвер minikube: qemu2, kvm, docker, …), либо ветка docker exec — только при --driver=docker (контейнер-нода на хосте).
 //
@@ -30,19 +30,18 @@ pipeline {
     )
     // --- Kubernetes / Minikube: включение деплоя, контейнер minikube, registry для pull-манифеста ---
     booleanParam(
-      name: 'DEPLOY_MINIKUBE',
+      name: 'DEPLOY',
       defaultValue: false,
       description: 'После push: kubectl apply k8s/dealer-stack.yaml. Нужен kubeconfig: JENKINS_HOME/.kube/config или параметр KUBECONFIG_PATH (qemu2/kvm); либо minikube --driver=docker + docker.sock. При qemu2 контейнера minikube на хосте нет.'
     )
-    // choice: первый вариант — дефолт в UI; в части Jenkins стабильнее, чем booleanParam.
-    choice(
+    booleanParam(
       name: 'K8S_BOOTSTRAP_DEV_DATA',
-      choices: ['true', 'false'],
+      defaultValue: false,
       description: 'После деплоя: миграции (если нет users), seed_test_data + seed_dealer_brands + seed_parts, /seed-admin (admin@dealer.local / admin123). Только лаборатория; на прод выставьте false. Не видно в UI — первый прогон / Scan Multibranch.'
     )
-    choice(
+    booleanParam(
       name: 'K8S_DELETE_NS_BEFORE_DEPLOY',
-      choices: ['true', 'false'],
+      defaultValue: false,
       description: 'Перед kubectl apply: удалить namespace K8S_NAMESPACE (чистый деплой, PVC сбрасывается). На общем кластере — false.'
     )
     string(
@@ -220,70 +219,113 @@ cd "\${WORKSPACE}"
       }
     }
 
-    // --- Сборка всех микросервисов (build/*.Dockerfile) и push в registry ---
+    // --- Сборка микросервисов: вложенные stage — в UI видно «Docker: prepare», «Docker: auth-service», … ---
     stage('Docker build and push') {
-      steps {
-        sh """#!/bin/bash
+      stages {
+        stage('Docker: prepare') {
+          steps {
+            sh """#!/bin/bash
 set -eux
-command -v docker
-export DOCKER_BUILDKIT=0
-export BUILDKIT_PROGRESS=plain
-
+export DOCKER_REGISTRY='${params.DOCKER_REGISTRY}'
+export BUILD_NUMBER='${env.BUILD_NUMBER}'
 cd "\${WORKSPACE}"
-REG='${params.DOCKER_REGISTRY}'
-TAG='${env.BUILD_NUMBER}'
-LOCAL_TAG="jenkins-\${TAG}"
-
-SKOPEO_IMG='quay.io/skopeo/stable:latest'
-docker pull -q "\${SKOPEO_IMG}" || docker pull "\${SKOPEO_IMG}"
-
-HOST_ARGS=()
-if docker run --help 2>&1 | grep -qF 'host-gateway'; then
-  HOST_ARGS=(--add-host=host.docker.internal:host-gateway)
-fi
-
-run_skopeo_copy() {
-  local name="\$1"
-  local dest="\$2"
-  docker run --rm \\
-    "\${HOST_ARGS[@]}" \\
-    -v /var/run/docker.sock:/var/run/docker.sock \\
-    "\${SKOPEO_IMG}" \\
-    copy --dest-tls-verify=false \\
-    "docker-daemon:\${name}:\${LOCAL_TAG}" \\
-    "docker://\${dest}"
-}
-
-for entry in \\
-  'auth-service:build/auth-service.Dockerfile' \\
-  'customers-service:build/customers-service.Dockerfile' \\
-  'vehicles-service:build/vehicles-service.Dockerfile' \\
-  'deals-service:build/deals-service.Dockerfile' \\
-  'parts-service:build/parts-service.Dockerfile' \\
-  'brands-service:build/brands-service.Dockerfile' \\
-  'dealer-points-service:build/dealer-points-service.Dockerfile'
-do
-  NAME="\${entry%%:*}"
-  DOCKERFILE="\${entry#*:}"
-  test -f "\${DOCKERFILE}" || { echo "Dockerfile not found: \${DOCKERFILE}"; exit 1; }
-  echo "=== docker build \${NAME} (\${DOCKERFILE}) ==="
-  docker build -f "\${DOCKERFILE}" -t "\${NAME}:\${LOCAL_TAG}" .
-  run_skopeo_copy "\${NAME}" "\${REG}/\${NAME}:\${TAG}"
-  run_skopeo_copy "\${NAME}" "\${REG}/\${NAME}:latest"
-done
+bash scripts/ci/jenkins-docker.sh prepare
 """
+          }
+        }
+        stage('Docker: auth-service') {
+          steps {
+            sh """#!/bin/bash
+set -eux
+export DOCKER_REGISTRY='${params.DOCKER_REGISTRY}'
+export BUILD_NUMBER='${env.BUILD_NUMBER}'
+cd "\${WORKSPACE}"
+bash scripts/ci/jenkins-docker.sh build auth-service build/auth-service.Dockerfile
+"""
+          }
+        }
+        stage('Docker: customers-service') {
+          steps {
+            sh """#!/bin/bash
+set -eux
+export DOCKER_REGISTRY='${params.DOCKER_REGISTRY}'
+export BUILD_NUMBER='${env.BUILD_NUMBER}'
+cd "\${WORKSPACE}"
+bash scripts/ci/jenkins-docker.sh build customers-service build/customers-service.Dockerfile
+"""
+          }
+        }
+        stage('Docker: vehicles-service') {
+          steps {
+            sh """#!/bin/bash
+set -eux
+export DOCKER_REGISTRY='${params.DOCKER_REGISTRY}'
+export BUILD_NUMBER='${env.BUILD_NUMBER}'
+cd "\${WORKSPACE}"
+bash scripts/ci/jenkins-docker.sh build vehicles-service build/vehicles-service.Dockerfile
+"""
+          }
+        }
+        stage('Docker: deals-service') {
+          steps {
+            sh """#!/bin/bash
+set -eux
+export DOCKER_REGISTRY='${params.DOCKER_REGISTRY}'
+export BUILD_NUMBER='${env.BUILD_NUMBER}'
+cd "\${WORKSPACE}"
+bash scripts/ci/jenkins-docker.sh build deals-service build/deals-service.Dockerfile
+"""
+          }
+        }
+        stage('Docker: parts-service') {
+          steps {
+            sh """#!/bin/bash
+set -eux
+export DOCKER_REGISTRY='${params.DOCKER_REGISTRY}'
+export BUILD_NUMBER='${env.BUILD_NUMBER}'
+cd "\${WORKSPACE}"
+bash scripts/ci/jenkins-docker.sh build parts-service build/parts-service.Dockerfile
+"""
+          }
+        }
+        stage('Docker: brands-service') {
+          steps {
+            sh """#!/bin/bash
+set -eux
+export DOCKER_REGISTRY='${params.DOCKER_REGISTRY}'
+export BUILD_NUMBER='${env.BUILD_NUMBER}'
+cd "\${WORKSPACE}"
+bash scripts/ci/jenkins-docker.sh build brands-service build/brands-service.Dockerfile
+"""
+          }
+        }
+        stage('Docker: dealer-points-service') {
+          steps {
+            sh """#!/bin/bash
+set -eux
+export DOCKER_REGISTRY='${params.DOCKER_REGISTRY}'
+export BUILD_NUMBER='${env.BUILD_NUMBER}'
+cd "\${WORKSPACE}"
+bash scripts/ci/jenkins-docker.sh build dealer-points-service build/dealer-points-service.Dockerfile
+"""
+          }
+        }
       }
     }
 
-    // --- Деплой в Minikube: k8s/dealer-stack.yaml (все сервисы), только если DEPLOY_MINIKUBE=true ---
+    // --- Деплой в Minikube: k8s/dealer-stack.yaml (все сервисы), только если DEPLOY=true ---
     stage('Deploy to Minikube') {
       when {
-        expression { return params.DEPLOY_MINIKUBE }
+        expression { return params.DEPLOY }
       }
       steps {
         sh """#!/bin/bash
 set -eux
 cd "\${WORKSPACE}"
+# Новый shell не видит PATH из jenkins-docker.sh — тот же статический клиент, что кладётся в .ci/docker-cli-bin/
+if [ -x "\${WORKSPACE}/.ci/docker-cli-bin/docker" ]; then
+  export PATH="\${WORKSPACE}/.ci/docker-cli-bin:\${PATH}"
+fi
 command -v docker
 
 # --- Контекст: kubeconfig в Jenkins (любой драйвер) или docker exec в контейнер-ноду (только minikube --driver=docker) ---
@@ -340,7 +382,7 @@ else
       echo "  A) Смонтируйте kubeconfig в контейнер Jenkins: volume хост ~/.kube/config -> /var/jenkins_home/.kube/config, либо другой путь + параметр KUBECONFIG_PATH. Для qemu2/kvm отдельная VM — контейнера minikube на Docker хоста нет."
       echo "  B) Только если minikube --driver=docker: Jenkins должен видеть тот же docker.sock; docker ps показывает контейнер ноды (часто minikube)."
       echo "  C) Для docker driver: MINIKUBE_CONTAINER = имя из «docker ps»."
-      echo "  D) Отключите DEPLOY_MINIKUBE, если деплой не нужен."
+      echo "  D) Отключите DEPLOY, если деплой не нужен."
       echo "  E) При qemu2: K8S_CTR_IMPORT_IMAGE=false, образы из registry (K8S_PULL_REGISTRY), доступного из VM."
       echo ""
       echo "Запущенные контейнеры (имена):"
@@ -385,17 +427,23 @@ kctl() {
   fi
 }
 
-# --- Подготовка образов и манифеста k8s/dealer-stack.yaml ---
+# --- Подготовка образов и манифеста k8s/dealer-stack.yaml (теги из services/*/VERSION, см. Docker stage) ---
 TAG='${env.BUILD_NUMBER}'
 LOCAL_TAG="jenkins-\${TAG}"
+if [ ! -f "\${WORKSPACE}/.ci/image-versions.env" ]; then
+  echo "Нет \${WORKSPACE}/.ci/image-versions.env — сначала должна пройти стадия Docker build and push." >&2
+  exit 1
+fi
+# shellcheck disable=SC1090
+. "\${WORKSPACE}/.ci/image-versions.env"
 CTR_IMP='${params.K8S_CTR_IMPORT_IMAGE}'
 NS='${params.K8S_NAMESPACE}'
 K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
 K8S_DB_HOST='${params.K8S_DB_HOST}'
 K8S_DB_PORT='${params.K8S_DB_PORT}'
 POSTGRES_PASSWORD='${params.POSTGRES_PASSWORD ?: 'changeme'}'
-BOOTSTRAP_DEV='${params.K8S_BOOTSTRAP_DEV_DATA ?: "true"}'
-DELETE_NS_BEFORE='${params.K8S_DELETE_NS_BEFORE_DEPLOY ?: "true"}'
+BOOTSTRAP_DEV='${params.K8S_BOOTSTRAP_DEV_DATA ? "true" : "false"}'
+DELETE_NS_BEFORE='${params.K8S_DELETE_NS_BEFORE_DEPLOY ? "true" : "false"}'
 INFRA_DPL=(postgres redis zookeeper kafka)
 SVC_LIST=(auth-service customers-service vehicles-service deals-service parts-service brands-service dealer-points-service)
 
@@ -422,13 +470,13 @@ if [ "\$USE_DOCKER_EXEC" = 1 ] && [ "\$CTR_IMP" = "true" ]; then
   IMG_BRANDS="brands-service:\${LOCAL_TAG}"
   IMG_DEALER_POINTS="dealer-points-service:\${LOCAL_TAG}"
 else
-  IMG_AUTH="\${K8S_PULL_REG}/auth-service:\${TAG}"
-  IMG_CUSTOMERS="\${K8S_PULL_REG}/customers-service:\${TAG}"
-  IMG_VEHICLES="\${K8S_PULL_REG}/vehicles-service:\${TAG}"
-  IMG_DEALS="\${K8S_PULL_REG}/deals-service:\${TAG}"
-  IMG_PARTS="\${K8S_PULL_REG}/parts-service:\${TAG}"
-  IMG_BRANDS="\${K8S_PULL_REG}/brands-service:\${TAG}"
-  IMG_DEALER_POINTS="\${K8S_PULL_REG}/dealer-points-service:\${TAG}"
+  IMG_AUTH="\${K8S_PULL_REG}/auth-service:\${VER_AUTH_SERVICE}"
+  IMG_CUSTOMERS="\${K8S_PULL_REG}/customers-service:\${VER_CUSTOMERS_SERVICE}"
+  IMG_VEHICLES="\${K8S_PULL_REG}/vehicles-service:\${VER_VEHICLES_SERVICE}"
+  IMG_DEALS="\${K8S_PULL_REG}/deals-service:\${VER_DEALS_SERVICE}"
+  IMG_PARTS="\${K8S_PULL_REG}/parts-service:\${VER_PARTS_SERVICE}"
+  IMG_BRANDS="\${K8S_PULL_REG}/brands-service:\${VER_BRANDS_SERVICE}"
+  IMG_DEALER_POINTS="\${K8S_PULL_REG}/dealer-points-service:\${VER_DEALER_POINTS_SERVICE}"
 fi
 
 render_stack() {

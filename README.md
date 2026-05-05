@@ -29,11 +29,24 @@ docker compose up -d
 ```bash
 export POSTGRES_DSN="postgres://dealer:ВАШ_ПАРОЛЬ@127.0.0.1:5433/dealer?sslmode=disable"  # пароль как в .env / POSTGRES_PASSWORD
 make migrate                                    # создать таблицы users, customers, vehicles, deals, parts
-make seed-admin                                 # админ admin@dealer.local / admin123 (нужен POSTGRES_DSN)
+make seed-admin                                 # админ в БД (нужен POSTGRES_DSN; логин/пароль — см. ниже)
 make seed-data                                  # тестовые клиенты и автомобили (если таблицы пусты)
 ```
 
 Без `make migrate` сервисы customers, vehicles и deals будут падать с ошибкой «relation does not exist».
+
+## Вход в приложение
+
+В веб-интерфейс (`frontend/auth` в dev или страница с `http://127.0.0.1:8080` при `docker compose up`) можно войти **после** успешного `make seed-admin` (или `go run ./services/auth/cmd/seed-admin` с тем же `POSTGRES_DSN`).
+
+| Поле | Значение по умолчанию |
+|------|------------------------|
+| **Email** | `admin@dealer.local` |
+| **Пароль** | `admin123` |
+
+Другие значения задаются при seed переменными окружения `ADMIN_EMAIL` и `ADMIN_PASSWORD` (см. `services/auth/cmd/seed-admin/main.go`). Если пользователь с таким email уже существует, повторный seed пароль **не** меняет.
+
+Через форму **регистрации** в приложении можно создать отдельного пользователя (без роли admin).
 
 ## Миграции и запуск auth-service
 
@@ -56,7 +69,7 @@ psql "$POSTGRES_DSN" -f migrations/001_users.up.sql
 psql "$POSTGRES_DSN" -f migrations/002_roles.up.sql
 psql "$POSTGRES_DSN" -f migrations/003_customers.up.sql
 psql "$POSTGRES_DSN" -f migrations/004_vehicles.up.sql
-# Создать пользователя admin (по умолчанию admin@dealer.local / admin123)
+# Создать пользователя admin (логин/пароль — раздел «Вход в приложение»)
 make seed-admin
 # Тестовые клиенты и автомобили (только если таблицы пусты)
 make seed-data
@@ -87,6 +100,22 @@ make frontend-dev
 Откройте http://127.0.0.1:3000 — вход, регистрация, разделы «Клиенты», «Автомобили», «Сделки», «Запчасти» (список, создание, просмотр, редактирование, удаление).
 
 **Продакшен (фронт из auth-service):** при `docker compose up` фронт собирается в образ и раздаётся с http://127.0.0.1:8080 (тот же хост, что и API).
+
+## Версии образов (CI / Kubernetes)
+
+В каждом микросервисе один файл **`VERSION`** в корне модуля (рядом с `go.mod`), одна строка, формат **`ГГГГ.ММ.ДД.N`** (пример: `2026.05.03.1`):
+
+- `services/auth/VERSION`
+- `services/customers/VERSION`
+- … то же для `vehicles`, `deals`, `parts`, `brands`, `dealerpoints`
+
+**Правило:** увеличьте **`N`** (или дату + сбросьте `N`), когда нужно пересобрать и отправить образ этого сервиса в registry. В Jenkins, если в registry уже есть образ с тегом `ИМЯ_СЕРВИСА:содержимое_VERSION`, **сборка и push для этого сервиса пропускаются**; иначе выполняется `docker build` и публикация тега версии и `latest`.
+
+В образе доступна переменная окружения **`SERVICE_VERSION`** (тот же текст, что в `VERSION`).
+
+Деплой в Kubernetes подставляет в манифест образы с тегом из соответствующего `VERSION` (при pull из registry), либо локальный `jenkins-<BUILD_NUMBER>` при загрузке образа в minikube через docker.
+
+В Jenkins стадия **Docker build and push** разбита на вложенные шаги (**Docker: prepare**, **Docker: auth-service**, …) — в классическом Stage View и в Blue Ocean видно, какой сервис сейчас собирается.
 
 ## Конфигурация
 

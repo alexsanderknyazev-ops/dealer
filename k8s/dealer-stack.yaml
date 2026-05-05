@@ -393,6 +393,29 @@ spec:
             - name: JWT_SECRET
               value: "change-me-in-production"
 ---
+# HTTP Ingress: внешний вход на auth-service (он раздаёт SPA и проксирует /api/* на остальные сервисы).
+# Для Minikube: minikube addons enable ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dealer-http
+  namespace: dealer
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "32m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: dealer.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 8080
+---
 #Service
 apiVersion: v1
 kind: Service

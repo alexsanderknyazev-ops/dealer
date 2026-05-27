@@ -14,6 +14,8 @@ type memDealRepo struct {
 	byID      map[uuid.UUID]*domain.Deal
 	err       error
 	updateErr error
+	custOK    *bool
+	vehOK     *bool
 }
 
 func (m *memDealRepo) Create(_ context.Context, d *domain.Deal) error {
@@ -75,6 +77,26 @@ func (m *memDealRepo) Delete(_ context.Context, id uuid.UUID) error {
 	return nil
 }
 
+func (m *memDealRepo) CustomerExists(_ context.Context, _ uuid.UUID) (bool, error) {
+	if m.err != nil {
+		return false, m.err
+	}
+	if m.custOK == nil {
+		return true, nil
+	}
+	return *m.custOK, nil
+}
+
+func (m *memDealRepo) VehicleExists(_ context.Context, _ uuid.UUID) (bool, error) {
+	if m.err != nil {
+		return false, m.err
+	}
+	if m.vehOK == nil {
+		return true, nil
+	}
+	return *m.vehOK, nil
+}
+
 func TestDealService_Create_DefaultStage(t *testing.T) {
 	r := &memDealRepo{byID: map[uuid.UUID]*domain.Deal{}}
 	s := NewDealService(r)
@@ -90,6 +112,22 @@ func TestDealService_Create_InvalidCustomer(t *testing.T) {
 	_, err := s.Create(context.Background(), CreateDealInput{CustomerID: "bad", VehicleID: uuid.New().String()})
 	if err == nil || err.Error() != "invalid customer_id" {
 		t.Fatalf("%v", err)
+	}
+}
+
+func TestDealService_Create_ReferenceIntegrity(t *testing.T) {
+	customerMissing := false
+	vehicleMissing := false
+	s1 := NewDealService(&memDealRepo{custOK: &customerMissing})
+	_, err := s1.Create(context.Background(), CreateDealInput{CustomerID: uuid.New().String(), VehicleID: uuid.New().String()})
+	if !errors.Is(err, ErrCustomerNotFound) {
+		t.Fatalf("want ErrCustomerNotFound, got %v", err)
+	}
+
+	s2 := NewDealService(&memDealRepo{vehOK: &vehicleMissing})
+	_, err = s2.Create(context.Background(), CreateDealInput{CustomerID: uuid.New().String(), VehicleID: uuid.New().String()})
+	if !errors.Is(err, ErrVehicleNotFound) {
+		t.Fatalf("want ErrVehicleNotFound, got %v", err)
 	}
 }
 

@@ -12,6 +12,10 @@ import (
 )
 
 var ErrNotFound = errors.New("deal not found")
+var (
+	ErrCustomerNotFound = errors.New("customer not found")
+	ErrVehicleNotFound  = errors.New("vehicle not found")
+)
 
 // CreateDealInput is the payload for Create (keeps DealAPI arity within Sonar limits).
 type CreateDealInput struct {
@@ -34,6 +38,8 @@ type dealRepository interface {
 	List(ctx context.Context, limit, offset int32, stageFilter, customerID string) ([]*domain.Deal, int32, error)
 	Update(ctx context.Context, d *domain.Deal) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	CustomerExists(ctx context.Context, id uuid.UUID) (bool, error)
+	VehicleExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
 // DealAPI — HTTP/gRPC и тесты.
@@ -65,6 +71,20 @@ func (s *DealService) Create(ctx context.Context, in CreateDealInput) (*domain.D
 	vid, err := uuid.Parse(in.VehicleID)
 	if err != nil {
 		return nil, errors.New("invalid vehicle_id")
+	}
+	customerExists, err := s.repo.CustomerExists(ctx, cid)
+	if err != nil {
+		return nil, err
+	}
+	if !customerExists {
+		return nil, ErrCustomerNotFound
+	}
+	vehicleExists, err := s.repo.VehicleExists(ctx, vid)
+	if err != nil {
+		return nil, err
+	}
+	if !vehicleExists {
+		return nil, ErrVehicleNotFound
 	}
 	var assigned *uuid.UUID
 	if in.AssignedTo != "" {

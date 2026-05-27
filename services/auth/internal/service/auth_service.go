@@ -26,6 +26,7 @@ var (
 type JWTClaims struct {
 	UserID string `json:"user_id"`
 	Email  string `json:"email"`
+	Role   string `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -178,6 +179,7 @@ func (s *AuthService) issueAccessToken(u *domain.User) (string, time.Time, error
 	claims := &JWTClaims{
 		UserID: u.ID.String(),
 		Email:  u.Email,
+		Role:   u.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),

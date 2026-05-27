@@ -387,10 +387,10 @@ fi
 . "\${WORKSPACE}/.ci/image-versions.env"
 . "\${WORKSPACE}/.ci/changed.env"
 
-NS='${params.K8S_NAMESPACE}'
-K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
-POSTGRES_PASSWORD='${params.POSTGRES_PASSWORD}'
-JWT_SECRET='${params.JWT_SECRET}'
+NS="\${K8S_NAMESPACE}"
+K8S_PULL_REG="\${K8S_PULL_REGISTRY}"
+POSTGRES_PASSWORD="\${POSTGRES_PASSWORD-}"
+JWT_SECRET="\${JWT_SECRET-}"
 if [ -z "\${POSTGRES_PASSWORD}" ]; then
   echo "POSTGRES_PASSWORD is required for deploy stage" >&2
   exit 1

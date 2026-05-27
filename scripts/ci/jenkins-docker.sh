@@ -9,6 +9,7 @@ REG="${DOCKER_REGISTRY:?}"
 TAG="${BUILD_NUMBER:?}"
 LOCAL_TAG="jenkins-${TAG}"
 SKOPEO_IMG='quay.io/skopeo/stable:latest'
+HOST_ARGS=()
 
 # Jenkins-агент иногда даёт урезанный PATH без /usr/bin — docker при этом установлен.
 ensure_docker_on_path() {
@@ -110,13 +111,22 @@ setup_skopeo() {
 run_skopeo_copy_daemon() {
 	local local_ref="$1"
 	local dest="$2"
-	docker run --rm \
-		"${HOST_ARGS[@]}" \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		"$SKOPEO_IMG" \
-		copy --dest-tls-verify=false \
-		"docker-daemon:${local_ref}" \
-		"docker://${dest}"
+	if [ "${#HOST_ARGS[@]}" -gt 0 ]; then
+		docker run --rm \
+			"${HOST_ARGS[@]}" \
+			-v /var/run/docker.sock:/var/run/docker.sock \
+			"$SKOPEO_IMG" \
+			copy --dest-tls-verify=false \
+			"docker-daemon:${local_ref}" \
+			"docker://${dest}"
+	else
+		docker run --rm \
+			-v /var/run/docker.sock:/var/run/docker.sock \
+			"$SKOPEO_IMG" \
+			copy --dest-tls-verify=false \
+			"docker-daemon:${local_ref}" \
+			"docker://${dest}"
+	fi
 }
 
 # docker pull к plain-HTTP registry даёт «http: server gave HTTP response to HTTPS client»;
@@ -124,20 +134,35 @@ run_skopeo_copy_daemon() {
 run_skopeo_copy_registry_to_daemon() {
 	local remote="$1"
 	local local_ref="$2"
-	docker run --rm \
-		"${HOST_ARGS[@]}" \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		"$SKOPEO_IMG" \
-		copy --src-tls-verify=false \
-		"docker://${remote}" \
-		"docker-daemon:${local_ref}"
+	if [ "${#HOST_ARGS[@]}" -gt 0 ]; then
+		docker run --rm \
+			"${HOST_ARGS[@]}" \
+			-v /var/run/docker.sock:/var/run/docker.sock \
+			"$SKOPEO_IMG" \
+			copy --src-tls-verify=false \
+			"docker://${remote}" \
+			"docker-daemon:${local_ref}"
+	else
+		docker run --rm \
+			-v /var/run/docker.sock:/var/run/docker.sock \
+			"$SKOPEO_IMG" \
+			copy --src-tls-verify=false \
+			"docker://${remote}" \
+			"docker-daemon:${local_ref}"
+	fi
 }
 
 registry_has_tag() {
-	docker run --rm \
-		"${HOST_ARGS[@]}" \
-		"$SKOPEO_IMG" \
-		inspect --tls-verify=false "docker://$1" >/dev/null 2>&1
+	if [ "${#HOST_ARGS[@]}" -gt 0 ]; then
+		docker run --rm \
+			"${HOST_ARGS[@]}" \
+			"$SKOPEO_IMG" \
+			inspect --tls-verify=false "docker://$1" >/dev/null 2>&1
+	else
+		docker run --rm \
+			"$SKOPEO_IMG" \
+			inspect --tls-verify=false "docker://$1" >/dev/null 2>&1
+	fi
 }
 
 version_file_for_service() {

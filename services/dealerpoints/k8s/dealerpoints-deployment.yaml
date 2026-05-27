@@ -38,4 +38,7 @@ spec:
                   name: dealer-db
                   key: POSTGRES_DSN
             - name: JWT_SECRET
-              value: "change-me-in-production"
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-app-secrets
+                  key: JWT_SECRET

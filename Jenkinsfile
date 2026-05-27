@@ -51,8 +51,13 @@ pipeline {
     )
     string(
       name: 'POSTGRES_PASSWORD',
-      defaultValue: 'changeme',
-      description: 'Пароль БД dealer для k8s. На деплое Jenkins кладёт его в Secret dealer-db (POSTGRES_PASSWORD, POSTGRES_DSN). Смените вне лаборатории.'
+      defaultValue: '',
+      description: 'Обязательный пароль БД dealer для k8s. На деплое Jenkins кладёт его в Secret dealer-db (POSTGRES_PASSWORD, POSTGRES_DSN).'
+    )
+    password(
+      name: 'JWT_SECRET',
+      defaultValue: '',
+      description: 'Обязательный JWT secret для сервисов в k8s (Secret dealer-app-secrets).'
     )
   }
 
@@ -213,6 +218,48 @@ rm -f cov_piece.out
       }
     }
 
+    stage('Go lint (changed services)') {
+      steps {
+        sh '''#!/bin/bash
+set -euo pipefail
+cd "${WORKSPACE}"
+. "${WORKSPACE}/.ci/changed.env"
+
+export GOBIN="${WORKSPACE}/.ci/bin"
+mkdir -p "${GOBIN}"
+export PATH="${GOBIN}:${PATH}"
+
+if ! command -v golangci-lint >/dev/null 2>&1; then
+  go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+fi
+
+targets=()
+if [ "${HAS_SERVICE_CHANGES}" = "true" ]; then
+  for svc in ${CHANGED_SERVICES}; do
+    case "${svc}" in
+      auth-service) targets+=(services/auth) ;;
+      customers-service) targets+=(services/customers) ;;
+      vehicles-service) targets+=(services/vehicles) ;;
+      deals-service) targets+=(services/deals) ;;
+      parts-service) targets+=(services/parts) ;;
+      brands-service) targets+=(services/brands) ;;
+      dealer-points-service) targets+=(services/dealerpoints) ;;
+      *) echo "Unknown changed service: ${svc}" >&2; exit 1 ;;
+    esac
+  done
+else
+  echo "No changed services detected for lint."
+  exit 0
+fi
+
+for d in "${targets[@]}"; do
+  echo "Linting ${d}"
+  (cd "${d}" && golangci-lint run ./...)
+done
+'''
+      }
+    }
+
     // --- Статический анализ SonarQube (sonar-project.properties в корне); при FAILED Quality Gate сканер падает с кодом 3 ---
     stage('SonarQube analysis') {
       environment {
@@ -338,7 +385,16 @@ fi
 
 NS='${params.K8S_NAMESPACE}'
 K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
-POSTGRES_PASSWORD='${params.POSTGRES_PASSWORD ?: "changeme"}'
+POSTGRES_PASSWORD='${params.POSTGRES_PASSWORD}'
+JWT_SECRET='${params.JWT_SECRET}'
+if [ -z "\${POSTGRES_PASSWORD}" ]; then
+  echo "POSTGRES_PASSWORD is required for deploy stage" >&2
+  exit 1
+fi
+if [ -z "\${JWT_SECRET}" ]; then
+  echo "JWT_SECRET is required for deploy stage" >&2
+  exit 1
+fi
 POSTGRES_DSN="postgres://dealer:\${POSTGRES_PASSWORD}@postgres:5432/dealer?sslmode=disable"
 
 if [ "\${HAS_SERVICE_CHANGES}" != "true" ] && [ "\${HAS_NEW_MIGRATIONS}" != "true" ]; then
@@ -353,6 +409,9 @@ kctl create namespace "\$NS" --dry-run=client -o yaml | kctl apply -f -
 kctl -n "\$NS" create secret generic dealer-db \
   --from-literal=POSTGRES_PASSWORD="\$POSTGRES_PASSWORD" \
   --from-literal=POSTGRES_DSN="\$POSTGRES_DSN" \
+  --dry-run=client -o yaml | kctl apply -f -
+kctl -n "\$NS" create secret generic dealer-app-secrets \
+  --from-literal=JWT_SECRET="\$JWT_SECRET" \
   --dry-run=client -o yaml | kctl apply -f -
 set -x
 

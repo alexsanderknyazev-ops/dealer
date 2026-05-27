@@ -1,0 +1,159 @@
+syntax = "proto3";
+
+package parts.v1;
+
+option go_package = "github.com/dealer/dealer/pkg/pb/parts/v1;partsv1";
+
+service PartsService {
+  rpc CreatePart(CreatePartRequest) returns (CreatePartResponse);
+  rpc GetPart(GetPartRequest) returns (GetPartResponse);
+  rpc ListParts(ListPartsRequest) returns (ListPartsResponse);
+  rpc UpdatePart(UpdatePartRequest) returns (UpdatePartResponse);
+  rpc DeletePart(DeletePartRequest) returns (DeletePartResponse);
+
+  rpc CreateFolder(CreateFolderRequest) returns (CreateFolderResponse);
+  rpc GetFolder(GetFolderRequest) returns (GetFolderResponse);
+  rpc ListFolders(ListFoldersRequest) returns (ListFoldersResponse);
+  rpc UpdateFolder(UpdateFolderRequest) returns (UpdateFolderResponse);
+  rpc DeleteFolder(DeleteFolderRequest) returns (DeleteFolderResponse);
+}
+
+message PartFolder {
+  string id = 1;
+  string name = 2;
+  string parent_id = 3;   // empty = root
+  int64 created_at = 4;
+  int64 updated_at = 5;
+}
+
+message CreateFolderRequest {
+  string name = 1;
+  string parent_id = 2;   // optional, empty = root
+}
+
+message CreateFolderResponse {
+  PartFolder folder = 1;
+}
+
+message GetFolderRequest {
+  string id = 1;
+}
+
+message GetFolderResponse {
+  PartFolder folder = 1;
+}
+
+message ListFoldersRequest {
+  string parent_id = 1;  // empty = root folders
+}
+
+message ListFoldersResponse {
+  repeated PartFolder folders = 1;
+}
+
+message UpdateFolderRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string parent_id = 3;
+}
+
+message UpdateFolderResponse {
+  PartFolder folder = 1;
+}
+
+message DeleteFolderRequest {
+  string id = 1;
+}
+
+message DeleteFolderResponse {}
+
+message Part {
+  string id = 1;
+  string sku = 2;           // артикул
+  string name = 3;
+  string category = 4;      // Фильтры, Тормоза, и т.д. (для обратной совместимости)
+  string folder_id = 5;     // папка
+  int32 quantity = 6;
+  string unit = 7;         // шт, комплект, л, кг
+  string price = 8;        // decimal as string
+  string location = 9;      // склад/полка
+  string notes = 10;
+  string brand_id = 13;     // optional, UUID of brand
+  string dealer_point_id = 14;
+  string legal_entity_id = 15;
+  string warehouse_id = 16;
+  int64 created_at = 11;
+  int64 updated_at = 12;
+}
+
+message CreatePartRequest {
+  string sku = 1;
+  string name = 2;
+  string category = 3;
+  string folder_id = 4;
+  int32 quantity = 5;
+  string unit = 6;
+  string price = 7;
+  string location = 8;
+  string notes = 9;
+  string brand_id = 10;   // optional
+  string dealer_point_id = 11;
+  string legal_entity_id = 12;
+  string warehouse_id = 13;
+}
+
+message CreatePartResponse {
+  Part part = 1;
+}
+
+message GetPartRequest {
+  string id = 1;
+}
+
+message GetPartResponse {
+  Part part = 1;
+}
+
+message ListPartsRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string search = 3;    // sku, name
+  string category = 4;  // filter by category
+  string folder_id = 5; // filter by folder (empty = any)
+  string brand_id = 6;  // filter by brand
+  string dealer_point_id = 7;
+  string legal_entity_id = 8;
+  string warehouse_id = 9;
+}
+
+message ListPartsResponse {
+  repeated Part parts = 1;
+  int32 total = 2;
+}
+
+message UpdatePartRequest {
+  string id = 1;
+  optional string sku = 2;
+  optional string name = 3;
+  optional string category = 4;
+  optional string folder_id = 5;
+  optional int32 quantity = 6;
+  optional string unit = 7;
+  optional string price = 8;
+  optional string location = 9;
+  optional string notes = 10;
+  optional string brand_id = 11;
+  optional string dealer_point_id = 12;
+  optional string legal_entity_id = 13;
+  optional string warehouse_id = 14;
+}
+
+message UpdatePartResponse {
+  Part part = 1;
+}
+
+message DeletePartRequest {
+  string id = 1;
+}
+
+message DeletePartResponse {}

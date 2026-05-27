@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package customers.v1;
+
+option go_package = "github.com/dealer/dealer/pkg/pb/customers/v1;customersv1";
+
+service CustomersService {
+  rpc CreateCustomer(CreateCustomerRequest) returns (CreateCustomerResponse);
+  rpc GetCustomer(GetCustomerRequest) returns (GetCustomerResponse);
+  rpc ListCustomers(ListCustomersRequest) returns (ListCustomersResponse);
+  rpc UpdateCustomer(UpdateCustomerRequest) returns (UpdateCustomerResponse);
+  rpc DeleteCustomer(DeleteCustomerRequest) returns (DeleteCustomerResponse);
+}
+
+message Customer {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  string customer_type = 5;  // individual, legal
+  string inn = 6;
+  string address = 7;
+  string notes = 8;
+  int64 created_at = 9;
+  int64 updated_at = 10;
+}
+
+message CreateCustomerRequest {
+  string name = 1;
+  string email = 2;
+  string phone = 3;
+  string customer_type = 4;
+  string inn = 5;
+  string address = 6;
+  string notes = 7;
+}
+
+message CreateCustomerResponse {
+  Customer customer = 1;
+}
+
+message GetCustomerRequest {
+  string id = 1;
+}
+
+message GetCustomerResponse {
+  Customer customer = 1;
+}
+
+message ListCustomersRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string search = 3;  // by name, email, phone
+}
+
+message ListCustomersResponse {
+  repeated Customer customers = 1;
+  int32 total = 2;
+}
+
+message UpdateCustomerRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string email = 3;
+  optional string phone = 4;
+  optional string customer_type = 5;
+  optional string inn = 6;
+  optional string address = 7;
+  optional string notes = 8;
+}
+
+message UpdateCustomerResponse {
+  Customer customer = 1;
+}
+
+message DeleteCustomerRequest {
+  string id = 1;
+}
+
+message DeleteCustomerResponse {}

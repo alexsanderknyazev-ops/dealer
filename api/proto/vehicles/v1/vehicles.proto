@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package vehicles.v1;
+
+option go_package = "github.com/dealer/dealer/pkg/pb/vehicles/v1;vehiclesv1";
+
+service VehiclesService {
+  rpc CreateVehicle(CreateVehicleRequest) returns (CreateVehicleResponse);
+  rpc GetVehicle(GetVehicleRequest) returns (GetVehicleResponse);
+  rpc ListVehicles(ListVehiclesRequest) returns (ListVehiclesResponse);
+  rpc UpdateVehicle(UpdateVehicleRequest) returns (UpdateVehicleResponse);
+  rpc DeleteVehicle(DeleteVehicleRequest) returns (DeleteVehicleResponse);
+}
+
+message Vehicle {
+  string id = 1;
+  string vin = 2;
+  string make = 3;
+  string model = 4;
+  int32 year = 5;
+  int64 mileage_km = 6;
+  string price = 7;       // decimal as string
+  string status = 8;      // available, sold, reserved
+  string color = 9;
+  string notes = 10;
+  string brand_id = 13;   // optional, UUID of brand
+  string dealer_point_id = 14;
+  string legal_entity_id = 15;
+  string warehouse_id = 16;
+  int64 created_at = 11;
+  int64 updated_at = 12;
+}
+
+message CreateVehicleRequest {
+  string vin = 1;
+  string make = 2;
+  string model = 3;
+  int32 year = 4;
+  int64 mileage_km = 5;
+  string price = 6;
+  string status = 7;
+  string color = 8;
+  string notes = 9;
+  string brand_id = 10;   // optional
+  string dealer_point_id = 11;
+  string legal_entity_id = 12;
+  string warehouse_id = 13;
+}
+
+message CreateVehicleResponse {
+  Vehicle vehicle = 1;
+}
+
+message GetVehicleRequest {
+  string id = 1;
+}
+
+message GetVehicleResponse {
+  Vehicle vehicle = 1;
+}
+
+message ListVehiclesRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string search = 3;   // vin, make, model
+  string status = 4;   // filter by status
+  string brand_id = 5; // filter by brand
+  string dealer_point_id = 6;
+  string legal_entity_id = 7;
+  string warehouse_id = 8;
+}
+
+message ListVehiclesResponse {
+  repeated Vehicle vehicles = 1;
+  int32 total = 2;
+}
+
+message UpdateVehicleRequest {
+  string id = 1;
+  optional string vin = 2;
+  optional string make = 3;
+  optional string model = 4;
+  optional int32 year = 5;
+  optional int64 mileage_km = 6;
+  optional string price = 7;
+  optional string status = 8;
+  optional string color = 9;
+  optional string notes = 10;
+  optional string brand_id = 11;
+  optional string dealer_point_id = 12;
+  optional string legal_entity_id = 13;
+  optional string warehouse_id = 14;
+}
+
+message UpdateVehicleResponse {
+  Vehicle vehicle = 1;
+}
+
+message DeleteVehicleRequest {
+  string id = 1;
+}
+
+message DeleteVehicleResponse {}

@@ -1,0 +1,810 @@
+# Лабораторный стек dealer: инфраструктура (Postgres, Redis, Zookeeper, Kafka) + 7 микросервисов.
+# Плейсхолдеры подставляет Jenkins: __K8S_DB_HOST__, __K8S_DB_PORT__, __IMG_*__, __PULL_POLICY__
+# Секреты БД создаются при деплое в Secret dealer-db (keys: POSTGRES_PASSWORD, POSTGRES_DSN).
+# По умолчанию K8S_DB_HOST=postgres — совпадает с Service ниже.
+# Ресурсы: небольшие requests/limits (лабораторный профиль); при OOM/throttling увеличьте limits в Deployment.
+---
+# Создаем Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dealer
+---
+# Создаем заявку на диск для постгресса 2gb
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: dealer
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+#Создаем сервис для postgres 
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: dealer
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+# Создаем Deployment для постгресса 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: dealer
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              value: dealer
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U dealer -d dealer"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+---
+#Создаем Service для redis
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: dealer
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+#Создаем Deployment для redis
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 2
+            periodSeconds: 5
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+  namespace: dealer
+spec:
+  selector:
+    app: zookeeper
+  ports:
+    - port: 2181
+      targetPort: 2181
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zookeeper
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zookeeper
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+        - name: zookeeper
+          image: confluentinc/cp-zookeeper:7.5.0
+          ports:
+            - containerPort: 2181
+          env:
+            - name: ZOOKEEPER_CLIENT_PORT
+              value: "2181"
+            - name: ZOOKEEPER_TICK_TIME
+              value: "2000"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            tcpSocket:
+              port: 2181
+            initialDelaySeconds: 15
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: dealer
+spec:
+  selector:
+    app: kafka
+  ports:
+    - name: plaintext
+      port: 29092
+      targetPort: 29092
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      # Иначе Kubernetes подставляет KAFKA_* из Service links; KAFKA_PORT ломает
+      # /etc/confluent/docker/configure (exit: «port is deprecated…») — CrashLoopBackOff.
+      enableServiceLinks: false
+      containers:
+        - name: kafka
+          image: confluentinc/cp-kafka:7.5.0
+          ports:
+            - containerPort: 29092
+          env:
+            - name: KAFKA_BROKER_ID
+              value: "1"
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: "zookeeper:2181"
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "PLAINTEXT:PLAINTEXT"
+            - name: KAFKA_LISTENERS
+              value: "PLAINTEXT://0.0.0.0:29092"
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka:29092"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
+              value: "true"
+            - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+              value: "0"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          readinessProbe:
+            tcpSocket:
+              port: 29092
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
+---
+#Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: dealer
+spec:
+  type: NodePort
+  selector:
+    app: auth-service
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+#Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: __IMG_AUTH__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50051
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: AUTH_GRPC_PORT
+              value: "50051"
+            - name: AUTH_HTTP_PORT
+              value: "8080"
+            - name: STATIC_DIR
+              value: "/app/web"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: REDIS_ADDR
+              value: "redis:6379"
+            - name: REDIS_PASSWORD
+              value: ""
+            - name: REDIS_DB
+              value: "0"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_AUTH_EVENTS
+              value: "auth.events"
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+            - name: CUSTOMERS_SERVICE_URL
+              value: "http://customers-service.dealer.svc.cluster.local:8081"
+            - name: VEHICLES_SERVICE_URL
+              value: "http://vehicles-service.dealer.svc.cluster.local:8082"
+            - name: DEALS_SERVICE_URL
+              value: "http://deals-service.dealer.svc.cluster.local:8083"
+            - name: PARTS_SERVICE_URL
+              value: "http://parts-service.dealer.svc.cluster.local:8084"
+            - name: BRANDS_SERVICE_URL
+              value: "http://brands-service.dealer.svc.cluster.local:8085"
+            - name: DEALER_POINTS_SERVICE_URL
+              value: "http://dealer-points-service.dealer.svc.cluster.local:8086"
+---
+#Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: customers-service
+  namespace: dealer
+spec:
+  selector:
+    app: customers-service
+  ports:
+    - name: grpc
+      port: 50052
+      targetPort: 50052
+    - name: http
+      port: 8081
+      targetPort: 8081
+---
+#Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customers-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customers-service
+  template:
+    metadata:
+      labels:
+        app: customers-service
+    spec:
+      containers:
+        - name: customers-service
+          image: __IMG_CUSTOMERS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50052
+            - containerPort: 8081
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: CUSTOMERS_GRPC_PORT
+              value: "50052"
+            - name: CUSTOMERS_HTTP_PORT
+              value: "8081"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+# HTTP Ingress: внешний вход на auth-service (он раздаёт SPA и проксирует /api/* на остальные сервисы).
+# Для Minikube: minikube addons enable ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dealer-http
+  namespace: dealer
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "32m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: dealer.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 8080
+---
+#Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: vehicles-service
+  namespace: dealer
+spec:
+  selector:
+    app: vehicles-service
+  ports:
+    - name: grpc
+      port: 50053
+      targetPort: 50053
+    - name: http
+      port: 8082
+      targetPort: 8082
+---
+#Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehicles-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vehicles-service
+  template:
+    metadata:
+      labels:
+        app: vehicles-service
+    spec:
+      containers:
+        - name: vehicles-service
+          image: __IMG_VEHICLES__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50053
+            - containerPort: 8082
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8082
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8082
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: VEHICLES_GRPC_PORT
+              value: "50053"
+            - name: VEHICLES_HTTP_PORT
+              value: "8082"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+#Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: deals-service
+  namespace: dealer
+spec:
+  selector:
+    app: deals-service
+  ports:
+    - name: grpc
+      port: 50054
+      targetPort: 50054
+    - name: http
+      port: 8083
+      targetPort: 8083
+---
+#Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deals-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deals-service
+  template:
+    metadata:
+      labels:
+        app: deals-service
+    spec:
+      containers:
+        - name: deals-service
+          image: __IMG_DEALS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50054
+            - containerPort: 8083
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8083
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8083
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: DEALS_GRPC_PORT
+              value: "50054"
+            - name: DEALS_HTTP_PORT
+              value: "8083"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+#Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: parts-service
+  namespace: dealer
+spec:
+  selector:
+    app: parts-service
+  ports:
+    - name: grpc
+      port: 50055
+      targetPort: 50055
+    - name: http
+      port: 8084
+      targetPort: 8084
+---
+#Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parts-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parts-service
+  template:
+    metadata:
+      labels:
+        app: parts-service
+    spec:
+      containers:
+        - name: parts-service
+          image: __IMG_PARTS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50055
+            - containerPort: 8084
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8084
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8084
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: PARTS_GRPC_PORT
+              value: "50055"
+            - name: PARTS_HTTP_PORT
+              value: "8084"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+#Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: brands-service
+  namespace: dealer
+spec:
+  selector:
+    app: brands-service
+  ports:
+    - name: grpc
+      port: 50056
+      targetPort: 50056
+    - name: http
+      port: 8085
+      targetPort: 8085
+---
+#Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brands-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brands-service
+  template:
+    metadata:
+      labels:
+        app: brands-service
+    spec:
+      containers:
+        - name: brands-service
+          image: __IMG_BRANDS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50056
+            - containerPort: 8085
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8085
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8085
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: BRANDS_GRPC_PORT
+              value: "50056"
+            - name: BRANDS_HTTP_PORT
+              value: "8085"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+#Service 
+apiVersion: v1
+kind: Service
+metadata:
+  name: dealer-points-service
+  namespace: dealer
+spec:
+  selector:
+    app: dealer-points-service
+  ports:
+    - name: grpc
+      port: 50057
+      targetPort: 50057
+    - name: http
+      port: 8086
+      targetPort: 8086
+---
+# Deployment 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dealer-points-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dealer-points-service
+  template:
+    metadata:
+      labels:
+        app: dealer-points-service
+    spec:
+      containers:
+        - name: dealer-points-service
+          image: __IMG_DEALER_POINTS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50057
+            - containerPort: 8086
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8086
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8086
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: DEALER_POINTS_GRPC_PORT
+              value: "50057"
+            - name: DEALER_POINTS_HTTP_PORT
+              value: "8086"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dealer-points-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dealer-points-service
+  template:
+    metadata:
+      labels:
+        app: dealer-points-service
+    spec:
+      containers:
+        - name: dealer-points-service
+          image: __IMG_DEALER_POINTS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50057
+            - containerPort: 8086
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: DEALER_POINTS_GRPC_PORT
+              value: "50057"
+            - name: DEALER_POINTS_HTTP_PORT
+              value: "8086"
+            - name: POSTGRES_DSN
+              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+            - name: JWT_SECRET
+              value: "change-me-in-production"

@@ -1,0 +1,39 @@
+#Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brands-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brands-service
+  template:
+    metadata:
+      labels:
+        app: brands-service
+    spec:
+      containers:
+        - name: brands-service
+          image: __IMG_BRANDS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50056
+            - containerPort: 8085
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: BRANDS_GRPC_PORT
+              value: "50056"
+            - name: BRANDS_HTTP_PORT
+              value: "8085"
+            - name: POSTGRES_DSN
+              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+            - name: JWT_SECRET
+              value: "change-me-in-production"

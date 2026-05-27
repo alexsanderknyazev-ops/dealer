@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dealer-points-service
+  namespace: dealer 
+spec:
+  selector:
+    app: dealer-points-service
+  ports:
+    - name: grpc
+      port: 50057
+      targetPort: 50057
+    - name: http
+      port: 8086
+      targetPort: 8086

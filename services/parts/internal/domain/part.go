@@ -1,0 +1,62 @@
+package domain
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type PartFolder struct {
+	ID        uuid.UUID
+	Name      string
+	ParentID  *uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type Part struct {
+	ID            uuid.UUID
+	SKU           string
+	Name          string
+	Category      string
+	FolderID      *uuid.UUID
+	BrandID       *uuid.UUID
+	DealerPointID *uuid.UUID
+	LegalEntityID *uuid.UUID
+	WarehouseID   *uuid.UUID
+	Quantity      int32
+	Unit          string
+	Price         string
+	Location      string
+	Notes         string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
+// PartWarehouseQty is one warehouse line for create/replace stock APIs.
+type PartWarehouseQty struct {
+	WarehouseID uuid.UUID
+	Quantity    int32
+}
+
+// PartStock — остаток запчасти на конкретном складе (одна запчасть может быть на нескольких складах)
+type PartStock struct {
+	PartID      uuid.UUID
+	WarehouseID uuid.UUID
+	Quantity    int32
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+// PartListFilter — параметры выборки parts (единый аргумент для repo/service вместо длинного списка полей).
+type PartListFilter struct {
+	Limit          int32
+	Offset         int32
+	Search         string
+	CategoryFilter string
+	FolderID       *uuid.UUID
+	BrandID        *uuid.UUID
+	DealerPointID  *uuid.UUID
+	LegalEntityID  *uuid.UUID
+	WarehouseID    *uuid.UUID
+}

@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package brands.v1;
+
+option go_package = "github.com/dealer/dealer/pkg/pb/brands/v1;brandsv1";
+
+service BrandsService {
+  rpc CreateBrand(CreateBrandRequest) returns (CreateBrandResponse);
+  rpc GetBrand(GetBrandRequest) returns (GetBrandResponse);
+  rpc ListBrands(ListBrandsRequest) returns (ListBrandsResponse);
+  rpc UpdateBrand(UpdateBrandRequest) returns (UpdateBrandResponse);
+  rpc DeleteBrand(DeleteBrandRequest) returns (DeleteBrandResponse);
+}
+
+message Brand {
+  string id = 1;
+  string name = 2;
+  int64 created_at = 3;
+  int64 updated_at = 4;
+}
+
+message CreateBrandRequest {
+  string name = 1;
+}
+
+message CreateBrandResponse {
+  Brand brand = 1;
+}
+
+message GetBrandRequest {
+  string id = 1;
+}
+
+message GetBrandResponse {
+  Brand brand = 1;
+}
+
+message ListBrandsRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string search = 3;
+}
+
+message ListBrandsResponse {
+  repeated Brand brands = 1;
+  int32 total = 2;
+}
+
+message UpdateBrandRequest {
+  string id = 1;
+  optional string name = 2;
+}
+
+message UpdateBrandResponse {
+  Brand brand = 1;
+}
+
+message DeleteBrandRequest {
+  string id = 1;
+}
+
+message DeleteBrandResponse {}

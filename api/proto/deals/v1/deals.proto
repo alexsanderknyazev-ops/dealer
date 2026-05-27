@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package deals.v1;
+
+option go_package = "github.com/dealer/dealer/pkg/pb/deals/v1;dealsv1";
+
+service DealsService {
+  rpc CreateDeal(CreateDealRequest) returns (CreateDealResponse);
+  rpc GetDeal(GetDealRequest) returns (GetDealResponse);
+  rpc ListDeals(ListDealsRequest) returns (ListDealsResponse);
+  rpc UpdateDeal(UpdateDealRequest) returns (UpdateDealResponse);
+  rpc DeleteDeal(DeleteDealRequest) returns (DeleteDealResponse);
+}
+
+message Deal {
+  string id = 1;
+  string customer_id = 2;
+  string vehicle_id = 3;
+  string amount = 4;        // decimal as string
+  string stage = 5;        // draft, in_progress, paid, completed, cancelled
+  string assigned_to = 6;  // user_id from auth (optional)
+  string notes = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+}
+
+message CreateDealRequest {
+  string customer_id = 1;
+  string vehicle_id = 2;
+  string amount = 3;
+  string stage = 4;
+  string assigned_to = 5;
+  string notes = 6;
+}
+
+message CreateDealResponse {
+  Deal deal = 1;
+}
+
+message GetDealRequest {
+  string id = 1;
+}
+
+message GetDealResponse {
+  Deal deal = 1;
+}
+
+message ListDealsRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string stage = 3;       // filter by stage
+  string customer_id = 4;  // filter by customer
+}
+
+message ListDealsResponse {
+  repeated Deal deals = 1;
+  int32 total = 2;
+}
+
+message UpdateDealRequest {
+  string id = 1;
+  optional string customer_id = 2;
+  optional string vehicle_id = 3;
+  optional string amount = 4;
+  optional string stage = 5;
+  optional string assigned_to = 6;
+  optional string notes = 7;
+}
+
+message UpdateDealResponse {
+  Deal deal = 1;
+}
+
+message DeleteDealRequest {
+  string id = 1;
+}
+
+message DeleteDealResponse {}

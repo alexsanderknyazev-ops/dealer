@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parts-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parts-service
+  template:
+    metadate:
+      labels:
+        app: parts-service
+    spec:
+      containers:
+        - name: parts-service
+          image: __IMG_PARTS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50055
+            - containerPort: 8084
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: PARTS_GRPC_PORT
+              value: "50055"
+            - name: PARTS_HTTP_PORT
+              value: "8084"
+            - name: POSTGRES_DSN
+              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+

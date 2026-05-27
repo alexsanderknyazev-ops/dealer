@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: deals-service
+  namespace: dealer
+spec:
+  selector:
+    app: deals-service
+  ports:
+    - name: grpc
+      port: 50054
+      targetPort: 50054
+    - name: http
+      port: 8083
+      targetPort: 8083

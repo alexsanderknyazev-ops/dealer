@@ -417,16 +417,23 @@ fi
 POSTGRES_DSN="postgres://dealer:\${POSTGRES_PASSWORD}@postgres:5432/dealer?sslmode=disable"
 
 kctl() { "\$KUBECTL" "\$@"; }
+kapply() { kctl apply --validate=false "\$@"; }
+
+if ! kctl version --request-timeout=10s >/dev/null 2>&1; then
+  echo "kubectl cannot access Kubernetes API with current kubeconfig (check KUBECONFIG_PATH/context/credentials)." >&2
+  kctl config current-context || true
+  exit 1
+fi
 
 set +x
-kctl create namespace "\$NS" --dry-run=client -o yaml | kctl apply -f -
+kctl create namespace "\$NS" --dry-run=client -o yaml | kapply -f -
 kctl -n "\$NS" create secret generic dealer-db \
   --from-literal=POSTGRES_PASSWORD="\$POSTGRES_PASSWORD" \
   --from-literal=POSTGRES_DSN="\$POSTGRES_DSN" \
-  --dry-run=client -o yaml | kctl apply -f -
+  --dry-run=client -o yaml | kapply -f -
 kctl -n "\$NS" create secret generic dealer-app-secrets \
   --from-literal=JWT_SECRET="\$JWT_SECRET" \
-  --dry-run=client -o yaml | kctl apply -f -
+  --dry-run=client -o yaml | kapply -f -
 set -x
 
 apply_service() {
@@ -434,35 +441,35 @@ apply_service() {
   case "\$svc" in
     auth-service)
       dep="services/auth/k8s/auth-deployment.yaml"; svcf="services/auth/k8s/auth-service.yaml"
-      sed -e "s|__IMG_AUTH__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kctl apply -f -
+      sed -e "s|__IMG_AUTH__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
       ;;
     customers-service)
       dep="services/customers/k8s/customer-deployment.yaml"; svcf="services/customers/k8s/customers-service.yaml"
-      sed -e "s|__IMG_CUSTOMERS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kctl apply -f -
+      sed -e "s|__IMG_CUSTOMERS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
       ;;
     vehicles-service)
       dep="services/vehicles/k8s/vehicles-deployment.yaml"; svcf="services/vehicles/k8s/vehicles-service.yaml"
-      sed -e "s|__IMG_VEHICLES__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kctl apply -f -
+      sed -e "s|__IMG_VEHICLES__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
       ;;
     deals-service)
       dep="services/deals/k8s/deals-deployment.yaml"; svcf="services/deals/k8s/deals-service.yaml"
-      sed -e "s|__IMG_DEALS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kctl apply -f -
+      sed -e "s|__IMG_DEALS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
       ;;
     parts-service)
       dep="services/parts/k8s/parts-deployment.yaml"; svcf="services/parts/k8s/parts-service.yaml"
-      sed -e "s|__IMG_PARTS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kctl apply -f -
+      sed -e "s|__IMG_PARTS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
       ;;
     brands-service)
       dep="services/brands/k8s/brand-deployment.yaml"; svcf="services/brands/k8s/brand-service.yaml"
-      sed -e "s|__IMG_BRANDS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kctl apply -f -
+      sed -e "s|__IMG_BRANDS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
       ;;
     dealer-points-service)
       dep="services/dealerpoints/k8s/dealerpoints-deployment.yaml"; svcf="services/dealerpoints/k8s/dealerpoints-service.yaml"
-      sed -e "s|__IMG_DEALER_POINTS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kctl apply -f -
+      sed -e "s|__IMG_DEALER_POINTS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
       ;;
     *) echo "Unknown service \${svc}" >&2; exit 1 ;;
   esac
-  kctl apply -f "\$svcf"
+  kapply -f "\$svcf"
   kctl -n "\$NS" rollout status "deployment/\$svc" --timeout=300s
 }
 

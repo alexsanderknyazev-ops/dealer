@@ -452,7 +452,7 @@ kctl -n "\$NS" create secret generic dealer-app-secrets \
 set -x
 
 apply_service() {
-  local svc="$1" img="$2" dep="" svcf=""
+  local svc="\$1" img="\$2" dep="" svcf=""
   case "\$svc" in
     auth-service)
       dep="services/auth/k8s/auth-deployment.yaml"; svcf="services/auth/k8s/auth-service.yaml"

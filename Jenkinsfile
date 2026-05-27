@@ -233,6 +233,11 @@ rm -f cov_piece.out
       steps {
         sh '''#!/bin/bash
 set -euo pipefail
+export PATH="/usr/local/go/bin:${PATH}"
+if ! command -v go >/dev/null 2>&1; then
+  echo "go binary not found in PATH during coverage gate stage" >&2
+  exit 1
+fi
 cd "${WORKSPACE}"
 test -f coverage.out
 
@@ -255,6 +260,11 @@ awk -v v="${deals_cov}" -v m="${DEALS_MIN}" 'BEGIN{ if (v+0 < m+0) exit 1 }' || 
       steps {
         sh '''#!/bin/bash
 set -euo pipefail
+export PATH="/usr/local/go/bin:${PATH}"
+if ! command -v go >/dev/null 2>&1; then
+  echo "go binary not found in PATH during lint stage" >&2
+  exit 1
+fi
 cd "${WORKSPACE}"
 . "${WORKSPACE}/.ci/changed.env"
 

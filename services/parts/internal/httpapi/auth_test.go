@@ -14,6 +14,7 @@ const (
 	testPartsJWTSecret = "parts-secret"
 	testPartsUserID    = "user-1"
 	testPartsEmail     = "parts@dealer.local"
+	testPartsPath      = "/api/parts"
 )
 
 func partsBearer(role string) string {
@@ -33,7 +34,7 @@ func TestPartsAuthMiddleware_WriteRequiresRole(t *testing.T) {
 	h := &Handler{jwtSecret: testPartsJWTSecret}
 	next := h.auth(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 
-	req := httptest.NewRequest(http.MethodPost, "/api/parts", nil)
+	req := httptest.NewRequest(http.MethodPost, testPartsPath, nil)
 	req.Header.Set("Authorization", partsBearer("viewer"))
 	w := httptest.NewRecorder()
 	next(w, req)
@@ -46,7 +47,7 @@ func TestPartsAuthMiddleware_WriteAllowedRole(t *testing.T) {
 	h := &Handler{jwtSecret: testPartsJWTSecret}
 	next := h.auth(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 
-	req := httptest.NewRequest(http.MethodPost, "/api/parts", nil)
+	req := httptest.NewRequest(http.MethodPost, testPartsPath, nil)
 	req.Header.Set("Authorization", partsBearer("parts_manager"))
 	w := httptest.NewRecorder()
 	next(w, req)
@@ -64,7 +65,7 @@ func TestPartsRoutes_WriteForbiddenForViewer(t *testing.T) {
 		method string
 		path   string
 	}{
-		{method: http.MethodPost, path: "/api/parts"},
+		{method: http.MethodPost, path: testPartsPath},
 		{method: http.MethodPut, path: "/api/parts/00000000-0000-0000-0000-000000000001"},
 		{method: http.MethodDelete, path: "/api/parts/00000000-0000-0000-0000-000000000001"},
 		{method: http.MethodPost, path: "/api/parts/folders"},

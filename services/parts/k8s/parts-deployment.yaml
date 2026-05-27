@@ -9,7 +9,7 @@ spec:
     matchLabels:
       app: parts-service
   template:
-    metadate:
+    metadata:
       labels:
         app: parts-service
     spec:
@@ -33,7 +33,10 @@ spec:
             - name: PARTS_HTTP_PORT
               value: "8084"
             - name: POSTGRES_DSN
-              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
 

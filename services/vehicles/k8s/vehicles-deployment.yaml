@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehicles-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vehicles-service
+  template:
+    metadata:
+      labels:
+        app: vehicles-service
+    spec:
+      containers:
+        - name: vehicles-service
+          image: __IMG_VEHICLES__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50053
+            - containerPort: 8082
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: VEHICLES_GRPC_PORT
+              value: "50053"
+            - name: VEHICLES_HTTP_PORT
+              value: "8082"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"

@@ -34,6 +34,9 @@ spec:
             - name: BRANDS_HTTP_PORT
               value: "8085"
             - name: POSTGRES_DSN
-              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"

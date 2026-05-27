@@ -13,12 +13,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .header-nav {
   display: flex;
   align-items: center;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .header-link {
@@ -64,4 +66,10 @@
 
 .main.loading {
   padding: 2rem;
+}
+
+@media (max-width: 900px) {
+  .header-nav {
+    gap: 12px;
+  }
 }

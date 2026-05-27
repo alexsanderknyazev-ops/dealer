@@ -8,9 +8,9 @@ type BreadcrumbItem = { id: string | null; name: string }
 
 export function Parts() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const initialFolderId = searchParams.get('folder_id') || null
   const [folderStack, setFolderStack] = useState<BreadcrumbItem[]>(() => [{ id: null, name: 'Корень' }])
   const currentFolderId = folderStack[folderStack.length - 1].id
+  const folderIdFromQuery = searchParams.get('folder_id')
 
   const [foldersByParent, setFoldersByParent] = useState<Record<string, PartFolder[]>>({ root: [] })
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set())
@@ -67,18 +67,26 @@ export function Parts() {
   }, [loadParts])
 
   useEffect(() => {
-    if (initialFolderId && folderStack.length === 1 && folderStack[0].id === null) {
-      api.getFolder(initialFolderId)
-        .then((f) => setFolderStack([{ id: null, name: 'Корень' }, { id: f.id, name: f.name }]))
-        .catch(() => {})
+    if (!folderIdFromQuery && currentFolderId !== null) {
+      setFolderStack([{ id: null, name: 'Корень' }])
+      return
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!folderIdFromQuery || folderIdFromQuery === currentFolderId) return
+    api.getFolder(folderIdFromQuery)
+      .then((f) => setFolderStack([{ id: null, name: 'Корень' }, { id: f.id, name: f.name }]))
+      .catch(() => {})
+  }, [folderIdFromQuery, currentFolderId])
 
   function goToFolder(folder: PartFolder) {
-    setFolderStack((prev) => [...prev, { id: folder.id, name: folder.name }])
+    setFolderStack((prev) => {
+      const existingIndex = prev.findIndex((item) => item.id === folder.id)
+      if (existingIndex >= 0) return prev.slice(0, existingIndex + 1)
+      return [...prev, { id: folder.id, name: folder.name }]
+    })
     setSearchParams((p) => {
-      p.set('folder_id', folder.id)
-      return p
+      const next = new URLSearchParams(p)
+      next.set('folder_id', folder.id)
+      return next
     })
     setPage(0)
   }
@@ -87,9 +95,10 @@ export function Parts() {
     const item = folderStack[index]
     setFolderStack((prev) => prev.slice(0, index + 1))
     setSearchParams((p) => {
-      if (item?.id) p.set('folder_id', item.id)
-      else p.delete('folder_id')
-      return p
+      const next = new URLSearchParams(p)
+      if (item?.id) next.set('folder_id', item.id)
+      else next.delete('folder_id')
+      return next
     })
     setPage(0)
   }
@@ -273,34 +282,36 @@ export function Parts() {
           )}
           {!loading && list.length > 0 && (
             <>
-              <table className="parts-table">
-                <thead>
-                  <tr>
-                    <th>Артикул</th>
-                    <th>Название</th>
-                    <th>Категория</th>
-                    <th>Кол-во</th>
-                    <th>Ед.</th>
-                    <th>Цена</th>
-                    <th>Расположение</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {list.map((p) => (
-                    <tr key={p.id}>
-                      <td className="parts-sku">{p.sku}</td>
-                      <td>
-                        <Link to={`/parts/${p.id}`} className="parts-link">{p.name || '—'}</Link>
-                      </td>
-                      <td>{p.category || '—'}</td>
-                      <td>{p.quantity}</td>
-                      <td>{p.unit || 'шт'}</td>
-                      <td>{p.price ? Number(p.price).toLocaleString('ru') : '—'}</td>
-                      <td>{p.location || '—'}</td>
+              <div className="parts-table-wrap">
+                <table className="parts-table">
+                  <thead>
+                    <tr>
+                      <th>Артикул</th>
+                      <th>Название</th>
+                      <th>Категория</th>
+                      <th>Кол-во</th>
+                      <th>Ед.</th>
+                      <th>Цена</th>
+                      <th>Расположение</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {list.map((p) => (
+                      <tr key={p.id}>
+                        <td className="parts-sku">{p.sku}</td>
+                        <td>
+                          <Link to={`/parts/${p.id}`} className="parts-link">{p.name || '—'}</Link>
+                        </td>
+                        <td>{p.category || '—'}</td>
+                        <td>{p.quantity}</td>
+                        <td>{p.unit || 'шт'}</td>
+                        <td>{p.price ? Number(p.price).toLocaleString('ru') : '—'}</td>
+                        <td>{p.location || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               <div className="parts-pagination">
                 <span>Всего: {total}</span>
                 <button type="button" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Назад</button>

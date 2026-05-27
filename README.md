@@ -121,3 +121,11 @@ make frontend-dev
 ## Конфигурация
 
 Скопируйте `.env.example` в `.env` и задайте переменные (в т.ч. `JWT_SECRET`, DSN, порты).
+
+Обязательные значения:
+- `JWT_SECRET` — не должен быть пустым для запуска сервисов.
+- `POSTGRES_PASSWORD` и корректный `POSTGRES_DSN`.
+
+Для Jenkins deploy (`DEPLOY=true`) параметры `POSTGRES_PASSWORD` и `JWT_SECRET` обязательны: pipeline создаёт `Secret`-ы `dealer-db` и `dealer-app-secrets`, после чего сервисы читают секреты через `secretKeyRef`.
+
+В CI добавлен обязательный lint-этап Go для изменённых сервисов (`golangci-lint`), базовая конфигурация зафиксирована в `.golangci.yml`.

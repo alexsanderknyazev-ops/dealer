@@ -198,6 +198,7 @@ cmd_prepare() {
 	setup_skopeo
 	mkdir -p "$WS/.ci"
 	: >"$WS/.ci/image-versions.env"
+	: >"$WS/.ci/new-version-services.txt"
 	local entry name vf ver
 	for entry in \
 		'auth-service:build/auth-service.Dockerfile' \
@@ -246,6 +247,7 @@ cmd_build() {
 	docker build -f "$dockerfile" --build-arg "SERVICE_VERSION=${ver}" -t "${name}:${LOCAL_TAG}" .
 	run_skopeo_copy_daemon "${name}:${LOCAL_TAG}" "$remote"
 	run_skopeo_copy_daemon "${name}:${LOCAL_TAG}" "${REG}/${name}:latest"
+	echo "$name" >>"$WS/.ci/new-version-services.txt"
 }
 
 case "${1:-}" in

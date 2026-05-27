@@ -319,7 +319,7 @@ SONAR_EXTRA_OPTS="\${SONAR_EXTRA_OPTS-}"
       }
     }
 
-    stage('Docker build and push (changed only)') {
+    stage('Docker build and push (all build, new versions push)') {
       steps {
         sh """#!/bin/bash
 set -eux
@@ -327,14 +327,7 @@ export DOCKER_REGISTRY="\${DOCKER_REGISTRY}"
 export BUILD_NUMBER='${env.BUILD_NUMBER}'
 cd "\${WORKSPACE}"
 bash scripts/ci/jenkins-docker.sh prepare
-. "\${WORKSPACE}/.ci/changed.env"
-
-if [ "\${HAS_SERVICE_CHANGES}" != "true" ]; then
-  echo "Нет изменений в сервисных модулях — docker build/push пропускаем."
-  exit 0
-fi
-
-for svc in \${CHANGED_SERVICES}; do
+for svc in auth-service customers-service vehicles-service deals-service parts-service brands-service dealer-points-service; do
   case "\${svc}" in
     auth-service) df='build/auth-service.Dockerfile' ;;
     customers-service) df='build/customers-service.Dockerfile' ;;
@@ -391,13 +384,18 @@ fi
 # shellcheck disable=SC1090
 . "\${WORKSPACE}/.ci/image-versions.env"
 . "\${WORKSPACE}/.ci/changed.env"
+NEW_VERSION_FILE="\${WORKSPACE}/.ci/new-version-services.txt"
+NEW_VERSION_SERVICES=""
+if [ -f "\${NEW_VERSION_FILE}" ]; then
+  NEW_VERSION_SERVICES="\$(tr '\n' ' ' < "\${NEW_VERSION_FILE}" | xargs || true)"
+fi
 
 NS="\${K8S_NAMESPACE}"
 K8S_PULL_REG="\${K8S_PULL_REGISTRY}"
 POSTGRES_PASSWORD="\${POSTGRES_PASSWORD-}"
 JWT_SECRET="\${JWT_SECRET-}"
-if [ "\${HAS_SERVICE_CHANGES}" != "true" ] && [ "\${HAS_NEW_MIGRATIONS}" != "true" ]; then
-  echo "Нет изменений для deploy."
+if [ -z "\${NEW_VERSION_SERVICES}" ] && [ "\${HAS_NEW_MIGRATIONS}" != "true" ]; then
+  echo "Нет новых версий сервисов и новых миграций для deploy."
   exit 0
 fi
 if [ -z "\${POSTGRES_PASSWORD}" ]; then
@@ -460,8 +458,8 @@ apply_service() {
   kctl -n "\$NS" rollout status "deployment/\$svc" --timeout=300s
 }
 
-if [ "\${HAS_SERVICE_CHANGES}" = "true" ]; then
-  for svc in \${CHANGED_SERVICES}; do
+if [ -n "\${NEW_VERSION_SERVICES}" ]; then
+  for svc in \${NEW_VERSION_SERVICES}; do
     case "\$svc" in
       auth-service) IMG="\${K8S_PULL_REG}/auth-service:\${VER_AUTH_SERVICE}" ;;
       customers-service) IMG="\${K8S_PULL_REG}/customers-service:\${VER_CUSTOMERS_SERVICE}" ;;

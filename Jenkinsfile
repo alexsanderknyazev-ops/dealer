@@ -336,7 +336,7 @@ SCANNER_HOME="\$(find "\${SCANNER_ROOT}" -maxdepth 1 -mindepth 1 -type d -name '
 test -x "\${SCANNER_HOME}/bin/sonar-scanner"
 
 cd "\${WORKSPACE}"
-SONAR_EXTRA_OPTS='${params.SONAR_EXTRA_OPTS}'
+SONAR_EXTRA_OPTS="\${SONAR_EXTRA_OPTS-}"
 "\${SCANNER_HOME}/bin/sonar-scanner" \\
   -Dsonar.host.url="${env.SONAR_HOST_URL}" \\
   -Dsonar.token="\${SONAR_TOKEN}" \\
@@ -350,7 +350,7 @@ SONAR_EXTRA_OPTS='${params.SONAR_EXTRA_OPTS}'
       steps {
         sh """#!/bin/bash
 set -eux
-export DOCKER_REGISTRY='${params.DOCKER_REGISTRY}'
+export DOCKER_REGISTRY="\${DOCKER_REGISTRY}"
 export BUILD_NUMBER='${env.BUILD_NUMBER}'
 cd "\${WORKSPACE}"
 bash scripts/ci/jenkins-docker.sh prepare
@@ -393,7 +393,7 @@ fi
 command -v docker >/dev/null 2>&1 || true
 
 KUBECTL=""
-KP='${params.KUBECONFIG_PATH}'
+KP="\${KUBECONFIG_PATH-}"
 if [ -n "\$KP" ]; then
   export KUBECONFIG="\$KP"
 fi

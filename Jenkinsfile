@@ -399,6 +399,15 @@ if [ -z "\${NEW_VERSION_SERVICES}" ] && [ "\${HAS_NEW_MIGRATIONS}" != "true" ]; 
   exit 0
 fi
 if [ -z "\${POSTGRES_PASSWORD}" ]; then
+  POSTGRES_PASSWORD="\$("\$KUBECTL" -n "\$NS" get secret dealer-db -o jsonpath='{.data.POSTGRES_PASSWORD}' 2>/dev/null | base64 --decode || true)"
+fi
+if [ -z "\${POSTGRES_PASSWORD}" ]; then
+  POSTGRES_PASSWORD='changeme'
+fi
+if [ -z "\${JWT_SECRET}" ]; then
+  JWT_SECRET="\$("\$KUBECTL" -n "\$NS" get secret dealer-app-secrets -o jsonpath='{.data.JWT_SECRET}' 2>/dev/null | base64 --decode || true)"
+fi
+if [ -z "\${POSTGRES_PASSWORD}" ]; then
   echo "POSTGRES_PASSWORD is required for deploy stage" >&2
   exit 1
 fi

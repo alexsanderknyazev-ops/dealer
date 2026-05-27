@@ -50,6 +50,11 @@ pipeline {
       description: 'Kubernetes namespace для сервисных манифестов'
     )
     string(
+      name: 'MINIKUBE_CONTAINER',
+      defaultValue: 'minikube',
+      description: 'Имя Docker-контейнера minikube на хосте Jenkins (docker driver). Образы загружаются через docker save/load, т.к. plain-HTTP registry недоступен для HTTPS pull из minikube.'
+    )
+    string(
       name: 'POSTGRES_PASSWORD',
       defaultValue: '',
       description: 'Обязательный пароль БД dealer для k8s. На деплое Jenkins кладёт его в Secret dealer-db (POSTGRES_PASSWORD, POSTGRES_DSN).'
@@ -454,36 +459,65 @@ kctl -n "\$NS" create secret generic dealer-app-secrets \
   --dry-run=client -o yaml | kapply -f -
 set -x
 
+BUILD_NUM='${env.BUILD_NUMBER}'
+DOCKER_REG="\${DOCKER_REGISTRY-}"
+SKOPEO_IMG='quay.io/skopeo/stable:latest'
+MINIKUBE_CTR="\${MINIKUBE_CONTAINER-}"
+if [ -z "\${MINIKUBE_CTR}" ]; then
+  MINIKUBE_CTR=minikube
+fi
+if ! docker ps --format '{{.Names}}' | grep -qx "\${MINIKUBE_CTR}" 2>/dev/null; then
+  echo "WARN: minikube container \${MINIKUBE_CTR} not found — image preload will be skipped" >&2
+  MINIKUBE_CTR=""
+fi
+
+load_image_to_minikube() {
+  local svc="\$1" img="\$2" ver="\$3"
+  local src="\${svc}:jenkins-\${BUILD_NUM}"
+  if [ -z "\${MINIKUBE_CTR}" ]; then
+    return 0
+  fi
+  if ! docker image inspect "\${src}" >/dev/null 2>&1; then
+    local reg="\${DOCKER_REG:-host.docker.internal:5050}"
+    echo "Local \${src} missing — copying \${reg}/\${svc}:\${ver} via skopeo"
+    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "\${SKOPEO_IMG}" \
+      copy --src-tls-verify=false "docker://\${reg}/\${svc}:\${ver}" "docker-daemon:\${src}"
+  fi
+  echo "Preloading \${img} into \${MINIKUBE_CTR}"
+  docker save "\${src}" | docker exec -i "\${MINIKUBE_CTR}" docker load
+  docker exec "\${MINIKUBE_CTR}" docker tag "\${src}" "\${img}"
+}
+
 apply_service() {
   local svc="\$1" img="\$2" dep="" svcf=""
   case "\$svc" in
     auth-service)
       dep="services/auth/k8s/auth-deployment.yaml"; svcf="services/auth/k8s/auth-service.yaml"
-      sed -e "s|__IMG_AUTH__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
+      sed -e "s|__IMG_AUTH__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     customers-service)
       dep="services/customers/k8s/customer-deployment.yaml"; svcf="services/customers/k8s/customers-service.yaml"
-      sed -e "s|__IMG_CUSTOMERS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
+      sed -e "s|__IMG_CUSTOMERS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     vehicles-service)
       dep="services/vehicles/k8s/vehicles-deployment.yaml"; svcf="services/vehicles/k8s/vehicles-service.yaml"
-      sed -e "s|__IMG_VEHICLES__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
+      sed -e "s|__IMG_VEHICLES__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     deals-service)
       dep="services/deals/k8s/deals-deployment.yaml"; svcf="services/deals/k8s/deals-service.yaml"
-      sed -e "s|__IMG_DEALS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
+      sed -e "s|__IMG_DEALS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     parts-service)
       dep="services/parts/k8s/parts-deployment.yaml"; svcf="services/parts/k8s/parts-service.yaml"
-      sed -e "s|__IMG_PARTS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
+      sed -e "s|__IMG_PARTS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     brands-service)
       dep="services/brands/k8s/brand-deployment.yaml"; svcf="services/brands/k8s/brand-service.yaml"
-      sed -e "s|__IMG_BRANDS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
+      sed -e "s|__IMG_BRANDS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     dealer-points-service)
       dep="services/dealerpoints/k8s/dealerpoints-deployment.yaml"; svcf="services/dealerpoints/k8s/dealerpoints-service.yaml"
-      sed -e "s|__IMG_DEALER_POINTS__|\${img}|g" -e "s|__PULL_POLICY__|Always|g" "\$dep" | kapply -f -
+      sed -e "s|__IMG_DEALER_POINTS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     *) echo "Unknown service \${svc}" >&2; exit 1 ;;
   esac
@@ -494,15 +528,16 @@ apply_service() {
 if [ -n "\${NEW_VERSION_SERVICES}" ]; then
   for svc in \${NEW_VERSION_SERVICES}; do
     case "\$svc" in
-      auth-service) IMG="\${K8S_PULL_REG}/auth-service:\${VER_AUTH_SERVICE}" ;;
-      customers-service) IMG="\${K8S_PULL_REG}/customers-service:\${VER_CUSTOMERS_SERVICE}" ;;
-      vehicles-service) IMG="\${K8S_PULL_REG}/vehicles-service:\${VER_VEHICLES_SERVICE}" ;;
-      deals-service) IMG="\${K8S_PULL_REG}/deals-service:\${VER_DEALS_SERVICE}" ;;
-      parts-service) IMG="\${K8S_PULL_REG}/parts-service:\${VER_PARTS_SERVICE}" ;;
-      brands-service) IMG="\${K8S_PULL_REG}/brands-service:\${VER_BRANDS_SERVICE}" ;;
-      dealer-points-service) IMG="\${K8S_PULL_REG}/dealer-points-service:\${VER_DEALER_POINTS_SERVICE}" ;;
+      auth-service) IMG="\${K8S_PULL_REG}/auth-service:\${VER_AUTH_SERVICE}"; VER="\${VER_AUTH_SERVICE}" ;;
+      customers-service) IMG="\${K8S_PULL_REG}/customers-service:\${VER_CUSTOMERS_SERVICE}"; VER="\${VER_CUSTOMERS_SERVICE}" ;;
+      vehicles-service) IMG="\${K8S_PULL_REG}/vehicles-service:\${VER_VEHICLES_SERVICE}"; VER="\${VER_VEHICLES_SERVICE}" ;;
+      deals-service) IMG="\${K8S_PULL_REG}/deals-service:\${VER_DEALS_SERVICE}"; VER="\${VER_DEALS_SERVICE}" ;;
+      parts-service) IMG="\${K8S_PULL_REG}/parts-service:\${VER_PARTS_SERVICE}"; VER="\${VER_PARTS_SERVICE}" ;;
+      brands-service) IMG="\${K8S_PULL_REG}/brands-service:\${VER_BRANDS_SERVICE}"; VER="\${VER_BRANDS_SERVICE}" ;;
+      dealer-points-service) IMG="\${K8S_PULL_REG}/dealer-points-service:\${VER_DEALER_POINTS_SERVICE}"; VER="\${VER_DEALER_POINTS_SERVICE}" ;;
       *) echo "Unknown changed service \${svc}" >&2; exit 1 ;;
     esac
+    load_image_to_minikube "\$svc" "\$IMG" "\$VER"
     apply_service "\$svc" "\$IMG"
   done
 fi

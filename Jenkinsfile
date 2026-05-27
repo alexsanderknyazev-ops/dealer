@@ -59,6 +59,16 @@ pipeline {
       defaultValue: '',
       description: 'Обязательный JWT secret для сервисов в k8s (Secret dealer-app-secrets).'
     )
+    string(
+      name: 'AUTH_COVERAGE_MIN',
+      defaultValue: '55',
+      description: 'Минимальный coverage % для services/auth (quality gate в CI).'
+    )
+    string(
+      name: 'DEALS_COVERAGE_MIN',
+      defaultValue: '55',
+      description: 'Минимальный coverage % для services/deals (quality gate в CI).'
+    )
   }
 
   // Переменные окружения для стадий Sonar/Go (версии инструментов; SONAR_HOST_URL — к Sonar в Docker на хосте).
@@ -215,6 +225,28 @@ for d in . services/auth services/customers services/vehicles services/deals ser
 done
 rm -f cov_piece.out
 """
+      }
+    }
+
+    stage('Coverage threshold (auth + deals)') {
+      steps {
+        sh '''#!/bin/bash
+set -euo pipefail
+cd "${WORKSPACE}"
+test -f coverage.out
+
+AUTH_MIN='${params.AUTH_COVERAGE_MIN}'
+DEALS_MIN='${params.DEALS_COVERAGE_MIN}'
+
+auth_cov="$(go tool cover -func=coverage.out | awk '/^services\\/auth\\// {gsub("%","",$3); sum+=$3; n++} END{if(n==0)print "0.00"; else printf "%.2f", sum/n}')"
+deals_cov="$(go tool cover -func=coverage.out | awk '/^services\\/deals\\// {gsub("%","",$3); sum+=$3; n++} END{if(n==0)print "0.00"; else printf "%.2f", sum/n}')"
+
+echo "Auth coverage: ${auth_cov}% (min ${AUTH_MIN}%)"
+echo "Deals coverage: ${deals_cov}% (min ${DEALS_MIN}%)"
+
+awk -v v="${auth_cov}" -v m="${AUTH_MIN}" 'BEGIN{ if (v+0 < m+0) exit 1 }' || { echo "Auth coverage gate failed"; exit 1; }
+awk -v v="${deals_cov}" -v m="${DEALS_MIN}" 'BEGIN{ if (v+0 < m+0) exit 1 }' || { echo "Deals coverage gate failed"; exit 1; }
+'''
       }
     }
 
@@ -383,10 +415,10 @@ fi
 . "\${WORKSPACE}/.ci/image-versions.env"
 . "\${WORKSPACE}/.ci/changed.env"
 
-NS='${params.K8S_NAMESPACE}'
-K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
-POSTGRES_PASSWORD='${params.POSTGRES_PASSWORD}'
-JWT_SECRET='${params.JWT_SECRET}'
+NS="\${K8S_NAMESPACE}"
+K8S_PULL_REG="\${K8S_PULL_REGISTRY}"
+POSTGRES_PASSWORD="\${POSTGRES_PASSWORD-}"
+JWT_SECRET="\${JWT_SECRET-}"
 if [ -z "\${POSTGRES_PASSWORD}" ]; then
   echo "POSTGRES_PASSWORD is required for deploy stage" >&2
   exit 1

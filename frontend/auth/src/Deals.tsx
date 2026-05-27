@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { Deal } from './dealsApi'
 import * as api from './dealsApi'
+import { useAuth } from './auth'
 import './Deals.css'
 
 const STAGE_LABEL: Record<string, string> = {
@@ -13,6 +14,8 @@ const STAGE_LABEL: Record<string, string> = {
 }
 
 export function Deals() {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
   const [list, setList] = useState<Deal[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -33,15 +36,20 @@ export function Deals() {
           setTotal(r.total)
         }
       })
-      .catch((err) => {
+      .catch(async (err) => {
         if (!cancelled) {
+          if (err instanceof api.ApiError && (err.status === 401 || err.status === 403)) {
+            await logout()
+            navigate('/login', { replace: true })
+            return
+          }
           setList([])
           setError(err instanceof Error ? err.message : 'Ошибка загрузки')
         }
       })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [page, stageFilter, retry])
+  }, [page, stageFilter, retry, logout, navigate])
 
   return (
     <div className="deals">

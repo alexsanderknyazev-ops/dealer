@@ -162,7 +162,8 @@ echo "New migration files: ${new_migrations:-(none)}"
         // Проверяем только /usr/local/go/bin/go — не «go» из PATH с другим поведением.
         sh """#!/bin/bash
 set -eux
-GO_VER='${env.GO_VERSION ?: "1.24.11"}'
+GO_VER='${env.GO_VERSION}'
+if [ -z "\${GO_VER}" ]; then GO_VER='1.24.11'; fi
 export GOTOOLCHAIN=local
 export PATH="/usr/local/go/bin:\${PATH}"
 
@@ -280,7 +281,8 @@ case "\$ARCH" in
   *) echo "unsupported arch: \$ARCH"; exit 1 ;;
 esac
 
-NODE_VER='${env.NODE_JS_VERSION ?: "20.18.1"}'
+NODE_VER='${env.NODE_JS_VERSION}'
+if [ -z "\${NODE_VER}" ]; then NODE_VER='20.18.1'; fi
 NODE_BASE="node-v\${NODE_VER}-linux-\${NODE_DIST_ARCH}"
 NODE_ROOT="/usr/local/\${NODE_BASE}"
 if [ ! -x "\${NODE_ROOT}/bin/node" ]; then
@@ -302,10 +304,12 @@ SCANNER_HOME="\$(find "\${SCANNER_ROOT}" -maxdepth 1 -mindepth 1 -type d -name '
 test -x "\${SCANNER_HOME}/bin/sonar-scanner"
 
 cd "\${WORKSPACE}"
+SONAR_EXTRA_OPTS='${params.SONAR_EXTRA_OPTS}'
 "\${SCANNER_HOME}/bin/sonar-scanner" \\
   -Dsonar.host.url="${env.SONAR_HOST_URL}" \\
   -Dsonar.token="\${SONAR_TOKEN}" \\
-  -Dsonar.scm.revision="\$(git rev-parse HEAD)" ${params.SONAR_EXTRA_OPTS?.trim() ?: ''}
+  -Dsonar.scm.revision="\$(git rev-parse HEAD)" \\
+  \${SONAR_EXTRA_OPTS}
 """
       }
     }

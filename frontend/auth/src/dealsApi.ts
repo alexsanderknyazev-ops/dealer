@@ -1,5 +1,15 @@
 const API = ''
 
+export class ApiError extends Error {
+  status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
 export type Deal = {
   id: string
   customer_id: string
@@ -29,6 +39,19 @@ function getAuthHeaders(): HeadersInit {
   }
 }
 
+function toApiError(status: number, fallbackMessage: string): ApiError {
+  if (status === 401) return new ApiError('Сессия истекла. Войдите снова.', 401)
+  if (status === 403) return new ApiError('Недостаточно прав для этой операции.', 403)
+  return new ApiError(fallbackMessage, status)
+}
+
+async function readErrorMessage(res: Response): Promise<string> {
+  return res
+    .json()
+    .then((b: { error?: string }) => b.error || res.statusText || 'Ошибка запроса')
+    .catch(() => res.statusText || 'Ошибка запроса')
+}
+
 export async function listDeals(params: {
   limit?: number
   offset?: number
@@ -41,13 +64,13 @@ export async function listDeals(params: {
   if (params.stage) sp.set('stage', params.stage)
   if (params.customer_id) sp.set('customer_id', params.customer_id)
   const res = await fetch(`${API}/api/deals?${sp}`, { headers: getAuthHeaders() })
-  if (!res.ok) throw new Error(await res.json().then((b: { error?: string }) => b.error).catch(() => res.statusText))
+  if (!res.ok) throw toApiError(res.status, await readErrorMessage(res))
   return res.json()
 }
 
 export async function getDeal(id: string): Promise<Deal> {
   const res = await fetch(`${API}/api/deals/${id}`, { headers: getAuthHeaders() })
-  if (!res.ok) throw new Error(await res.json().then((b: { error?: string }) => b.error).catch(() => res.statusText))
+  if (!res.ok) throw toApiError(res.status, await readErrorMessage(res))
   return res.json()
 }
 
@@ -57,7 +80,7 @@ export async function createDeal(data: DealForm): Promise<Deal> {
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   })
-  if (!res.ok) throw new Error(await res.json().then((b: { error?: string }) => b.error).catch(() => res.statusText))
+  if (!res.ok) throw toApiError(res.status, await readErrorMessage(res))
   return res.json()
 }
 
@@ -67,11 +90,11 @@ export async function updateDeal(id: string, data: Partial<DealForm>): Promise<D
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   })
-  if (!res.ok) throw new Error(await res.json().then((b: { error?: string }) => b.error).catch(() => res.statusText))
+  if (!res.ok) throw toApiError(res.status, await readErrorMessage(res))
   return res.json()
 }
 
 export async function deleteDeal(id: string): Promise<void> {
   const res = await fetch(`${API}/api/deals/${id}`, { method: 'DELETE', headers: getAuthHeaders() })
-  if (!res.ok && res.status !== 204) throw new Error(await res.json().then((b: { error?: string }) => b.error).catch(() => res.statusText))
+  if (!res.ok && res.status !== 204) throw toApiError(res.status, await readErrorMessage(res))
 }

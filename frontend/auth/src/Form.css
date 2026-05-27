@@ -50,6 +50,14 @@
   border-color: var(--accent);
 }
 
+.form-input--invalid {
+  border-color: var(--error);
+}
+
+.form-input--invalid:focus {
+  border-color: var(--error);
+}
+
 .form-input::placeholder {
   color: var(--text-muted);
   opacity: 0.8;
@@ -99,4 +107,9 @@
 
 .form-footer a {
   color: var(--accent);
+}
+
+.form-field-error {
+  color: var(--error);
+  font-size: 12px;
 }

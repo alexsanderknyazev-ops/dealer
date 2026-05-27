@@ -22,6 +22,8 @@ const (
 	testJWTHMACSecret   = "sec"
 	testJWTUserID       = "u"
 	testJWTUserEmail    = "e@e"
+	testJWTUserRole     = "sales"
+	testJWTViewerRole   = "viewer"
 	httpAuthBearerSpace = "Bearer "
 )
 
@@ -106,10 +108,11 @@ func (m *mockCustomerAPI) Delete(_ context.Context, id string) error {
 	return nil
 }
 
-func bearer(secret string) string {
+func bearer(secret, role string) string {
 	claims := &jwt.Claims{
 		UserID: testJWTUserID,
 		Email:  testJWTUserEmail,
+		Role:   role,
 		RegisteredClaims: jwtlib.RegisteredClaims{
 			ExpiresAt: jwtlib.NewNumericDate(time.Now().Add(time.Hour)),
 		},
@@ -144,7 +147,7 @@ func TestHandler_List_ServiceError(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodGet, pathAPICustomers, nil)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusInternalServerError)
@@ -155,7 +158,7 @@ func TestHandler_List_OK(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodGet, pathAPICustomers+"?limit=5&offset=0", nil)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatusBody(t, w, http.StatusOK)
@@ -167,7 +170,7 @@ func TestHandler_Create_BadBody(t *testing.T) {
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader([]byte("{")))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusBadRequest)
@@ -180,7 +183,7 @@ func TestHandler_Create_NameRequired(t *testing.T) {
 	body, _ := json.Marshal(map[string]string{"email": "a@b.c"})
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader(body))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusBadRequest)
@@ -192,7 +195,7 @@ func TestHandler_Get_NotFound(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodGet, pathCustomerByID(nf), nil)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusNotFound)
@@ -204,7 +207,7 @@ func TestHandler_Get_InternalErr(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodGet, pathCustomerByID(id), nil)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusInternalServerError)
@@ -216,7 +219,7 @@ func TestHandler_Get_OK(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodGet, pathCustomerByID(id), nil)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatusBody(t, w, http.StatusOK)
@@ -229,7 +232,7 @@ func TestHandler_Create_ServiceError(t *testing.T) {
 	body, _ := json.Marshal(map[string]string{"name": "A", "email": "a@b.c"})
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader(body))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusInternalServerError)
@@ -242,7 +245,7 @@ func TestHandler_Create_OK(t *testing.T) {
 	body, _ := json.Marshal(map[string]string{"name": "A", "email": "a@b.c"})
 	req := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader(body))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusOK)
@@ -256,7 +259,7 @@ func TestHandler_Update_NotFound(t *testing.T) {
 	body, _ := json.Marshal(map[string]string{"name": "Z"})
 	req := httptest.NewRequest(http.MethodPut, pathCustomerByID(nf), bytes.NewReader(body))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusNotFound)
@@ -269,7 +272,7 @@ func TestHandler_Update_BadBody(t *testing.T) {
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodPut, pathCustomerByID(id), bytes.NewReader([]byte("x")))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusBadRequest)
@@ -281,7 +284,7 @@ func TestHandler_Delete_NotFound(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 	req := httptest.NewRequest(http.MethodDelete, pathCustomerByID(nf), nil)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusNotFound)
@@ -295,13 +298,42 @@ func TestHandler_Update_Delete_NoContent(t *testing.T) {
 	body, _ := json.Marshal(map[string]string{"name": "Z"})
 	req := httptest.NewRequest(http.MethodPut, pathCustomerByID(id), bytes.NewReader(body))
 	setRequestJSONContentType(req)
-	req.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
 	assertHTTPStatus(t, w, http.StatusOK)
 	req2 := httptest.NewRequest(http.MethodDelete, pathCustomerByID(id), nil)
-	req2.Header.Set("Authorization", bearer(testJWTHMACSecret))
+	req2.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTUserRole))
 	w2 := httptest.NewRecorder()
 	mux.ServeHTTP(w2, req2)
 	assertHTTPStatus(t, w2, http.StatusNoContent)
+}
+
+func TestHandler_WriteForbiddenForViewer(t *testing.T) {
+	id := uuid.New().String()
+	h := NewHandler(&mockCustomerAPI{}, testJWTHMACSecret)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	createBody, _ := json.Marshal(map[string]string{"name": "A", "email": "a@b.c"})
+	reqCreate := httptest.NewRequest(http.MethodPost, pathAPICustomers, bytes.NewReader(createBody))
+	setRequestJSONContentType(reqCreate)
+	reqCreate.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTViewerRole))
+	wCreate := httptest.NewRecorder()
+	mux.ServeHTTP(wCreate, reqCreate)
+	assertHTTPStatusBody(t, wCreate, http.StatusForbidden)
+
+	updateBody, _ := json.Marshal(map[string]string{"name": "Z"})
+	reqUpdate := httptest.NewRequest(http.MethodPut, pathCustomerByID(id), bytes.NewReader(updateBody))
+	setRequestJSONContentType(reqUpdate)
+	reqUpdate.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTViewerRole))
+	wUpdate := httptest.NewRecorder()
+	mux.ServeHTTP(wUpdate, reqUpdate)
+	assertHTTPStatusBody(t, wUpdate, http.StatusForbidden)
+
+	reqDelete := httptest.NewRequest(http.MethodDelete, pathCustomerByID(id), nil)
+	reqDelete.Header.Set("Authorization", bearer(testJWTHMACSecret, testJWTViewerRole))
+	wDelete := httptest.NewRecorder()
+	mux.ServeHTTP(wDelete, reqDelete)
+	assertHTTPStatusBody(t, wDelete, http.StatusForbidden)
 }

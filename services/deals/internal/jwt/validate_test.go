@@ -13,23 +13,24 @@ const (
 	testJWTWrongKey   = "wrong"
 	testClaimUserID   = "1"
 	testClaimEmail    = "e@e"
+	testClaimRole     = "sales"
 )
 
 func TestValidate(t *testing.T) {
-	_, _, err := Validate(testJWTArgShort, "")
+	_, _, _, err := Validate(testJWTArgShort, "")
 	if err == nil {
 		t.Fatal("want err")
 	}
-	claims := &Claims{UserID: testClaimUserID, Email: testClaimEmail, RegisteredClaims: jwtlib.RegisteredClaims{
+	claims := &Claims{UserID: testClaimUserID, Email: testClaimEmail, Role: testClaimRole, RegisteredClaims: jwtlib.RegisteredClaims{
 		ExpiresAt: jwtlib.NewNumericDate(time.Now().Add(time.Hour)),
 	}}
 	tok, _ := jwtlib.NewWithClaims(jwtlib.SigningMethodHS256, claims).SignedString([]byte(testJWTSignedWith))
-	u, e, err := Validate(testJWTSignedWith, tok)
-	if err != nil || u != testClaimUserID || e != testClaimEmail {
+	u, e, role, err := Validate(testJWTSignedWith, tok)
+	if err != nil || u != testClaimUserID || e != testClaimEmail || role != testClaimRole {
 		t.Fatal(err)
 	}
 	bad, _ := jwtlib.NewWithClaims(jwtlib.SigningMethodHS256, claims).SignedString([]byte(testJWTWrongKey))
-	if _, _, err := Validate(testJWTSignedWith, bad); err == nil {
+	if _, _, _, err := Validate(testJWTSignedWith, bad); err == nil {
 		t.Fatal("want err")
 	}
 }

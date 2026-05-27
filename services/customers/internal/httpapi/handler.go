@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -47,12 +48,47 @@ func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {
 func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
-		if _, _, err := jwt.Validate(h.jwtSecret, token); err != nil {
+		userID, _, role, err := jwt.Validate(h.jwtSecret, token)
+		if err != nil {
 			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+			return
+		}
+		if isWriteMethod(r.Method) && !hasAllowedRole(role, "admin", "manager", "sales") {
+			log.Printf(
+				"rbac deny: service=customers user_id=%s role=%s endpoint=%s action=%s reason=%s",
+				userID, role, r.URL.Path, actionFromMethod(r.Method), "insufficient_role",
+			)
+			writeJSON(w, http.StatusForbidden, map[string]string{"error": "forbidden"})
 			return
 		}
 		next(w, r)
 	}
+}
+
+func isWriteMethod(method string) bool {
+	return method == http.MethodPost || method == http.MethodPut || method == http.MethodDelete
+}
+
+func actionFromMethod(method string) string {
+	switch method {
+	case http.MethodPost:
+		return "create"
+	case http.MethodPut:
+		return "update"
+	case http.MethodDelete:
+		return "delete"
+	default:
+		return "read"
+	}
+}
+
+func hasAllowedRole(role string, allowed ...string) bool {
+	for _, r := range allowed {
+		if role == r {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *Handler) handleList(w http.ResponseWriter, r *http.Request) {

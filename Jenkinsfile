@@ -157,7 +157,7 @@ echo "New migration files: ${new_migrations:-(none)}"
         // Проверяем только /usr/local/go/bin/go — не «go» из PATH с другим поведением.
         sh """#!/bin/bash
 set -eux
-GO_VER='${env.GO_VERSION ?: '1.24.11'}'
+GO_VER='${env.GO_VERSION ?: "1.24.11"}'
 export GOTOOLCHAIN=local
 export PATH="/usr/local/go/bin:\${PATH}"
 
@@ -233,7 +233,7 @@ case "\$ARCH" in
   *) echo "unsupported arch: \$ARCH"; exit 1 ;;
 esac
 
-NODE_VER='${env.NODE_JS_VERSION ?: '20.18.1'}'
+NODE_VER='${env.NODE_JS_VERSION ?: "20.18.1"}'
 NODE_BASE="node-v\${NODE_VER}-linux-\${NODE_DIST_ARCH}"
 NODE_ROOT="/usr/local/\${NODE_BASE}"
 if [ ! -x "\${NODE_ROOT}/bin/node" ]; then
@@ -338,7 +338,7 @@ fi
 
 NS='${params.K8S_NAMESPACE}'
 K8S_PULL_REG='${params.K8S_PULL_REGISTRY}'
-POSTGRES_PASSWORD='${params.POSTGRES_PASSWORD ?: 'changeme'}'
+POSTGRES_PASSWORD='${params.POSTGRES_PASSWORD ?: "changeme"}'
 POSTGRES_DSN="postgres://dealer:\${POSTGRES_PASSWORD}@postgres:5432/dealer?sslmode=disable"
 
 if [ "\${HAS_SERVICE_CHANGES}" != "true" ] && [ "\${HAS_NEW_MIGRATIONS}" != "true" ]; then

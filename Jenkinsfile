@@ -36,8 +36,8 @@ pipeline {
     )
     string(
       name: 'KUBECONFIG_PATH',
-      defaultValue: '',
-      description: 'Необязательно: абсолютный путь к kubeconfig внутри агента (если не JENKINS_HOME/.kube/config). Удобно при volume, напр. /var/jenkins_home/secrets/kubeconfig.'
+      defaultValue: '/var/jenkins_home/secrets/kubeconfig',
+      description: 'Путь к kubeconfig внутри Jenkins-агента. Для Minikube в Docker: /var/jenkins_home/secrets/kubeconfig (server host.docker.internal, certs в /var/jenkins_home/.minikube).'
     )
     string(
       name: 'K8S_PULL_REGISTRY',
@@ -360,8 +360,16 @@ command -v docker >/dev/null 2>&1 || true
 
 KUBECTL=""
 KP="\${KUBECONFIG_PATH-}"
-if [ -n "\$KP" ]; then
+if [ -n "\$KP" ] && [ -f "\$KP" ]; then
   export KUBECONFIG="\$KP"
+elif [ -n "\${JENKINS_HOME-}" ] && [ -f "\${JENKINS_HOME}/secrets/kubeconfig" ]; then
+  export KUBECONFIG="\${JENKINS_HOME}/secrets/kubeconfig"
+elif [ -f "\${WORKSPACE}/.kube/config" ]; then
+  export KUBECONFIG="\${WORKSPACE}/.kube/config"
+elif [ -n "\${JENKINS_HOME-}" ] && [ -f "\${JENKINS_HOME}/.kube/config" ]; then
+  export KUBECONFIG="\${JENKINS_HOME}/.kube/config"
+elif [ -f "\${HOME}/.kube/config" ]; then
+  export KUBECONFIG="\${HOME}/.kube/config"
 fi
 if command -v kubectl >/dev/null 2>&1; then
   KUBECTL="kubectl"
@@ -419,9 +427,19 @@ POSTGRES_DSN="postgres://dealer:\${POSTGRES_PASSWORD}@postgres:5432/dealer?sslmo
 kctl() { "\$KUBECTL" "\$@"; }
 kapply() { kctl apply --validate=false "\$@"; }
 
+CTX="\$(kctl config current-context 2>/dev/null || true)"
+if [ -z "\${CTX}" ]; then
+  FIRST_CTX="\$(kctl config get-contexts -o name 2>/dev/null | head -n 1 || true)"
+  if [ -n "\${FIRST_CTX}" ]; then
+    kctl config use-context "\${FIRST_CTX}" >/dev/null 2>&1 || true
+    CTX="\$(kctl config current-context 2>/dev/null || true)"
+  fi
+fi
 if ! kctl version --request-timeout=10s >/dev/null 2>&1; then
   echo "kubectl cannot access Kubernetes API with current kubeconfig (check KUBECONFIG_PATH/context/credentials)." >&2
-  kctl config current-context || true
+  echo "KUBECONFIG=\${KUBECONFIG-<default>}" >&2
+  echo "current-context=\${CTX:-<not-set>}" >&2
+  kctl config get-contexts -o name || true
   exit 1
 fi
 

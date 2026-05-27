@@ -1,38 +1,15 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
-  name:
-  namespace:
+  name: deals-service
+  namespace: dealer
 spec:
-  replicas: 1
   selector:
-    matchLabels:
-      app: deals-service
-  template:
-    metadata:
-      labels:
-        app: deals-service
-    spec:
-      containers:
-        - name: deals-service
-          image: __IMG_DEALS__
-          imagePullPolicy: __PULL_POLICY__
-          ports:
-            - containerPort: 50054
-            - containerPort: 8083
-          resources:
-            requests:
-              cpu: "50m"
-              memory: "64Mi"
-            limits:
-              cpu: "250m"
-              memory: "256Mi"
-          env:
-            - name: DEALS_GRPC_PORT
-              value: "50054"
-            - name: DEALS_HTTP_PORT
-              value: "8083"
-            - name: POSTGRES_DSN
-              value: "postgres://dealer:__POSTGRES_PASSWORD__@__K8S_DB_HOST__:__K8S_DB_PORT__/dealer?sslmode=disable"
-            - name: JWT_SECRET
-              value: "change-me-in-production"
+    app: deals-service
+  ports:
+    - name: grpc
+      port: 50054
+      targetPort: 50054
+    - name: http
+      port: 8083
+      targetPort: 8083

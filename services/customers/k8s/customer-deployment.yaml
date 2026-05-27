@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customers-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customers-service
+  template:
+    metadata:
+      labels:
+        app: customers-service
+    spec:
+      containers:
+        - name: customers-service
+          image: __IMG_CUSTOMERS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50052
+            - containerPort: 8081
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: CUSTOMERS_GRPC_PORT
+              value: "50052"
+            - name: CUSTOMERS_HTTP_PORT
+              value: "8081"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"

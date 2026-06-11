@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package employees.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/dealer/dealer/pkg/pb/employees/v1;employeesv1";
+
+service EmployeesService {
+  rpc CreateEmployee(CreateEmployeeRequest) returns (CreateEmployeeResponse) {
+    option (google.api.http) = { post: "/api/employees" body: "*" response_body: "employee" };
+  }
+  rpc GetEmployee(GetEmployeeRequest) returns (GetEmployeeResponse) {
+    option (google.api.http) = { get: "/api/employees/{id}" response_body: "employee" };
+  }
+  rpc GetEmployeeByUserID(GetEmployeeByUserIDRequest) returns (GetEmployeeResponse);
+  rpc ListEmployees(ListEmployeesRequest) returns (ListEmployeesResponse) {
+    option (google.api.http) = { get: "/api/employees" };
+  }
+  rpc UpdateEmployee(UpdateEmployeeRequest) returns (UpdateEmployeeResponse) {
+    option (google.api.http) = { put: "/api/employees/{id}" body: "*" response_body: "employee" };
+  }
+  rpc DeleteEmployee(DeleteEmployeeRequest) returns (DeleteEmployeeResponse) {
+    option (google.api.http) = { delete: "/api/employees/{id}" };
+  }
+}
+
+message Employee {
+  string id = 1;
+  string user_id = 2;
+  string full_name = 3;
+  string position = 4;
+  string department = 5;
+  string phone = 6;
+  bool active = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+}
+
+message CreateEmployeeRequest {
+  string user_id = 1;
+  string full_name = 2;
+  string position = 3;
+  string department = 4;
+  string phone = 5;
+  bool active = 6;
+}
+
+message CreateEmployeeResponse {
+  Employee employee = 1;
+}
+
+message GetEmployeeRequest {
+  string id = 1;
+}
+
+message GetEmployeeByUserIDRequest {
+  string user_id = 1;
+}
+
+message GetEmployeeResponse {
+  Employee employee = 1;
+}
+
+message ListEmployeesRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string search = 3;
+  string position = 4;
+  bool active_only = 5;
+}
+
+message ListEmployeesResponse {
+  repeated Employee employees = 1;
+  int32 total = 2;
+}
+
+message UpdateEmployeeRequest {
+  string id = 1;
+  optional string user_id = 2;
+  optional string full_name = 3;
+  optional string position = 4;
+  optional string department = 5;
+  optional string phone = 6;
+  optional bool active = 7;
+}
+
+message UpdateEmployeeResponse {
+  Employee employee = 1;
+}
+
+message DeleteEmployeeRequest {
+  string id = 1;
+}
+
+message DeleteEmployeeResponse {}

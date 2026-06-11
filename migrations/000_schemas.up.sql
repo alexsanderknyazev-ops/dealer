@@ -11,6 +11,10 @@ CREATE SCHEMA IF NOT EXISTS clientauth;
 CREATE SCHEMA IF NOT EXISTS reviews;
 CREATE SCHEMA IF NOT EXISTS employee_statistics;
 CREATE SCHEMA IF NOT EXISTS client_statistics;
+CREATE SCHEMA IF NOT EXISTS employee_reviews;
+CREATE SCHEMA IF NOT EXISTS workorders;
+CREATE SCHEMA IF NOT EXISTS works;
+CREATE SCHEMA IF NOT EXISTS employees;
 
 -- Если таблицы уже были в public, переносим их в целевые схемы.
 DO $$

@@ -25,6 +25,11 @@ import { LegalEntities } from './LegalEntities'
 import { LegalEntityForm } from './LegalEntityForm'
 import { Warehouses } from './Warehouses'
 import { WarehouseForm } from './WarehouseForm'
+import { Statistics } from './Statistics'
+import { WorkOrders } from './WorkOrders'
+import { WorkOrderForm } from './WorkOrderForm'
+import { WorkOrderView } from './WorkOrderView'
+import { MovementDocumentView } from './MovementDocumentView'
 
 function RequireAuth(props: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -81,6 +86,12 @@ export default function App() {
         <Route path="warehouses" element={<RequireAuth><Warehouses /></RequireAuth>} />
         <Route path="warehouses/new" element={<RequireAuth><WarehouseForm /></RequireAuth>} />
         <Route path="warehouses/:id/edit" element={<RequireAuth><WarehouseForm /></RequireAuth>} />
+        <Route path="statistics" element={<RequireAuth><Statistics /></RequireAuth>} />
+        <Route path="work-orders" element={<RequireAuth><WorkOrders /></RequireAuth>} />
+        <Route path="work-orders/new" element={<RequireAuth><WorkOrderForm /></RequireAuth>} />
+        <Route path="work-orders/:id/edit" element={<RequireAuth><WorkOrderForm /></RequireAuth>} />
+        <Route path="movement-documents/:id" element={<RequireAuth><MovementDocumentView /></RequireAuth>} />
+        <Route path="work-orders/:id" element={<RequireAuth><WorkOrderView /></RequireAuth>} />
         <Route path="login" element={<GuestOnly><Login /></GuestOnly>} />
         <Route path="register" element={<GuestOnly><Register /></GuestOnly>} />
         <Route path="*" element={<Navigate to="/" replace />} />

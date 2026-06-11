@@ -58,7 +58,8 @@ services:
       - clickhouse_data:/var/lib/clickhouse
       - ./clickhouse/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://localhost:8123/ping | grep -q Ok"]
+      # localhost → [::1] on Alpine; IPv6 is disabled in Docker Desktop — use 127.0.0.1
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:8123/ping | grep -q Ok"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -223,12 +224,20 @@ services:
       DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
       EMPLOYEE_STATISTICS_GRPC_ADDR: "employee-statistics-service:50061"
       CLIENT_STATISTICS_GRPC_ADDR: "client-statistics-service:50062"
+      EMPLOYEE_REVIEWS_GRPC_ADDR: "employee-reviews-service:50063"
+      WORKORDERS_GRPC_ADDR: "workorders-service:50064"
+      WORKS_GRPC_ADDR: "works-service:50065"
+      EMPLOYEES_GRPC_ADDR: "employees-service:50066"
     depends_on:
       auth-service:
         condition: service_started
       dealer-points-service:
         condition: service_started
       brands-service:
+        condition: service_started
+      works-service:
+        condition: service_started
+      employees-service:
         condition: service_started
       customers-service:
         condition: service_started
@@ -241,6 +250,97 @@ services:
       employee-statistics-service:
         condition: service_started
       client-statistics-service:
+        condition: service_started
+      employee-reviews-service:
+        condition: service_started
+      workorders-service:
+        condition: service_started
+      kafka:
+        condition: service_started
+
+  workorders-service:
+    build:
+      context: .
+      dockerfile: build/workorders-service.Dockerfile
+    ports:
+      - "50064:50064"
+    environment:
+      WORKORDERS_GRPC_PORT: "50064"
+      WORKORDERS_HTTP_PORT: "8097"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
+      JWT_SECRET: "change-me-in-production"
+      CUSTOMERS_GRPC_ADDR: "customers-service:50052"
+      VEHICLES_GRPC_ADDR: "vehicles-service:50053"
+      DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
+      PARTS_GRPC_ADDR: "parts-service:50055"
+      WORKS_GRPC_ADDR: "works-service:50065"
+      EMPLOYEES_GRPC_ADDR: "employees-service:50066"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      customers-service:
+        condition: service_started
+      vehicles-service:
+        condition: service_started
+      dealer-points-service:
+        condition: service_started
+      parts-service:
+        condition: service_started
+      works-service:
+        condition: service_started
+      employees-service:
+        condition: service_started
+
+  employees-service:
+    build:
+      context: .
+      dockerfile: build/employees-service.Dockerfile
+    ports:
+      - "50066:50066"
+    environment:
+      EMPLOYEES_GRPC_PORT: "50066"
+      EMPLOYEES_HTTP_PORT: "8099"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
+      JWT_SECRET: "change-me-in-production"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  works-service:
+    build:
+      context: .
+      dockerfile: build/works-service.Dockerfile
+    ports:
+      - "50065:50065"
+    environment:
+      WORKS_GRPC_PORT: "50065"
+      WORKS_HTTP_PORT: "8098"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
+      JWT_SECRET: "change-me-in-production"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  employee-reviews-service:
+    build:
+      context: .
+      dockerfile: build/employee-reviews-service.Dockerfile
+    ports:
+      - "50063:50063"
+    environment:
+      EMPLOYEE_REVIEWS_GRPC_PORT: "50063"
+      EMPLOYEE_REVIEWS_HTTP_PORT: "8096"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
+      JWT_SECRET: "change-me-in-production"
+      VEHICLES_GRPC_ADDR: "vehicles-service:50053"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_REVIEW_PUBLISHED: "review.published.v1"
+      KAFKA_CONSUMER_GROUP_EMPLOYEE_REVIEWS: "employee-reviews"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vehicles-service:
         condition: service_started
       kafka:
         condition: service_started
@@ -400,6 +500,8 @@ services:
       JWT_SECRET: "change-me-in-production"
       BRANDS_GRPC_ADDR: "brands-service:50056"
       DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
+      WORKORDERS_GRPC_ADDR: "workorders-service:50064"
+      EMPLOYEES_GRPC_ADDR: "employees-service:50066"
       KAFKA_BROKERS: "kafka:29092"
       KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
@@ -410,6 +512,8 @@ services:
       brands-service:
         condition: service_started
       dealer-points-service:
+        condition: service_started
+      employees-service:
         condition: service_started
 
   brands-service:

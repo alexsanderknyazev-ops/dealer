@@ -79,6 +79,7 @@ func main() {
 		WriteRoles: []string{"admin", "manager", "sales"},
 		PublicMethods: []string{
 			"/vehicles.v1.VehiclesService/GetVehicleByVIN",
+			"/vehicles.v1.VehiclesService/GetVehicle",
 		},
 	})...)
 	vehiclesv1.RegisterVehiclesServiceServer(gsrv, grpcserver.NewServer(svc))

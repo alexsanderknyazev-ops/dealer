@@ -893,10 +893,90 @@ spec:
               value: "employee-statistics-service:50061"
             - name: CLIENT_STATISTICS_GRPC_ADDR
               value: "client-statistics-service:50062"
+            - name: EMPLOYEE_REVIEWS_GRPC_ADDR
+              value: "employee-reviews-service:50063"
             - name: KAFKA_BROKERS
               value: "kafka:29092"
             - name: KAFKA_TOPIC_ERRORS
               value: "platform.errors.v1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: employee-reviews-service
+  namespace: dealer
+spec:
+  selector:
+    app: employee-reviews-service
+  ports:
+    - name: grpc
+      port: 50063
+      targetPort: 50063
+    - name: http
+      port: 8096
+      targetPort: 8096
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee-reviews-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employee-reviews-service
+  template:
+    metadata:
+      labels:
+        app: employee-reviews-service
+    spec:
+      containers:
+        - name: employee-reviews-service
+          image: __IMG_EMPLOYEE_REVIEWS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50063
+            - containerPort: 8096
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8096
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8096
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: EMPLOYEE_REVIEWS_GRPC_PORT
+              value: "50063"
+            - name: EMPLOYEE_REVIEWS_HTTP_PORT
+              value: "8096"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+            - name: VEHICLES_GRPC_ADDR
+              value: "vehicles-service:50053"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_REVIEW_PUBLISHED
+              value: "review.published.v1"
+            - name: KAFKA_CONSUMER_GROUP_EMPLOYEE_REVIEWS
+              value: "employee-reviews"
 ---
 apiVersion: v1
 kind: Service

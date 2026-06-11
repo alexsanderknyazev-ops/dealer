@@ -38,6 +38,22 @@ service PartsService {
   rpc DeleteFolder(DeleteFolderRequest) returns (DeleteFolderResponse) {
     option (google.api.http) = { delete: "/api/parts/folders/{id}" };
   }
+
+  rpc CreateMovementDocument(CreateMovementDocumentRequest) returns (CreateMovementDocumentResponse) {
+    option (google.api.http) = { post: "/api/movement-documents" body: "*" response_body: "document" };
+  }
+  rpc GetMovementDocument(GetMovementDocumentRequest) returns (GetMovementDocumentResponse) {
+    option (google.api.http) = { get: "/api/movement-documents/{id}" response_body: "document" };
+  }
+  rpc ListMovementDocuments(ListMovementDocumentsRequest) returns (ListMovementDocumentsResponse) {
+    option (google.api.http) = { get: "/api/movement-documents" };
+  }
+  rpc ConfirmMovementDocument(ConfirmMovementDocumentRequest) returns (ConfirmMovementDocumentResponse) {
+    option (google.api.http) = { post: "/api/movement-documents/{id}/confirm" body: "*" response_body: "document" };
+  }
+  rpc CancelMovementDocument(CancelMovementDocumentRequest) returns (CancelMovementDocumentResponse) {
+    option (google.api.http) = { post: "/api/movement-documents/{id}/cancel" body: "*" response_body: "document" };
+  }
 }
 
 message PartFolder {
@@ -88,6 +104,110 @@ message DeleteFolderRequest {
 }
 
 message DeleteFolderResponse {}
+
+message StockMovement {
+  string id = 1;
+  string part_id = 2;
+  string warehouse_id = 3;
+  int32 quantity = 4;
+  string movement_type = 5;
+  string reference_type = 6;
+  string reference_id = 7;
+  string reference_line_id = 8;
+  string notes = 9;
+  string created_by = 10;
+  int64 created_at = 11;
+  string movement_document_id = 12;
+}
+
+message MovementDocumentLine {
+  string id = 1;
+  string part_id = 2;
+  string warehouse_id = 3;
+  int32 quantity = 4;
+  string reference_line_id = 5;
+  string notes = 6;
+  int32 sort_order = 7;
+}
+
+message MovementDocumentLineInput {
+  string part_id = 1;
+  string warehouse_id = 2;
+  int32 quantity = 3;
+  string reference_line_id = 4;
+  string notes = 5;
+  int32 sort_order = 6;
+}
+
+message MovementDocument {
+  string id = 1;
+  string document_number = 2;
+  string status = 3;
+  string movement_type = 4;
+  string reference_type = 5;
+  string reference_id = 6;
+  string notes = 7;
+  string created_by = 8;
+  string confirmed_by = 9;
+  int64 created_at = 10;
+  int64 confirmed_at = 11;
+  int64 updated_at = 12;
+  repeated MovementDocumentLine lines = 13;
+  string created_by_name = 14;
+  string confirmed_by_name = 15;
+}
+
+message CreateMovementDocumentRequest {
+  string movement_type = 1;
+  string reference_type = 2;
+  string reference_id = 3;
+  string notes = 4;
+  string created_by = 5;
+  repeated MovementDocumentLineInput lines = 6;
+}
+
+message CreateMovementDocumentResponse {
+  MovementDocument document = 1;
+}
+
+message GetMovementDocumentRequest {
+  string id = 1;
+}
+
+message GetMovementDocumentResponse {
+  MovementDocument document = 1;
+}
+
+message ListMovementDocumentsRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string status = 3;
+  string reference_type = 4;
+  string reference_id = 5;
+}
+
+message ListMovementDocumentsResponse {
+  repeated MovementDocument documents = 1;
+  int32 total = 2;
+}
+
+message ConfirmMovementDocumentRequest {
+  string id = 1;
+  string confirmed_by = 2;
+}
+
+message ConfirmMovementDocumentResponse {
+  MovementDocument document = 1;
+}
+
+message CancelMovementDocumentRequest {
+  string id = 1;
+  string cancelled_by = 2;
+}
+
+message CancelMovementDocumentResponse {
+  MovementDocument document = 1;
+}
 
 message Part {
   string id = 1;

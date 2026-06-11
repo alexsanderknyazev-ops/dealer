@@ -24,6 +24,15 @@ const (
 	APILegalEntitiesPre = "/api/legal-entities/"
 	APIWarehouses       = "/api/warehouses"
 	APIWarehousesPrefix = "/api/warehouses/"
+	APIStats            = "/api/stats"
+	APIReviews          = "/api/reviews"
+	APIClients          = "/api/clients"
+	APIWorkOrders       = "/api/work-orders"
+	APIWorks            = "/api/works"
+	APIWorksPrefix      = "/api/works/"
+	APIEmployees        = "/api/employees"
+	APIEmployeesPrefix  = "/api/employees/"
+	APIMovementDocuments = "/api/movement-documents"
 	APITelemetry        = "/api/telemetry"
 	APITelemetryPrefix  = "/api/telemetry/"
 )
@@ -44,5 +53,12 @@ func GatewayProxyPrefixes() []string {
 		APIDealerPoints,
 		APILegalEntities,
 		APIWarehouses,
+		APIStats,
+		APIReviews,
+		APIClients,
+		APIWorkOrders,
+		APIWorks,
+		APIEmployees,
+		APIMovementDocuments,
 	}
 }

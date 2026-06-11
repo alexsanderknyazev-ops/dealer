@@ -348,7 +348,7 @@ export DOCKER_REGISTRY="\${DOCKER_REGISTRY}"
 export BUILD_NUMBER='${env.BUILD_NUMBER}'
 cd "\${WORKSPACE}"
 bash scripts/ci/jenkins-docker.sh prepare
-for svc in customers-service vehicles-service deals-service parts-service brands-service dealer-points-service auth-service gateway-service client-auth-service client-registration-service client-reviews-service client-public-gateway-service client-protected-gateway-service employee-statistics-service client-statistics-service; do
+for svc in customers-service vehicles-service deals-service parts-service brands-service dealer-points-service auth-service gateway-service client-auth-service client-registration-service client-reviews-service client-public-gateway-service client-protected-gateway-service employee-statistics-service client-statistics-service employee-reviews-service; do
   case "\${svc}" in
     auth-service) df='build/auth-service.Dockerfile' ;;
     customers-service) df='build/customers-service.Dockerfile' ;;
@@ -365,6 +365,7 @@ for svc in customers-service vehicles-service deals-service parts-service brands
     client-protected-gateway-service) df='build/client-protected-gateway-service.Dockerfile' ;;
     employee-statistics-service) df='build/employee-statistics-service.Dockerfile' ;;
     client-statistics-service) df='build/client-statistics-service.Dockerfile' ;;
+    employee-reviews-service) df='build/employee-reviews-service.Dockerfile' ;;
     *) echo "Unknown service: \${svc}" >&2; exit 1 ;;
   esac
   bash scripts/ci/jenkins-docker.sh build "\${svc}" "\${df}"
@@ -575,6 +576,10 @@ apply_service() {
       dep="services/statistics/client/k8s/client-statistics-deployment.yaml"; svcf="services/statistics/client/k8s/client-statistics-service.yaml"
       sed -e "s|__IMG_CLIENT_STATISTICS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
+    employee-reviews-service)
+      dep="services/employee/reviews/k8s/employee-reviews-deployment.yaml"; svcf="services/employee/reviews/k8s/employee-reviews-service.yaml"
+      sed -e "s|__IMG_EMPLOYEE_REVIEWS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
+      ;;
     *) echo "Unknown service \${svc}" >&2; exit 1 ;;
   esac
   kapply -f "\$svcf"
@@ -599,6 +604,7 @@ if [ -n "\${NEW_VERSION_SERVICES}" ]; then
       client-protected-gateway-service) IMG="\${K8S_PULL_REG}/client-protected-gateway-service:\${VER_CLIENT_PROTECTED_GATEWAY_SERVICE}"; VER="\${VER_CLIENT_PROTECTED_GATEWAY_SERVICE}" ;;
       employee-statistics-service) IMG="\${K8S_PULL_REG}/employee-statistics-service:\${VER_EMPLOYEE_STATISTICS_SERVICE}"; VER="\${VER_EMPLOYEE_STATISTICS_SERVICE}" ;;
       client-statistics-service) IMG="\${K8S_PULL_REG}/client-statistics-service:\${VER_CLIENT_STATISTICS_SERVICE}"; VER="\${VER_CLIENT_STATISTICS_SERVICE}" ;;
+      employee-reviews-service) IMG="\${K8S_PULL_REG}/employee-reviews-service:\${VER_EMPLOYEE_REVIEWS_SERVICE}"; VER="\${VER_EMPLOYEE_REVIEWS_SERVICE}" ;;
       *) echo "Unknown changed service \${svc}" >&2; exit 1 ;;
     esac
     load_image_to_minikube "\$svc" "\$IMG" "\$VER"

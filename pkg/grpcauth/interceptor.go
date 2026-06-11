@@ -82,7 +82,9 @@ func isWriteMethod(fullMethod string) bool {
 		strings.Contains(fullMethod, "Update") ||
 		strings.Contains(fullMethod, "Delete") ||
 		strings.Contains(fullMethod, "Link") ||
-		strings.Contains(fullMethod, "Unlink")
+		strings.Contains(fullMethod, "Unlink") ||
+		strings.Contains(fullMethod, "Apply") ||
+		strings.Contains(fullMethod, "Confirm")
 }
 
 func isPublicMethod(fullMethod string, public []string) bool {

@@ -18,20 +18,23 @@ func NewReviewPublished(producer *kafka.Producer) *ReviewPublished {
 	return &ReviewPublished{producer: producer}
 }
 
-func (p *ReviewPublished) Publish(ctx context.Context, review *domain.Review) error {
+func (p *ReviewPublished) Publish(ctx context.Context, review *domain.Review, clientEmail, clientFullName string) error {
 	if p == nil || p.producer == nil || review == nil {
 		return nil
 	}
 	ev := reviewevent.PublishedEvent{
-		Event:         reviewevent.Published,
-		ReviewID:      review.ID.String(),
-		ClientID:      review.ClientID.String(),
-		UserID:        review.UserID.String(),
-		DealerPointID: review.DealerPointID.String(),
-		VehicleID:     review.VehicleID.String(),
-		Rating:        review.Rating,
-		Status:        review.Status,
-		OccurredAt:    review.CreatedAt.UTC().Unix(),
+		Event:          reviewevent.Published,
+		ReviewID:       review.ID.String(),
+		ClientID:       review.ClientID.String(),
+		UserID:         review.UserID.String(),
+		ClientEmail:    clientEmail,
+		ClientFullName: clientFullName,
+		DealerPointID:  review.DealerPointID.String(),
+		VehicleID:      review.VehicleID.String(),
+		Rating:         review.Rating,
+		Text:           review.Text,
+		Status:         review.Status,
+		OccurredAt:     review.CreatedAt.UTC().Unix(),
 	}
 	if ev.OccurredAt == 0 {
 		ev.OccurredAt = time.Now().UTC().Unix()

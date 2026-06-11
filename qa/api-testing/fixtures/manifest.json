@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "password_default": "Test1234!",
+  "password_bcrypt_test1234": "$2a$10$b4bnj9tAH5g7FsPB3ztaD.12eTlbg1euqCvNi5TwPcteB8wthnQuy",
+  "refs_from_full_seed": {
+    "dealer_point_moscow": "10000000-0000-4000-8000-000000000001",
+    "legal_entity_moscow": "20000000-0000-4000-8000-000000000001",
+    "warehouse_parts_moscow": "30000000-0000-4000-8000-000000000002",
+    "warehouse_cars_moscow": "30000000-0000-4000-8000-000000000001",
+    "brand_hyundai": "40000000-0000-4000-8000-000000000003",
+    "brand_volkswagen": "40000000-0000-4000-8000-000000000001",
+    "folder_filters": "50000000-0000-4000-8000-000000000001"
+  },
+  "employee_users": {
+    "admin": {
+      "id": "a1100001-0000-4000-8000-000000000001",
+      "email": "qa.admin@test.local",
+      "role": "admin"
+    },
+    "sales": {
+      "id": "a1100001-0000-4000-8000-000000000002",
+      "email": "qa.sales@test.local",
+      "role": "sales"
+    },
+    "master": {
+      "id": "a1100001-0000-4000-8000-000000000003",
+      "email": "qa.master@test.local",
+      "role": "master"
+    },
+    "parts_manager": {
+      "id": "a1100001-0000-4000-8000-000000000004",
+      "email": "qa.parts@test.local",
+      "role": "parts_manager"
+    },
+    "storekeeper": {
+      "id": "a1100001-0000-4000-8000-000000000005",
+      "email": "qa.storekeeper@test.local",
+      "role": "storekeeper"
+    }
+  },
+  "customers": {
+    "one": {
+      "id": "a2200001-0000-4000-8000-000000000001",
+      "email": "qa.customer1@test.local",
+      "name": "QA Customer One"
+    },
+    "two": {
+      "id": "a2200001-0000-4000-8000-000000000002",
+      "email": "qa.customer2@test.local",
+      "name": "QA Customer Two"
+    }
+  },
+  "vehicles": {
+    "client_reg": {
+      "id": "a3300001-0000-4000-8000-000000000001",
+      "vin": "QAVINCLIENT001",
+      "model": "QA Solaris",
+      "status": "available"
+    },
+    "client_second": {
+      "id": "a3300001-0000-4000-8000-000000000002",
+      "vin": "QAVINCLIENT002",
+      "status": "available"
+    },
+    "for_deal": {
+      "id": "a3300001-0000-4000-8000-000000000003",
+      "vin": "QAVINDEAL001",
+      "status": "available"
+    }
+  },
+  "parts": {
+    "main": {
+      "id": "a4400001-0000-4000-8000-000000000001",
+      "sku": "QA-PART-001",
+      "stock_qty": 50
+    },
+    "low_stock": {
+      "id": "a4400001-0000-4000-8000-000000000002",
+      "sku": "QA-PART-LOW",
+      "stock_qty": 5
+    }
+  },
+  "deals": {
+    "draft": {
+      "id": "a5500001-0000-4000-8000-000000000001",
+      "amount": "1500000",
+      "stage": "draft"
+    }
+  },
+  "work_orders": {
+    "draft": {
+      "id": "a6600001-0000-4000-8000-000000000001",
+      "order_number": "WO-QA-0001",
+      "status": "draft"
+    },
+    "part_line": {
+      "id": "a6600001-0000-4000-8000-000000000011"
+    },
+    "labor_line": {
+      "id": "a6600001-0000-4000-8000-000000000012",
+      "work_id": "a8800001-0000-4000-8000-000000000001"
+    }
+  },
+  "works": {
+    "diagnostic": {
+      "id": "a8800001-0000-4000-8000-000000000001",
+      "code": "LAB-QA-004",
+      "name": "QA Диагностика тормозов"
+    },
+    "oil_change": {
+      "id": "a8800001-0000-4000-8000-000000000002",
+      "code": "LAB-QA-001"
+    }
+  },
+  "employees": {
+    "admin": {
+      "id": "a9900001-0000-4000-8000-000000000001",
+      "user_id": "a1100001-0000-4000-8000-000000000001",
+      "full_name": "QA Admin"
+    },
+    "master": {
+      "id": "a9900001-0000-4000-8000-000000000003",
+      "user_id": "a1100001-0000-4000-8000-000000000003",
+      "full_name": "QA Master"
+    },
+    "storekeeper": {
+      "id": "a9900001-0000-4000-8000-000000000005",
+      "user_id": "a1100001-0000-4000-8000-000000000005"
+    }
+  },
+  "client_b2c": {
+    "user_id": "a7700001-0000-4000-8000-000000000001",
+    "client_id": "a7700001-0000-4000-8000-000000000002",
+    "email": "qa.client@test.local",
+    "vehicle_link_id": "a7700001-0000-4000-8000-000000000003"
+  }
+}

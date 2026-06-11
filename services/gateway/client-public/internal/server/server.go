@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/keepalive"
 	"google.golang.org/protobuf/encoding/protojson"
 
+	"github.com/dealer/dealer/pkg/grpclient"
 	clientauthv1 "github.com/dealer/dealer/pkg/pb/clientauth/v1"
 	clientsv1 "github.com/dealer/dealer/pkg/pb/clients/v1"
 	"github.com/dealer/dealer/services/gateway/client-public/internal/config"
@@ -46,7 +44,7 @@ func (s *Server) Handler() http.Handler {
 }
 
 func (s *Server) registerBackends(ctx context.Context) error {
-	opts := dialOpts()
+	opts := grpclient.DefaultDialOptions()
 	registrars := []struct {
 		name string
 		fn   func(context.Context, *runtime.ServeMux, string, []grpc.DialOption) error
@@ -61,17 +59,6 @@ func (s *Server) registerBackends(ctx context.Context) error {
 		}
 	}
 	return nil
-}
-
-func dialOpts() []grpc.DialOption {
-	return []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time:                30 * time.Second,
-			Timeout:             10 * time.Second,
-			PermitWithoutStream: true,
-		}),
-	}
 }
 
 func cors(next http.Handler) http.Handler {

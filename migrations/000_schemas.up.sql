@@ -6,6 +6,11 @@ CREATE SCHEMA IF NOT EXISTS deals;
 CREATE SCHEMA IF NOT EXISTS parts;
 CREATE SCHEMA IF NOT EXISTS brands;
 CREATE SCHEMA IF NOT EXISTS dealerpoints;
+CREATE SCHEMA IF NOT EXISTS clients;
+CREATE SCHEMA IF NOT EXISTS clientauth;
+CREATE SCHEMA IF NOT EXISTS reviews;
+CREATE SCHEMA IF NOT EXISTS employee_statistics;
+CREATE SCHEMA IF NOT EXISTS client_statistics;
 
 -- Если таблицы уже были в public, переносим их в целевые схемы.
 DO $$

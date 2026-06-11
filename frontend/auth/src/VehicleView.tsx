@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { Vehicle } from './vehiclesApi'
 import * as api from './vehiclesApi'
 import * as dealerPointsApi from './dealerPointsApi'
-import './CustomerView.css'
+import { EntityViewPage } from '@/components/common/EntityViewPage'
 
 const STATUS_LABEL: Record<string, string> = {
   available: 'В наличии',
@@ -22,7 +22,8 @@ export function VehicleView() {
 
   useEffect(() => {
     if (!id) return
-    api.getVehicle(id)
+    api
+      .getVehicle(id)
       .then((v) => {
         setVehicle(v)
         if (v.dealer_point_id) {
@@ -32,7 +33,7 @@ export function VehicleView() {
           dealerPointsApi.getWarehouse(v.warehouse_id).then((w) => setWarehouseName(w.name)).catch(() => {})
         }
       })
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка загрузки'))
       .finally(() => setLoading(false))
   }, [id])
 
@@ -46,58 +47,44 @@ export function VehicleView() {
     }
   }
 
-  if (loading) return <div className="main loading">Загрузка…</div>
-  if (error || !vehicle) return <div className="form-error">{error || 'Не найден'}</div>
+  const locationValue =
+    vehicle && (pointName || vehicle.dealer_point_id) ? (
+      <span>
+        {pointName ?? vehicle.dealer_point_id}
+        {warehouseName && ` — ${warehouseName}`}
+        {vehicle.warehouse_id && !warehouseName && ` — склад ${vehicle.warehouse_id.slice(0, 8)}…`}
+        . Чтобы переместить на другой склад —{' '}
+        <Link to={`/vehicles/${id}/edit`} className="text-primary hover:underline">
+          Редактировать
+        </Link>
+        .
+      </span>
+    ) : null
 
   return (
-    <div className="customer-view">
-      <div className="customer-view-header">
-        <h1 className="customer-view-name">{vehicle.make} {vehicle.model} ({vehicle.year})</h1>
-        <div className="customer-view-actions">
-          <Link to={`/vehicles/${id}/edit`} className="customer-view-btn customer-view-edit">Редактировать</Link>
-          <button type="button" onClick={handleDelete} className="customer-view-btn customer-view-delete">Удалить</button>
-        </div>
-      </div>
-      <dl className="customer-view-dl">
-        <dt>VIN</dt>
-        <dd style={{ fontFamily: 'monospace' }}>{vehicle.vin}</dd>
-        <dt>Марка / Модель</dt>
-        <dd>{vehicle.make} {vehicle.model}</dd>
-        <dt>Год</dt>
-        <dd>{vehicle.year}</dd>
-        <dt>Пробег</dt>
-        <dd>{vehicle.mileage_km.toLocaleString('ru')} км</dd>
-        <dt>Цена</dt>
-        <dd>{vehicle.price ? Number(vehicle.price).toLocaleString('ru') : '—'}</dd>
-        <dt>Статус</dt>
-        <dd>{STATUS_LABEL[vehicle.status] || vehicle.status}</dd>
-        {vehicle.color && (
-          <>
-            <dt>Цвет</dt>
-            <dd>{vehicle.color}</dd>
-          </>
-        )}
-        {vehicle.notes && (
-          <>
-            <dt>Заметки</dt>
-            <dd>{vehicle.notes}</dd>
-          </>
-        )}
-        {(pointName || vehicle.dealer_point_id) && (
-          <>
-            <dt>Дилерская точка / Склад</dt>
-            <dd>
-              {pointName ?? vehicle.dealer_point_id}
-              {warehouseName && ` — ${warehouseName}`}
-              {vehicle.warehouse_id && !warehouseName && ` — склад ${vehicle.warehouse_id.slice(0, 8)}…`}
-              . Чтобы переместить на другой склад — <Link to={`/vehicles/${id}/edit`}>Редактировать</Link>.
-            </dd>
-          </>
-        )}
-      </dl>
-      <p className="customer-view-back">
-        <Link to="/vehicles">← К списку автомобилей</Link>
-      </p>
-    </div>
+    <EntityViewPage
+      title={vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.year})` : 'Автомобиль'}
+      backTo="/vehicles"
+      backLabel="К списку автомобилей"
+      editTo={id ? `/vehicles/${id}/edit` : undefined}
+      onDelete={vehicle ? handleDelete : undefined}
+      loading={loading}
+      error={error || (!vehicle && !loading ? 'Не найден' : null)}
+      fields={
+        vehicle
+          ? [
+              { label: 'VIN', value: <span className="font-mono">{vehicle.vin}</span> },
+              { label: 'Марка / Модель', value: `${vehicle.make} ${vehicle.model}` },
+              { label: 'Год', value: vehicle.year },
+              { label: 'Пробег', value: `${vehicle.mileage_km.toLocaleString('ru')} км` },
+              { label: 'Цена', value: vehicle.price ? Number(vehicle.price).toLocaleString('ru') : '—' },
+              { label: 'Статус', value: STATUS_LABEL[vehicle.status] || vehicle.status },
+              ...(vehicle.color ? [{ label: 'Цвет', value: vehicle.color }] : []),
+              ...(vehicle.notes ? [{ label: 'Заметки', value: vehicle.notes }] : []),
+              ...(locationValue ? [{ label: 'Дилерская точка / Склад', value: locationValue }] : []),
+            ]
+          : []
+      }
+    />
   )
 }

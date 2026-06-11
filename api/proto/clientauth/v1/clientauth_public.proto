@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package clientauth.v1;
+
+import "google/api/annotations.proto";
+import "clientauth/v1/clientauth.proto";
+
+option go_package = "github.com/dealer/dealer/pkg/pb/clientauth/v1;clientauthv1";
+
+// Публичная авторизация (client-public-gateway).
+service ClientAuthPublicService {
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = { post: "/api/login" body: "*" };
+  }
+  rpc Refresh(RefreshRequest) returns (RefreshResponse) {
+    option (google.api.http) = { post: "/api/refresh" body: "*" };
+  }
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+    option (google.api.http) = { post: "/api/logout" body: "*" };
+  }
+}

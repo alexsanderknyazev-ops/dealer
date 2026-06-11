@@ -4,7 +4,14 @@ import type { PartForm as PartFormType, PartStockRow } from './partsApi'
 import * as api from './partsApi'
 import * as brandsApi from './brandsApi'
 import * as dealerPointsApi from './dealerPointsApi'
-import './Form.css'
+import { FormPage } from '@/components/common/FormPage'
+import { FormField } from '@/components/common/FormField'
+import { FormActions } from '@/components/common/FormActions'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Textarea } from '@/components/ui/textarea'
 
 export function PartForm() {
   const { id } = useParams()
@@ -70,7 +77,8 @@ export function PartForm() {
       if (defaultFolderId) setForm((f) => ({ ...f, folder_id: defaultFolderId }))
       return
     }
-    api.getPart(id!)
+    api
+      .getPart(id!)
       .then((p) => {
         setForm({
           sku: p.sku,
@@ -89,7 +97,7 @@ export function PartForm() {
           stock: p.stock && p.stock.length > 0 ? p.stock : [],
         })
       })
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка загрузки'))
       .finally(() => setLoading(false))
   }, [id, isNew, defaultFolderId])
 
@@ -117,244 +125,145 @@ export function PartForm() {
       location: form.location || undefined,
       notes: form.notes || undefined,
     }
-    if (stockFiltered.length > 0) {
-      payload.stock = stockFiltered
-    }
+    if (stockFiltered.length > 0) payload.stock = stockFiltered
     const returnUrl = form.folder_id ? `/parts?folder_id=${form.folder_id}` : '/parts'
-    if (isNew) {
-      api.createPart(payload)
-        .then(() => navigate(returnUrl, { replace: true }))
-        .catch((err) => { setError(err.message); setSubmitting(false) })
-    } else {
-      api.updatePart(id!, payload)
-        .then(() => navigate(returnUrl, { replace: true }))
-        .catch((err) => { setError(err.message); setSubmitting(false) })
-    }
+    const save = isNew ? api.createPart(payload) : api.updatePart(id!, payload)
+    save
+      .then(() => navigate(returnUrl, { replace: true }))
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Ошибка сохранения')
+        setSubmitting(false)
+      })
   }
 
-  if (loading) return <div className="main loading">Загрузка…</div>
+  const cancelUrl = form.folder_id ? `/parts?folder_id=${form.folder_id}` : '/parts'
 
   return (
-    <div className="form-card">
-      <h1 className="form-title">{isNew ? 'Новая запчасть' : 'Редактирование запчасти'}</h1>
-      <form onSubmit={handleSubmit} className="form">
-        {error && <div className="form-error">{error}</div>}
-        <label className="form-label">
-          Артикул (SKU) *
-          <input
-            value={form.sku}
-            onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
-            required
-            placeholder="ABC-12345"
-            className="form-input"
-          />
-        </label>
-        <label className="form-label">
-          Папка
-          <select
-            value={form.folder_id ?? ''}
-            onChange={(e) => setForm((f) => ({ ...f, folder_id: e.target.value || undefined }))}
-            className="form-input"
-          >
+    <FormPage title={isNew ? 'Новая запчасть' : 'Редактирование запчасти'} loading={loading}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        <FormField label="Артикул (SKU)" htmlFor="sku" required>
+          <Input id="sku" value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} required placeholder="ABC-12345" />
+        </FormField>
+        <FormField label="Папка" htmlFor="folder_id">
+          <NativeSelect id="folder_id" value={form.folder_id ?? ''} onChange={(e) => setForm((f) => ({ ...f, folder_id: e.target.value || undefined }))}>
             <option value="">Без папки</option>
             {folderOptions.map((opt) => (
               <option key={opt.id} value={opt.id}>
                 {'—'.repeat(opt.level)} {opt.name}
               </option>
             ))}
-          </select>
-        </label>
-        <label className="form-label">
-          Бренд
-          <select
-            value={form.brand_id ?? ''}
-            onChange={(e) => setForm((f) => ({ ...f, brand_id: e.target.value || undefined }))}
-            className="form-input"
-            style={{ maxWidth: '280px' }}
-          >
+          </NativeSelect>
+        </FormField>
+        <FormField label="Бренд" htmlFor="brand_id">
+          <NativeSelect id="brand_id" className="max-w-xs" value={form.brand_id ?? ''} onChange={(e) => setForm((f) => ({ ...f, brand_id: e.target.value || undefined }))}>
             <option value="">— не выбран —</option>
             {brands.map((b) => (
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
-          </select>
-        </label>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <label className="form-label" style={{ flex: '1 1 200px' }}>
-            Дилерская точка
-            <select
-              value={form.dealer_point_id ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, dealer_point_id: e.target.value || undefined, legal_entity_id: undefined, warehouse_id: undefined }))}
-              className="form-input"
-            >
+          </NativeSelect>
+        </FormField>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormField label="Дилерская точка" htmlFor="dealer_point_id">
+            <NativeSelect id="dealer_point_id" value={form.dealer_point_id ?? ''} onChange={(e) => setForm((f) => ({ ...f, dealer_point_id: e.target.value || undefined, legal_entity_id: undefined, warehouse_id: undefined }))}>
               <option value="">— не выбрана —</option>
               {points.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
-            </select>
-          </label>
-          <label className="form-label" style={{ flex: '1 1 200px' }}>
-            Юр. лицо
-            <select
-              value={form.legal_entity_id ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, legal_entity_id: e.target.value || undefined, warehouse_id: undefined }))}
-              className="form-input"
-              disabled={!form.dealer_point_id}
-            >
+            </NativeSelect>
+          </FormField>
+          <FormField label="Юр. лицо" htmlFor="legal_entity_id">
+            <NativeSelect id="legal_entity_id" value={form.legal_entity_id ?? ''} disabled={!form.dealer_point_id} onChange={(e) => setForm((f) => ({ ...f, legal_entity_id: e.target.value || undefined, warehouse_id: undefined }))}>
               <option value="">— не выбрано —</option>
-              {legalEntities.map((e) => (
-                <option key={e.id} value={e.id}>{e.name}</option>
+              {legalEntities.map((ent) => (
+                <option key={ent.id} value={ent.id}>{ent.name}</option>
               ))}
-            </select>
-          </label>
-          <label className="form-label" style={{ flex: '1 1 200px' }}>
-            Склад запчастей
-            <select
-              value={form.warehouse_id ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, warehouse_id: e.target.value || undefined }))}
-              className="form-input"
-              disabled={!form.legal_entity_id}
-            >
+            </NativeSelect>
+          </FormField>
+          <FormField label="Склад запчастей" htmlFor="warehouse_id">
+            <NativeSelect id="warehouse_id" value={form.warehouse_id ?? ''} disabled={!form.legal_entity_id} onChange={(e) => setForm((f) => ({ ...f, warehouse_id: e.target.value || undefined }))}>
               <option value="">— не выбран —</option>
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>{w.name}</option>
               ))}
-            </select>
-          </label>
+            </NativeSelect>
+          </FormField>
         </div>
-        <div className="form-label" style={{ marginTop: 16 }}>
-          <strong>Остатки по складам</strong> (запчасть может быть на нескольких складах)
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Остатки по складам (запчасть может быть на нескольких складах)</p>
+          {(form.stock ?? []).map((row, idx) => (
+            <div key={idx} className="flex flex-wrap items-center gap-2">
+              <NativeSelect
+                className="min-w-[220px] flex-1"
+                value={row.warehouse_id}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    stock: (f.stock ?? []).map((s, i) => (i === idx ? { ...s, warehouse_id: e.target.value } : s)),
+                  }))
+                }
+              >
+                <option value="">— выберите склад —</option>
+                {allPartsWarehouses.map((w) => (
+                  <option key={w.id} value={w.id}>{w.name}</option>
+                ))}
+              </NativeSelect>
+              <Input
+                type="number"
+                min={0}
+                className="w-20"
+                value={row.quantity}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    stock: (f.stock ?? []).map((s, i) => (i === idx ? { ...s, quantity: parseInt(e.target.value, 10) || 0 } : s)),
+                  }))
+                }
+              />
+              <span className="text-sm text-muted-foreground">{form.unit || 'шт'}</span>
+              <Button type="button" variant="outline" size="sm" onClick={() => setForm((f) => ({ ...f, stock: (f.stock ?? []).filter((_, i) => i !== idx) }))}>
+                Удалить
+              </Button>
+            </div>
+          ))}
+          <Button type="button" variant="outline" size="sm" onClick={() => setForm((f) => ({ ...f, stock: [...(f.stock ?? []), { warehouse_id: '', quantity: 0 }] }))}>
+            + Добавить склад
+          </Button>
         </div>
-        {(form.stock ?? []).map((row, idx) => (
-          <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <select
-              value={row.warehouse_id}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  stock: (f.stock ?? []).map((s, i) => (i === idx ? { ...s, warehouse_id: e.target.value } : s)),
-                }))
-              }
-              className="form-input"
-              style={{ minWidth: 220 }}
-            >
-              <option value="">— выберите склад —</option>
-              {allPartsWarehouses.map((w) => (
-                <option key={w.id} value={w.id}>{w.name}</option>
-              ))}
-            </select>
-            <input
-              type="number"
-              min={0}
-              value={row.quantity}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  stock: (f.stock ?? []).map((s, i) => (i === idx ? { ...s, quantity: parseInt(e.target.value, 10) || 0 } : s)),
-                }))
-              }
-              className="form-input"
-              style={{ width: 80 }}
-            />
-            <span>{form.unit || 'шт'}</span>
-            <button
-              type="button"
-              onClick={() => setForm((f) => ({ ...f, stock: (f.stock ?? []).filter((_, i) => i !== idx) }))}
-              className="form-cancel"
-              style={{ padding: '4px 8px' }}
-            >
-              Удалить
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => setForm((f) => ({ ...f, stock: [...(f.stock ?? []), { warehouse_id: '', quantity: 0 }] }))}
-          className="form-cancel"
-          style={{ marginTop: 4 }}
-        >
-          + Добавить склад
-        </button>
-        <label className="form-label">
-          Название
-          <input
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="form-input"
-            placeholder="Масляный фильтр"
-          />
-        </label>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <label className="form-label" style={{ flex: '1 1 200px' }}>
-            Категория
-            <input
-              value={form.category}
-              onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-              className="form-input"
-              placeholder="Фильтры, Тормоза..."
-            />
-          </label>
-          <label className="form-label">
-            Количество
-            <input
-              type="number"
-              min={0}
-              value={form.quantity ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value ? parseInt(e.target.value, 10) : 0 }))}
-              className="form-input"
-              style={{ width: '100px' }}
-            />
-          </label>
-          <label className="form-label">
-            Ед. изм.
-            <select
-              value={form.unit}
-              onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
-              className="form-input"
-              style={{ width: '120px' }}
-            >
+        <FormField label="Название" htmlFor="name">
+          <Input id="name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Масляный фильтр" />
+        </FormField>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <FormField label="Категория" htmlFor="category">
+            <Input id="category" value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} placeholder="Фильтры, Тормоза..." />
+          </FormField>
+          <FormField label="Количество" htmlFor="quantity">
+            <Input id="quantity" type="number" min={0} value={form.quantity ?? ''} onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value ? parseInt(e.target.value, 10) : 0 }))} />
+          </FormField>
+          <FormField label="Ед. изм." htmlFor="unit">
+            <NativeSelect id="unit" value={form.unit} onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}>
               <option value="шт">шт</option>
               <option value="комплект">комплект</option>
               <option value="л">л</option>
               <option value="кг">кг</option>
-            </select>
-          </label>
-          <label className="form-label">
-            Цена
-            <input
-              value={form.price}
-              onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-              className="form-input"
-              style={{ width: '120px' }}
-            />
-          </label>
+            </NativeSelect>
+          </FormField>
+          <FormField label="Цена" htmlFor="price">
+            <Input id="price" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} />
+          </FormField>
         </div>
-        <label className="form-label">
-          Расположение (склад/полка)
-          <input
-            value={form.location}
-            onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
-            className="form-input"
-            placeholder="Склад А, полка 12"
-          />
-        </label>
-        <label className="form-label">
-          Заметки
-          <textarea
-            value={form.notes}
-            onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-            className="form-input"
-            rows={3}
-          />
-        </label>
-        <div className="form-actions">
-          <button type="submit" disabled={submitting} className="form-submit">
-            {submitting ? 'Сохранение…' : (isNew ? 'Создать' : 'Сохранить')}
-          </button>
-          <button type="button" onClick={() => navigate(form.folder_id ? `/parts?folder_id=${form.folder_id}` : '/parts')} className="form-cancel">
-            Отмена
-          </button>
-        </div>
+        <FormField label="Расположение (склад/полка)" htmlFor="location">
+          <Input id="location" value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} placeholder="Склад А, полка 12" />
+        </FormField>
+        <FormField label="Заметки" htmlFor="notes">
+          <Textarea id="notes" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows={3} />
+        </FormField>
+        <FormActions submitting={submitting} submitLabel={isNew ? 'Создать' : 'Сохранить'} onCancel={() => navigate(cancelUrl)} />
       </form>
-    </div>
+    </FormPage>
   )
 }

@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import type { Warehouse } from './dealerPointsApi'
 import * as api from './dealerPointsApi'
-import './Customers.css'
+import { PageHeader } from '@/components/common/PageHeader'
+import { ErrorAlert } from '@/components/common/ErrorAlert'
+import { LoadingState } from '@/components/common/LoadingState'
+import { EmptyState } from '@/components/common/EmptyState'
+import { Pagination } from '@/components/common/Pagination'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 
 const TYPE_LABEL: Record<string, string> = {
   cars: 'Автомобили',
@@ -56,62 +66,41 @@ export function Warehouses() {
     }
   }, [page, dealerPointId, typeFilter])
 
+  function typeLink(type: '' | 'cars' | 'parts') {
+    const next = new URLSearchParams()
+    if (dealerPointId) next.set('dealer_point_id', dealerPointId)
+    if (type) next.set('type', type)
+    const qs = next.toString()
+    return qs ? `/warehouses?${qs}` : '/warehouses'
+  }
+
   return (
-    <div className="customers">
-      <div className="customers-header">
-        <h1 className="customers-title">Склады</h1>
-        <Link to="/warehouses/new" className="customers-add">
-          + Добавить
-        </Link>
-      </div>
-      <div className="customers-toolbar" style={{ flexWrap: 'wrap', gap: 8 }}>
-        <span style={{ marginRight: 4 }}>Тип:</span>
-        <Link
-          to={dealerPointId ? `/warehouses?dealer_point_id=${dealerPointId}` : '/warehouses'}
-          style={{
-            padding: '4px 8px',
-            borderRadius: 4,
-            background: !typeFilter ? 'var(--color-bg, #eee)' : undefined,
-            textDecoration: 'none',
-            color: 'inherit',
-          }}
-        >
-          Все
-        </Link>
-        <Link
-          to={
-            dealerPointId
-              ? `/warehouses?type=cars&dealer_point_id=${dealerPointId}`
-              : '/warehouses?type=cars'
-          }
-          style={{
-            padding: '4px 8px',
-            borderRadius: 4,
-            background: typeFilter === 'cars' ? 'var(--color-bg, #eee)' : undefined,
-            textDecoration: 'none',
-            color: 'inherit',
-          }}
-        >
-          Склады автомобилей
-        </Link>
-        <Link
-          to={
-            dealerPointId
-              ? `/warehouses?type=parts&dealer_point_id=${dealerPointId}`
-              : '/warehouses?type=parts'
-          }
-          style={{
-            padding: '4px 8px',
-            borderRadius: 4,
-            background: typeFilter === 'parts' ? 'var(--color-bg, #eee)' : undefined,
-            textDecoration: 'none',
-            color: 'inherit',
-          }}
-        >
-          Склады запчастей
-        </Link>
+    <div className="mx-auto w-full max-w-5xl">
+      <PageHeader
+        title="Склады"
+        action={
+          <Button asChild>
+            <Link to="/warehouses/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Добавить
+            </Link>
+          </Button>
+        }
+      />
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="text-sm text-muted-foreground">Тип:</span>
+        <Button variant={!typeFilter ? 'secondary' : 'ghost'} size="sm" asChild>
+          <Link to={typeLink('')}>Все</Link>
+        </Button>
+        <Button variant={typeFilter === 'cars' ? 'secondary' : 'ghost'} size="sm" asChild>
+          <Link to={typeLink('cars')}>Склады автомобилей</Link>
+        </Button>
+        <Button variant={typeFilter === 'parts' ? 'secondary' : 'ghost'} size="sm" asChild>
+          <Link to={typeLink('parts')}>Склады запчастей</Link>
+        </Button>
         {points.length > 0 && (
-          <select
+          <NativeSelect
+            className={cn('ml-auto w-full sm:max-w-xs')}
             value={dealerPointId}
             onChange={(e) => {
               const v = e.target.value
@@ -121,8 +110,6 @@ export function Warehouses() {
               else next.delete('dealer_point_id')
               setSearchParams(next)
             }}
-            className="customers-search"
-            style={{ maxWidth: 280, marginLeft: 16 }}
           >
             <option value="">Все дилерские точки</option>
             {points.map((p) => (
@@ -130,63 +117,45 @@ export function Warehouses() {
                 {p.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         )}
       </div>
-      {error && (
-        <div className="customers-error">
-          <p style={{ margin: '0 0 8px 0' }}>{error}</p>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} />}
       {loading ? (
-        <p className="customers-loading">Загрузка…</p>
+        <LoadingState />
       ) : list.length === 0 && !error ? (
-        <p className="customers-empty">Нет складов. Нажмите «+ Добавить» или смените фильтры.</p>
+        <EmptyState>Нет складов. Нажмите «Добавить» или смените фильтры.</EmptyState>
       ) : (
         <>
-          <table className="customers-table">
-            <thead>
-              <tr>
-                <th>Название</th>
-                <th>Тип</th>
-                <th>Дилерская точка</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.map((w) => (
-                <tr key={w.id}>
-                  <td>{w.name}</td>
-                  <td>{TYPE_LABEL[w.type] || w.type}</td>
-                  <td>
-                    {points.find((p) => p.id === w.dealer_point_id)?.name ?? w.dealer_point_id}
-                  </td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    <Link to={`/warehouses/${w.id}/edit`} className="customers-link">
-                      Изменить
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {total > limit && (
-            <div className="customers-pagination">
-              <button type="button" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
-                Назад
-              </button>
-              <span>
-                Стр. {page + 1} из {Math.ceil(total / limit) || 1}
-              </span>
-              <button
-                type="button"
-                disabled={(page + 1) * limit >= total}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Вперёд
-              </button>
-            </div>
-          )}
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Название</TableHead>
+                    <TableHead>Тип</TableHead>
+                    <TableHead>Дилерская точка</TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {list.map((w) => (
+                    <TableRow key={w.id}>
+                      <TableCell>{w.name}</TableCell>
+                      <TableCell>{TYPE_LABEL[w.type] || w.type}</TableCell>
+                      <TableCell>{points.find((p) => p.id === w.dealer_point_id)?.name ?? w.dealer_point_id}</TableCell>
+                      <TableCell>
+                        <Button variant="link" className="h-auto p-0" asChild>
+                          <Link to={`/warehouses/${w.id}/edit`}>Изменить</Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <Pagination page={page} total={total} limit={limit} onPageChange={setPage} />
         </>
       )}
     </div>

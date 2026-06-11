@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type MonitoringSnapshot = {
   jsErrors: number
@@ -33,14 +34,16 @@ export function MonitoringPanel() {
   }, [])
 
   return (
-    <div className="dashboard-monitoring">
-      <h2 className="dashboard-monitoring-title">Frontend мониторинг</h2>
-      <div className="dashboard-monitoring-grid">
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Frontend мониторинг</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
         <span>JS ошибки: {snapshot.jsErrors}</span>
         <span>Unhandled promises: {snapshot.promiseRejections}</span>
         <span>API запросы: {snapshot.apiCalls}</span>
         <span>Медленные API (&gt; 800мс): {snapshot.apiSlowCalls}</span>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

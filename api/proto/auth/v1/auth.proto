@@ -22,9 +22,18 @@ service AuthService {
   rpc Validate(ValidateRequest) returns (ValidateResponse) {
     option (google.api.http) = { get: "/api/me" };
   }
+  // Внутренний RPC: регистрация владельца авто (role=client). Без HTTP — только service-to-service.
+  rpc RegisterClient(RegisterClientRequest) returns (RegisterResponse);
 }
 
 message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string name = 3;
+  string phone = 4;
+}
+
+message RegisterClientRequest {
   string email = 1;
   string password = 2;
   string name = 3;

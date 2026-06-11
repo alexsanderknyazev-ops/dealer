@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package reviews.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/dealer/dealer/pkg/pb/reviews/v1;reviewsv1";
+
+// Отзывы клиентов (client-protected-gateway).
+service ReviewsService {
+  rpc CreateReview(CreateReviewRequest) returns (CreateReviewResponse) {
+    option (google.api.http) = { post: "/api/client/reviews" body: "*" response_body: "review" };
+  }
+  rpc ListMyReviews(ListMyReviewsRequest) returns (ListMyReviewsResponse) {
+    option (google.api.http) = { get: "/api/client/reviews" };
+  }
+  rpc GetReview(GetReviewRequest) returns (GetReviewResponse) {
+    option (google.api.http) = { get: "/api/client/reviews/{id}" response_body: "review" };
+  }
+}
+
+message Review {
+  string id = 1;
+  string client_id = 2;
+  string dealer_point_id = 3;
+  string vehicle_id = 4;
+  int32 rating = 5;
+  string text = 6;
+  string status = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+}
+
+message CreateReviewRequest {
+  string vehicle_id = 1;
+  int32 rating = 2;
+  string text = 3;
+}
+
+message CreateReviewResponse {
+  Review review = 1;
+}
+
+message ListMyReviewsRequest {}
+
+message ListMyReviewsResponse {
+  repeated Review reviews = 1;
+}
+
+message GetReviewRequest {
+  string id = 1;
+}
+
+message GetReviewResponse {
+  Review review = 1;
+}

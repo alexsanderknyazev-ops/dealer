@@ -167,14 +167,21 @@ registry_has_tag() {
 
 version_file_for_service() {
 	case "$1" in
-	auth-service) echo services/auth/VERSION ;;
-	customers-service) echo services/customers/VERSION ;;
-	vehicles-service) echo services/vehicles/VERSION ;;
-	deals-service) echo services/deals/VERSION ;;
-	parts-service) echo services/parts/VERSION ;;
-	brands-service) echo services/brands/VERSION ;;
-	dealer-points-service) echo services/dealerpoints/VERSION ;;
-	gateway-service) echo services/gateway/VERSION ;;
+	auth-service) echo services/employee/auth/VERSION ;;
+	customers-service) echo services/employee/customers/VERSION ;;
+	vehicles-service) echo services/employee/vehicles/VERSION ;;
+	deals-service) echo services/employee/deals/VERSION ;;
+	parts-service) echo services/employee/parts/VERSION ;;
+	brands-service) echo services/employee/brands/VERSION ;;
+	dealer-points-service) echo services/employee/dealerpoints/VERSION ;;
+	gateway-service) echo services/gateway/employee/VERSION ;;
+	client-registration-service) echo services/client/registration/VERSION ;;
+	client-auth-service) echo services/client/auth/VERSION ;;
+	client-reviews-service) echo services/client/reviews/VERSION ;;
+	client-public-gateway-service) echo services/gateway/client-public/VERSION ;;
+	client-protected-gateway-service) echo services/gateway/client-protected/VERSION ;;
+	employee-statistics-service) echo services/statistics/employee/VERSION ;;
+	client-statistics-service) echo services/statistics/client/VERSION ;;
 	*) echo ""; return 1 ;;
 	esac
 }

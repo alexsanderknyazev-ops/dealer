@@ -414,6 +414,50 @@ func (x *GetVehicleRequest) GetId() string {
 	return ""
 }
 
+type GetVehicleByVINRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Vin           string                 `protobuf:"bytes,1,opt,name=vin,proto3" json:"vin,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVehicleByVINRequest) Reset() {
+	*x = GetVehicleByVINRequest{}
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVehicleByVINRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVehicleByVINRequest) ProtoMessage() {}
+
+func (x *GetVehicleByVINRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVehicleByVINRequest.ProtoReflect.Descriptor instead.
+func (*GetVehicleByVINRequest) Descriptor() ([]byte, []int) {
+	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetVehicleByVINRequest) GetVin() string {
+	if x != nil {
+		return x.Vin
+	}
+	return ""
+}
+
 type GetVehicleResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Vehicle       *Vehicle               `protobuf:"bytes,1,opt,name=vehicle,proto3" json:"vehicle,omitempty"`
@@ -423,7 +467,7 @@ type GetVehicleResponse struct {
 
 func (x *GetVehicleResponse) Reset() {
 	*x = GetVehicleResponse{}
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[4]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -435,7 +479,7 @@ func (x *GetVehicleResponse) String() string {
 func (*GetVehicleResponse) ProtoMessage() {}
 
 func (x *GetVehicleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[4]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -448,7 +492,7 @@ func (x *GetVehicleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetVehicleResponse.ProtoReflect.Descriptor instead.
 func (*GetVehicleResponse) Descriptor() ([]byte, []int) {
-	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{4}
+	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetVehicleResponse) GetVehicle() *Vehicle {
@@ -474,7 +518,7 @@ type ListVehiclesRequest struct {
 
 func (x *ListVehiclesRequest) Reset() {
 	*x = ListVehiclesRequest{}
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[5]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -486,7 +530,7 @@ func (x *ListVehiclesRequest) String() string {
 func (*ListVehiclesRequest) ProtoMessage() {}
 
 func (x *ListVehiclesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[5]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -499,7 +543,7 @@ func (x *ListVehiclesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListVehiclesRequest.ProtoReflect.Descriptor instead.
 func (*ListVehiclesRequest) Descriptor() ([]byte, []int) {
-	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{5}
+	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListVehiclesRequest) GetLimit() int32 {
@@ -568,7 +612,7 @@ type ListVehiclesResponse struct {
 
 func (x *ListVehiclesResponse) Reset() {
 	*x = ListVehiclesResponse{}
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[6]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -580,7 +624,7 @@ func (x *ListVehiclesResponse) String() string {
 func (*ListVehiclesResponse) ProtoMessage() {}
 
 func (x *ListVehiclesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[6]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -593,7 +637,7 @@ func (x *ListVehiclesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListVehiclesResponse.ProtoReflect.Descriptor instead.
 func (*ListVehiclesResponse) Descriptor() ([]byte, []int) {
-	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{6}
+	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListVehiclesResponse) GetVehicles() []*Vehicle {
@@ -632,7 +676,7 @@ type UpdateVehicleRequest struct {
 
 func (x *UpdateVehicleRequest) Reset() {
 	*x = UpdateVehicleRequest{}
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[7]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -644,7 +688,7 @@ func (x *UpdateVehicleRequest) String() string {
 func (*UpdateVehicleRequest) ProtoMessage() {}
 
 func (x *UpdateVehicleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[7]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -657,7 +701,7 @@ func (x *UpdateVehicleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateVehicleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateVehicleRequest) Descriptor() ([]byte, []int) {
-	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{7}
+	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateVehicleRequest) GetId() string {
@@ -767,7 +811,7 @@ type UpdateVehicleResponse struct {
 
 func (x *UpdateVehicleResponse) Reset() {
 	*x = UpdateVehicleResponse{}
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[8]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -779,7 +823,7 @@ func (x *UpdateVehicleResponse) String() string {
 func (*UpdateVehicleResponse) ProtoMessage() {}
 
 func (x *UpdateVehicleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[8]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -792,7 +836,7 @@ func (x *UpdateVehicleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateVehicleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateVehicleResponse) Descriptor() ([]byte, []int) {
-	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{8}
+	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateVehicleResponse) GetVehicle() *Vehicle {
@@ -811,7 +855,7 @@ type DeleteVehicleRequest struct {
 
 func (x *DeleteVehicleRequest) Reset() {
 	*x = DeleteVehicleRequest{}
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[9]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -823,7 +867,7 @@ func (x *DeleteVehicleRequest) String() string {
 func (*DeleteVehicleRequest) ProtoMessage() {}
 
 func (x *DeleteVehicleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[9]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -836,7 +880,7 @@ func (x *DeleteVehicleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteVehicleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteVehicleRequest) Descriptor() ([]byte, []int) {
-	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{9}
+	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *DeleteVehicleRequest) GetId() string {
@@ -854,7 +898,7 @@ type DeleteVehicleResponse struct {
 
 func (x *DeleteVehicleResponse) Reset() {
 	*x = DeleteVehicleResponse{}
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[10]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -866,7 +910,7 @@ func (x *DeleteVehicleResponse) String() string {
 func (*DeleteVehicleResponse) ProtoMessage() {}
 
 func (x *DeleteVehicleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_vehicles_v1_vehicles_proto_msgTypes[10]
+	mi := &file_vehicles_v1_vehicles_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -879,7 +923,7 @@ func (x *DeleteVehicleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteVehicleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteVehicleResponse) Descriptor() ([]byte, []int) {
-	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{10}
+	return file_vehicles_v1_vehicles_proto_rawDescGZIP(), []int{11}
 }
 
 var File_vehicles_v1_vehicles_proto protoreflect.FileDescriptor
@@ -927,7 +971,9 @@ const file_vehicles_v1_vehicles_proto_rawDesc = "" +
 	"\x15CreateVehicleResponse\x12.\n" +
 	"\avehicle\x18\x01 \x01(\v2\x14.vehicles.v1.VehicleR\avehicle\"#\n" +
 	"\x11GetVehicleRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"D\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"*\n" +
+	"\x16GetVehicleByVINRequest\x12\x10\n" +
+	"\x03vin\x18\x01 \x01(\tR\x03vin\"D\n" +
 	"\x12GetVehicleResponse\x12.\n" +
 	"\avehicle\x18\x01 \x01(\v2\x14.vehicles.v1.VehicleR\avehicle\"\x81\x02\n" +
 	"\x13ListVehiclesRequest\x12\x14\n" +
@@ -977,14 +1023,15 @@ const file_vehicles_v1_vehicles_proto_rawDesc = "" +
 	"\avehicle\x18\x01 \x01(\v2\x14.vehicles.v1.VehicleR\avehicle\"&\n" +
 	"\x14DeleteVehicleRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x17\n" +
-	"\x15DeleteVehicleResponse2\xe0\x04\n" +
+	"\x15DeleteVehicleResponse2\xb9\x05\n" +
 	"\x0fVehiclesService\x12y\n" +
 	"\rCreateVehicle\x12!.vehicles.v1.CreateVehicleRequest\x1a\".vehicles.v1.CreateVehicleResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*b\avehicle\"\r/api/vehicles\x12r\n" +
 	"\n" +
 	"GetVehicle\x12\x1e.vehicles.v1.GetVehicleRequest\x1a\x1f.vehicles.v1.GetVehicleResponse\"#\x82\xd3\xe4\x93\x02\x1db\avehicle\x12\x12/api/vehicles/{id}\x12j\n" +
 	"\fListVehicles\x12 .vehicles.v1.ListVehiclesRequest\x1a!.vehicles.v1.ListVehiclesResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/vehicles\x12~\n" +
 	"\rUpdateVehicle\x12!.vehicles.v1.UpdateVehicleRequest\x1a\".vehicles.v1.UpdateVehicleResponse\"&\x82\xd3\xe4\x93\x02 :\x01*b\avehicle\x1a\x12/api/vehicles/{id}\x12r\n" +
-	"\rDeleteVehicle\x12!.vehicles.v1.DeleteVehicleRequest\x1a\".vehicles.v1.DeleteVehicleResponse\"\x1a\x82\xd3\xe4\x93\x02\x14*\x12/api/vehicles/{id}B8Z6github.com/dealer/dealer/pkg/pb/vehicles/v1;vehiclesv1b\x06proto3"
+	"\rDeleteVehicle\x12!.vehicles.v1.DeleteVehicleRequest\x1a\".vehicles.v1.DeleteVehicleResponse\"\x1a\x82\xd3\xe4\x93\x02\x14*\x12/api/vehicles/{id}\x12W\n" +
+	"\x0fGetVehicleByVIN\x12#.vehicles.v1.GetVehicleByVINRequest\x1a\x1f.vehicles.v1.GetVehicleResponseB8Z6github.com/dealer/dealer/pkg/pb/vehicles/v1;vehiclesv1b\x06proto3"
 
 var (
 	file_vehicles_v1_vehicles_proto_rawDescOnce sync.Once
@@ -998,19 +1045,20 @@ func file_vehicles_v1_vehicles_proto_rawDescGZIP() []byte {
 	return file_vehicles_v1_vehicles_proto_rawDescData
 }
 
-var file_vehicles_v1_vehicles_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_vehicles_v1_vehicles_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_vehicles_v1_vehicles_proto_goTypes = []any{
-	(*Vehicle)(nil),               // 0: vehicles.v1.Vehicle
-	(*CreateVehicleRequest)(nil),  // 1: vehicles.v1.CreateVehicleRequest
-	(*CreateVehicleResponse)(nil), // 2: vehicles.v1.CreateVehicleResponse
-	(*GetVehicleRequest)(nil),     // 3: vehicles.v1.GetVehicleRequest
-	(*GetVehicleResponse)(nil),    // 4: vehicles.v1.GetVehicleResponse
-	(*ListVehiclesRequest)(nil),   // 5: vehicles.v1.ListVehiclesRequest
-	(*ListVehiclesResponse)(nil),  // 6: vehicles.v1.ListVehiclesResponse
-	(*UpdateVehicleRequest)(nil),  // 7: vehicles.v1.UpdateVehicleRequest
-	(*UpdateVehicleResponse)(nil), // 8: vehicles.v1.UpdateVehicleResponse
-	(*DeleteVehicleRequest)(nil),  // 9: vehicles.v1.DeleteVehicleRequest
-	(*DeleteVehicleResponse)(nil), // 10: vehicles.v1.DeleteVehicleResponse
+	(*Vehicle)(nil),                // 0: vehicles.v1.Vehicle
+	(*CreateVehicleRequest)(nil),   // 1: vehicles.v1.CreateVehicleRequest
+	(*CreateVehicleResponse)(nil),  // 2: vehicles.v1.CreateVehicleResponse
+	(*GetVehicleRequest)(nil),      // 3: vehicles.v1.GetVehicleRequest
+	(*GetVehicleByVINRequest)(nil), // 4: vehicles.v1.GetVehicleByVINRequest
+	(*GetVehicleResponse)(nil),     // 5: vehicles.v1.GetVehicleResponse
+	(*ListVehiclesRequest)(nil),    // 6: vehicles.v1.ListVehiclesRequest
+	(*ListVehiclesResponse)(nil),   // 7: vehicles.v1.ListVehiclesResponse
+	(*UpdateVehicleRequest)(nil),   // 8: vehicles.v1.UpdateVehicleRequest
+	(*UpdateVehicleResponse)(nil),  // 9: vehicles.v1.UpdateVehicleResponse
+	(*DeleteVehicleRequest)(nil),   // 10: vehicles.v1.DeleteVehicleRequest
+	(*DeleteVehicleResponse)(nil),  // 11: vehicles.v1.DeleteVehicleResponse
 }
 var file_vehicles_v1_vehicles_proto_depIdxs = []int32{
 	0,  // 0: vehicles.v1.CreateVehicleResponse.vehicle:type_name -> vehicles.v1.Vehicle
@@ -1019,16 +1067,18 @@ var file_vehicles_v1_vehicles_proto_depIdxs = []int32{
 	0,  // 3: vehicles.v1.UpdateVehicleResponse.vehicle:type_name -> vehicles.v1.Vehicle
 	1,  // 4: vehicles.v1.VehiclesService.CreateVehicle:input_type -> vehicles.v1.CreateVehicleRequest
 	3,  // 5: vehicles.v1.VehiclesService.GetVehicle:input_type -> vehicles.v1.GetVehicleRequest
-	5,  // 6: vehicles.v1.VehiclesService.ListVehicles:input_type -> vehicles.v1.ListVehiclesRequest
-	7,  // 7: vehicles.v1.VehiclesService.UpdateVehicle:input_type -> vehicles.v1.UpdateVehicleRequest
-	9,  // 8: vehicles.v1.VehiclesService.DeleteVehicle:input_type -> vehicles.v1.DeleteVehicleRequest
-	2,  // 9: vehicles.v1.VehiclesService.CreateVehicle:output_type -> vehicles.v1.CreateVehicleResponse
-	4,  // 10: vehicles.v1.VehiclesService.GetVehicle:output_type -> vehicles.v1.GetVehicleResponse
-	6,  // 11: vehicles.v1.VehiclesService.ListVehicles:output_type -> vehicles.v1.ListVehiclesResponse
-	8,  // 12: vehicles.v1.VehiclesService.UpdateVehicle:output_type -> vehicles.v1.UpdateVehicleResponse
-	10, // 13: vehicles.v1.VehiclesService.DeleteVehicle:output_type -> vehicles.v1.DeleteVehicleResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
+	6,  // 6: vehicles.v1.VehiclesService.ListVehicles:input_type -> vehicles.v1.ListVehiclesRequest
+	8,  // 7: vehicles.v1.VehiclesService.UpdateVehicle:input_type -> vehicles.v1.UpdateVehicleRequest
+	10, // 8: vehicles.v1.VehiclesService.DeleteVehicle:input_type -> vehicles.v1.DeleteVehicleRequest
+	4,  // 9: vehicles.v1.VehiclesService.GetVehicleByVIN:input_type -> vehicles.v1.GetVehicleByVINRequest
+	2,  // 10: vehicles.v1.VehiclesService.CreateVehicle:output_type -> vehicles.v1.CreateVehicleResponse
+	5,  // 11: vehicles.v1.VehiclesService.GetVehicle:output_type -> vehicles.v1.GetVehicleResponse
+	7,  // 12: vehicles.v1.VehiclesService.ListVehicles:output_type -> vehicles.v1.ListVehiclesResponse
+	9,  // 13: vehicles.v1.VehiclesService.UpdateVehicle:output_type -> vehicles.v1.UpdateVehicleResponse
+	11, // 14: vehicles.v1.VehiclesService.DeleteVehicle:output_type -> vehicles.v1.DeleteVehicleResponse
+	5,  // 15: vehicles.v1.VehiclesService.GetVehicleByVIN:output_type -> vehicles.v1.GetVehicleResponse
+	10, // [10:16] is the sub-list for method output_type
+	4,  // [4:10] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
@@ -1039,14 +1089,14 @@ func file_vehicles_v1_vehicles_proto_init() {
 	if File_vehicles_v1_vehicles_proto != nil {
 		return
 	}
-	file_vehicles_v1_vehicles_proto_msgTypes[7].OneofWrappers = []any{}
+	file_vehicles_v1_vehicles_proto_msgTypes[8].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vehicles_v1_vehicles_proto_rawDesc), len(file_vehicles_v1_vehicles_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

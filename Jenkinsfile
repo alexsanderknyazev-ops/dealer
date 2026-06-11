@@ -118,14 +118,21 @@ services=()
 if [ "${all_changed}" -eq 1 ]; then
   services=(auth-service customers-service vehicles-service deals-service parts-service brands-service dealer-points-service gateway-service)
 else
-  rg -n '^services/auth/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(auth-service)
-  rg -n '^services/customers/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(customers-service)
-  rg -n '^services/vehicles/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(vehicles-service)
-  rg -n '^services/deals/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(deals-service)
-  rg -n '^services/parts/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(parts-service)
-  rg -n '^services/brands/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(brands-service)
-  rg -n '^services/dealerpoints/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(dealer-points-service)
-  rg -n '^services/gateway/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(gateway-service)
+  rg -n '^services/employee/auth/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(auth-service)
+  rg -n '^services/employee/customers/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(customers-service)
+  rg -n '^services/employee/vehicles/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(vehicles-service)
+  rg -n '^services/employee/deals/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(deals-service)
+  rg -n '^services/employee/parts/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(parts-service)
+  rg -n '^services/employee/brands/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(brands-service)
+  rg -n '^services/employee/dealerpoints/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(dealer-points-service)
+  rg -n '^services/gateway/employee/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(gateway-service)
+  rg -n '^services/client/registration/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(client-registration-service)
+  rg -n '^services/client/auth/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(client-auth-service)
+  rg -n '^services/client/reviews/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(client-reviews-service)
+  rg -n '^services/gateway/client-public/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(client-public-gateway-service)
+  rg -n '^services/gateway/client-protected/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(client-protected-gateway-service)
+  rg -n '^services/statistics/employee/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(employee-statistics-service)
+  rg -n '^services/statistics/client/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(client-statistics-service)
 fi
 
 uniq=()
@@ -210,7 +217,7 @@ mkdir -p "\${GOMODCACHE}" "\${GOCACHE}"
 # Склеиваем coverprofile (mode + строки блоков); без -coverpkg — в отчёт попадают все прогнанные пакеты.
 rm -f coverage.out
 first=1
-for d in . services/auth services/customers services/vehicles services/deals services/parts services/brands services/dealerpoints; do
+for d in . services/employee/auth services/employee/customers services/employee/vehicles services/employee/deals services/employee/parts services/employee/brands services/employee/dealerpoints services/gateway/employee services/gateway/client-public services/gateway/client-protected services/client/registration services/client/auth services/client/reviews services/statistics/employee services/statistics/client services/errors-ingest; do
   (cd "\${d}" && go test ./... -coverprofile=cov_piece.out -covermode=atomic)
   if [ "\${first}" -eq 1 ]; then
     mv "\${d}/cov_piece.out" coverage.out
@@ -249,14 +256,21 @@ targets=()
 if [ "${HAS_SERVICE_CHANGES}" = "true" ]; then
   for svc in ${CHANGED_SERVICES}; do
     case "${svc}" in
-      auth-service) targets+=(services/auth) ;;
-      customers-service) targets+=(services/customers) ;;
-      vehicles-service) targets+=(services/vehicles) ;;
-      deals-service) targets+=(services/deals) ;;
-      parts-service) targets+=(services/parts) ;;
-      brands-service) targets+=(services/brands) ;;
-      dealer-points-service) targets+=(services/dealerpoints) ;;
-      gateway-service) targets+=(services/gateway) ;;
+      auth-service) targets+=(services/employee/auth) ;;
+      customers-service) targets+=(services/employee/customers) ;;
+      vehicles-service) targets+=(services/employee/vehicles) ;;
+      deals-service) targets+=(services/employee/deals) ;;
+      parts-service) targets+=(services/employee/parts) ;;
+      brands-service) targets+=(services/employee/brands) ;;
+      dealer-points-service) targets+=(services/employee/dealerpoints) ;;
+      gateway-service) targets+=(services/gateway/employee) ;;
+      client-registration-service) targets+=(services/client/registration) ;;
+      client-auth-service) targets+=(services/client/auth) ;;
+      client-reviews-service) targets+=(services/client/reviews) ;;
+      client-public-gateway-service) targets+=(services/gateway/client-public) ;;
+      client-protected-gateway-service) targets+=(services/gateway/client-protected) ;;
+      employee-statistics-service) targets+=(services/statistics/employee) ;;
+      client-statistics-service) targets+=(services/statistics/client) ;;
       *) echo "Unknown changed service: ${svc}" >&2; exit 1 ;;
     esac
   done
@@ -495,35 +509,35 @@ apply_service() {
   local svc="\$1" img="\$2" dep="" svcf=""
   case "\$svc" in
     auth-service)
-      dep="services/auth/k8s/auth-deployment.yaml"; svcf="services/auth/k8s/auth-service.yaml"
+      dep="services/employee/auth/k8s/auth-deployment.yaml"; svcf="services/employee/auth/k8s/auth-service.yaml"
       sed -e "s|__IMG_AUTH__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     customers-service)
-      dep="services/customers/k8s/customer-deployment.yaml"; svcf="services/customers/k8s/customers-service.yaml"
+      dep="services/employee/customers/k8s/customer-deployment.yaml"; svcf="services/employee/customers/k8s/customers-service.yaml"
       sed -e "s|__IMG_CUSTOMERS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     vehicles-service)
-      dep="services/vehicles/k8s/vehicles-deployment.yaml"; svcf="services/vehicles/k8s/vehicles-service.yaml"
+      dep="services/employee/vehicles/k8s/vehicles-deployment.yaml"; svcf="services/employee/vehicles/k8s/vehicles-service.yaml"
       sed -e "s|__IMG_VEHICLES__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     deals-service)
-      dep="services/deals/k8s/deals-deployment.yaml"; svcf="services/deals/k8s/deals-service.yaml"
+      dep="services/employee/deals/k8s/deals-deployment.yaml"; svcf="services/employee/deals/k8s/deals-service.yaml"
       sed -e "s|__IMG_DEALS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     parts-service)
-      dep="services/parts/k8s/parts-deployment.yaml"; svcf="services/parts/k8s/parts-service.yaml"
+      dep="services/employee/parts/k8s/parts-deployment.yaml"; svcf="services/employee/parts/k8s/parts-service.yaml"
       sed -e "s|__IMG_PARTS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     brands-service)
-      dep="services/brands/k8s/brand-deployment.yaml"; svcf="services/brands/k8s/brand-service.yaml"
+      dep="services/employee/brands/k8s/brand-deployment.yaml"; svcf="services/employee/brands/k8s/brand-service.yaml"
       sed -e "s|__IMG_BRANDS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     dealer-points-service)
-      dep="services/dealerpoints/k8s/dealerpoints-deployment.yaml"; svcf="services/dealerpoints/k8s/dealerpoints-service.yaml"
+      dep="services/employee/dealerpoints/k8s/dealerpoints-deployment.yaml"; svcf="services/employee/dealerpoints/k8s/dealerpoints-service.yaml"
       sed -e "s|__IMG_DEALER_POINTS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     gateway-service)
-      dep="services/gateway/k8s/gateway-deployment.yaml"; svcf="services/gateway/k8s/gateway-service.yaml"
+      dep="services/gateway/employee/k8s/gateway-deployment.yaml"; svcf="services/gateway/employee/k8s/gateway-service.yaml"
       sed -e "s|__IMG_GATEWAY__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
     *) echo "Unknown service \${svc}" >&2; exit 1 ;;

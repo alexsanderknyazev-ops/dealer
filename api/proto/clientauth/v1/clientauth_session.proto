@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package clientauth.v1;
+
+import "google/api/annotations.proto";
+import "clientauth/v1/clientauth.proto";
+
+option go_package = "github.com/dealer/dealer/pkg/pb/clientauth/v1;clientauthv1";
+
+// Сессия клиента (client-protected-gateway).
+service ClientAuthSessionService {
+  rpc Validate(ValidateRequest) returns (ValidateResponse) {
+    option (google.api.http) = { get: "/api/me" };
+  }
+}

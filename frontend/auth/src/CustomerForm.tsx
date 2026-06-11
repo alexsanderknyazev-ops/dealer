@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { CustomerForm as CustomerFormType } from './customersApi'
 import * as api from './customersApi'
-import './Form.css'
+import { FormPage } from '@/components/common/FormPage'
+import { FormField } from '@/components/common/FormField'
+import { FormActions } from '@/components/common/FormActions'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Textarea } from '@/components/ui/textarea'
 
 export function CustomerForm() {
   const { id } = useParams()
@@ -23,7 +29,8 @@ export function CustomerForm() {
 
   useEffect(() => {
     if (isNew) return
-    api.getCustomer(id!)
+    api
+      .getCustomer(id!)
       .then((c) => {
         setForm({
           name: c.name,
@@ -35,7 +42,7 @@ export function CustomerForm() {
           notes: c.notes || '',
         })
       })
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка загрузки'))
       .finally(() => setLoading(false))
   }, [id, isNew])
 
@@ -52,96 +59,57 @@ export function CustomerForm() {
       address: form.address || undefined,
       notes: form.notes || undefined,
     }
-    if (isNew) {
-      api.createCustomer(payload)
-        .then(() => navigate('/customers', { replace: true }))
-        .catch((err) => { setError(err.message); setSubmitting(false) })
-    } else {
-      api.updateCustomer(id!, payload)
-        .then(() => navigate('/customers', { replace: true }))
-        .catch((err) => { setError(err.message); setSubmitting(false) })
-    }
+    const save = isNew ? api.createCustomer(payload) : api.updateCustomer(id!, payload)
+    save
+      .then(() => navigate('/customers', { replace: true }))
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Ошибка сохранения')
+        setSubmitting(false)
+      })
   }
 
-  if (loading) return <div className="main loading">Загрузка…</div>
-
   return (
-    <div className="form-card">
-      <h1 className="form-title">{isNew ? 'Новый клиент' : 'Редактирование клиента'}</h1>
-      <form onSubmit={handleSubmit} className="form">
-        {error && <div className="form-error">{error}</div>}
-        <label className="form-label">
-          Имя *
-          <input
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            required
-            className="form-input"
-          />
-        </label>
-        <label className="form-label">
-          Email
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-            className="form-input"
-          />
-        </label>
-        <label className="form-label">
-          Телефон
-          <input
-            type="tel"
-            value={form.phone}
-            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-            className="form-input"
-          />
-        </label>
-        <label className="form-label">
-          Тип
-          <select
+    <FormPage title={isNew ? 'Новый клиент' : 'Редактирование клиента'} loading={loading}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        <FormField label="Имя" htmlFor="name" required>
+          <Input id="name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
+        </FormField>
+        <FormField label="Email" htmlFor="email">
+          <Input id="email" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+        </FormField>
+        <FormField label="Телефон" htmlFor="phone">
+          <Input id="phone" type="tel" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
+        </FormField>
+        <FormField label="Тип" htmlFor="customer_type">
+          <NativeSelect
+            id="customer_type"
             value={form.customer_type}
             onChange={(e) => setForm((f) => ({ ...f, customer_type: e.target.value }))}
-            className="form-input"
           >
             <option value="individual">Физ. лицо</option>
             <option value="legal">Юр. лицо</option>
-          </select>
-        </label>
-        <label className="form-label">
-          ИНН
-          <input
-            value={form.inn}
-            onChange={(e) => setForm((f) => ({ ...f, inn: e.target.value }))}
-            className="form-input"
-          />
-        </label>
-        <label className="form-label">
-          Адрес
-          <input
-            value={form.address}
-            onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-            className="form-input"
-          />
-        </label>
-        <label className="form-label">
-          Заметки
-          <textarea
-            value={form.notes}
-            onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-            className="form-input"
-            rows={3}
-          />
-        </label>
-        <div className="form-actions">
-          <button type="submit" disabled={submitting} className="form-submit">
-            {submitting ? 'Сохранение…' : (isNew ? 'Создать' : 'Сохранить')}
-          </button>
-          <button type="button" onClick={() => navigate('/customers')} className="form-cancel">
-            Отмена
-          </button>
-        </div>
+          </NativeSelect>
+        </FormField>
+        <FormField label="ИНН" htmlFor="inn">
+          <Input id="inn" value={form.inn} onChange={(e) => setForm((f) => ({ ...f, inn: e.target.value }))} />
+        </FormField>
+        <FormField label="Адрес" htmlFor="address">
+          <Input id="address" value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />
+        </FormField>
+        <FormField label="Заметки" htmlFor="notes">
+          <Textarea id="notes" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows={3} />
+        </FormField>
+        <FormActions
+          submitting={submitting}
+          submitLabel={isNew ? 'Создать' : 'Сохранить'}
+          onCancel={() => navigate('/customers')}
+        />
       </form>
-    </div>
+    </FormPage>
   )
 }

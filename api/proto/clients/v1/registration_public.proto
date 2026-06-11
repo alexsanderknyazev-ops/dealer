@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package clients.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/dealer/dealer/pkg/pb/clients/v1;clientsv1";
+
+// Публичная регистрация (client-public-gateway).
+service ClientRegistrationPublicService {
+  rpc RegisterClient(RegisterClientRequest) returns (RegisterClientResponse) {
+    option (google.api.http) = { post: "/api/client/register" body: "*" };
+  }
+}
+
+message RegisterClientRequest {
+  string email = 1;
+  string password = 2;
+  string full_name = 3;
+  string phone = 4;
+  string vin = 5;
+}
+
+message RegisterClientResponse {
+  string client_id = 1;
+  string user_id = 2;
+  string email = 3;
+  string access_token = 4;
+  string refresh_token = 5;
+  int64 expires_at = 6;
+}

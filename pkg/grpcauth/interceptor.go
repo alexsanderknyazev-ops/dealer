@@ -14,8 +14,9 @@ import (
 )
 
 type Config struct {
-	JWTSecret  string
-	WriteRoles []string
+	JWTSecret      string
+	WriteRoles     []string
+	PublicMethods  []string // full gRPC method names without JWT (cluster-internal RPC)
 }
 
 type claims struct {
@@ -27,6 +28,9 @@ type claims struct {
 
 func UnaryServerInterceptor(cfg Config) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		if isPublicMethod(info.FullMethod, cfg.PublicMethods) {
+			return handler(ctx, req)
+		}
 		token, err := bearerFromContext(ctx)
 		if err != nil {
 			return nil, err
@@ -79,6 +83,15 @@ func isWriteMethod(fullMethod string) bool {
 		strings.Contains(fullMethod, "Delete") ||
 		strings.Contains(fullMethod, "Link") ||
 		strings.Contains(fullMethod, "Unlink")
+}
+
+func isPublicMethod(fullMethod string, public []string) bool {
+	for _, m := range public {
+		if fullMethod == m {
+			return true
+		}
+	}
+	return false
 }
 
 func hasRole(role string, allowed []string) bool {

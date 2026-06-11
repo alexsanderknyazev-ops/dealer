@@ -18,11 +18,11 @@ COPY pkg/ ./pkg/
 #копируем api/ в рабочую директорию
 COPY api/ ./api/ 
 #копируем services/auth/ в рабочую директорию
-COPY services/auth/ ./services/auth/ 
+COPY services/employee/auth/ ./services/employee/auth/
 #устанавливаем рабочую директорию
-WORKDIR /app/services/auth
+WORKDIR /app/services/employee/auth
 #строим проект
-RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o /auth-service . \
+RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-w -s" -o /auth-service . \
   && CGO_ENABLED=0 go build -ldflags="-w -s" -o /seed-admin ./cmd/seed-admin
 #берем alpine 3.19
 FROM alpine:3.19

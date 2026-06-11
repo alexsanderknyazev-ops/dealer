@@ -8,5 +8,10 @@ const (
 	Parts        = "parts"
 	Brands       = "brands"
 	DealerPoints = "dealerpoints"
-	Public       = "public"
+	Clients      = "clients"
+	ClientAuth   = "clientauth"
+	Reviews            = "reviews"
+	EmployeeStatistics = "employee_statistics"
+	ClientStatistics   = "client_statistics"
+	Public             = "public"
 )

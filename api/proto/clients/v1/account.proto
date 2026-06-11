@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package clients.v1;
+
+import "google/api/annotations.proto";
+import "clients/v1/common.proto";
+
+option go_package = "github.com/dealer/dealer/pkg/pb/clients/v1;clientsv1";
+
+// Личный кабинет клиента (client-protected-gateway).
+service ClientAccountService {
+  rpc AddVehicle(AddVehicleRequest) returns (AddVehicleResponse) {
+    option (google.api.http) = { post: "/api/client/vehicles" body: "*" response_body: "vehicle" };
+  }
+  rpc ListMyVehicles(ListMyVehiclesRequest) returns (ListMyVehiclesResponse) {
+    option (google.api.http) = { get: "/api/client/vehicles" };
+  }
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {
+    option (google.api.http) = { get: "/api/client/profile" response_body: "profile" };
+  }
+}
+
+message AddVehicleRequest {
+  string vin = 1;
+}
+
+message AddVehicleResponse {
+  ClientVehicle vehicle = 1;
+}
+
+message ListMyVehiclesRequest {}
+
+message ListMyVehiclesResponse {
+  repeated ClientVehicle vehicles = 1;
+}
+
+message GetProfileRequest {}
+
+message GetProfileResponse {
+  ClientProfile profile = 1;
+}

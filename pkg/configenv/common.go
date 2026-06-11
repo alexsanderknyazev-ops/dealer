@@ -43,3 +43,43 @@ func LoadKafkaErrors(brokersDefault string) KafkaErrors {
 		Topic:   String("KAFKA_TOPIC_ERRORS", "platform.errors.v1"),
 	}
 }
+
+// KafkaClientRegistration — события регистрации клиентов.
+type KafkaClientRegistration struct {
+	Brokers []string
+	Topic   string
+}
+
+// LoadKafkaClientRegistration загружает KAFKA_BROKERS и KAFKA_TOPIC_CLIENT_REGISTRATION.
+func LoadKafkaClientRegistration(brokersDefault string) KafkaClientRegistration {
+	return KafkaClientRegistration{
+		Brokers: Brokers("KAFKA_BROKERS", brokersDefault),
+		Topic:   String("KAFKA_TOPIC_CLIENT_REGISTRATION", "client.registration.v1"),
+	}
+}
+
+// KafkaDealCompleted — события успешных сделок.
+type KafkaDealCompleted struct {
+	Brokers []string
+	Topic   string
+}
+
+func LoadKafkaDealCompleted(brokersDefault string) KafkaDealCompleted {
+	return KafkaDealCompleted{
+		Brokers: Brokers("KAFKA_BROKERS", brokersDefault),
+		Topic:   String("KAFKA_TOPIC_DEAL_COMPLETED", "deal.completed.v1"),
+	}
+}
+
+// KafkaReviewPublished — события опубликованных отзывов.
+type KafkaReviewPublished struct {
+	Brokers []string
+	Topic   string
+}
+
+func LoadKafkaReviewPublished(brokersDefault string) KafkaReviewPublished {
+	return KafkaReviewPublished{
+		Brokers: Brokers("KAFKA_BROKERS", brokersDefault),
+		Topic:   String("KAFKA_TOPIC_REVIEW_PUBLISHED", "review.published.v1"),
+	}
+}

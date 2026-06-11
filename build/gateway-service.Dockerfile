@@ -3,8 +3,8 @@ WORKDIR /app
 COPY go.mod go.sum ./
 COPY pkg/ ./pkg/
 COPY api/ ./api/
-COPY services/gateway/ ./services/gateway/
-WORKDIR /app/services/gateway
+COPY services/gateway/employee/ ./services/gateway/employee/
+WORKDIR /app/services/gateway/employee
 RUN go mod tidy && go build -o /gateway-service .
 
 FROM alpine:3.19

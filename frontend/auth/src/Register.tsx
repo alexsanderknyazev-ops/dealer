@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth'
-import './Form.css'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export function Register() {
   const { register } = useAuth()
@@ -28,61 +32,45 @@ export function Register() {
   }
 
   return (
-    <div className="form-card">
-      <h1 className="form-title">Регистрация</h1>
-      <form onSubmit={handleSubmit} className="form">
-        {error && <div className="form-error">{error}</div>}
-        <label className="form-label">
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-            className="form-input"
-          />
-        </label>
-        <label className="form-label">
-          Пароль
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="new-password"
-            className="form-input"
-          />
-        </label>
-        <label className="form-label">
-          Имя
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoComplete="name"
-            className="form-input"
-            placeholder="Необязательно"
-          />
-        </label>
-        <label className="form-label">
-          Телефон
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            autoComplete="tel"
-            className="form-input"
-            placeholder="Необязательно"
-          />
-        </label>
-        <button type="submit" disabled={submitting} className="form-submit">
-          {submitting ? 'Регистрация…' : 'Зарегистрироваться'}
-        </button>
-      </form>
-      <p className="form-footer">
-        Уже есть аккаунт? <Link to="/login">Войти</Link>
-      </p>
-    </div>
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>Регистрация</CardTitle>
+        <CardDescription>Создайте аккаунт для доступа к системе</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Пароль</Label>
+            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="name">Имя</Label>
+            <Input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" placeholder="Необязательно" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Телефон</Label>
+            <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="Необязательно" />
+          </div>
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? 'Регистрация…' : 'Зарегистрироваться'}
+          </Button>
+        </form>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Уже есть аккаунт?{' '}
+          <Link to="/login" className="font-medium text-primary hover:underline">
+            Войти
+          </Link>
+        </p>
+      </CardContent>
+    </Card>
   )
 }

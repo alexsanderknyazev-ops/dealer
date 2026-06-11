@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package clients.v1;
+
+option go_package = "github.com/dealer/dealer/pkg/pb/clients/v1;clientsv1";
+
+message ClientVehicle {
+  string id = 1;
+  string vehicle_id = 2;
+  string vin = 3;
+  string make = 4;
+  string model = 5;
+  int32 year = 6;
+  int64 added_at = 7;
+}
+
+message ClientProfile {
+  string id = 1;
+  string user_id = 2;
+  string email = 3;
+  string full_name = 4;
+  string phone = 5;
+  repeated ClientVehicle vehicles = 6;
+  int64 created_at = 7;
+}

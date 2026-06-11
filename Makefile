@@ -1,4 +1,4 @@
-.PHONY: proto docker-up docker-down run-auth seed-admin frontend-dev frontend-build
+.PHONY: proto docker-up docker-down run-auth seed-admin frontend-dev frontend-build frontend-client-dev frontend-client-build
 
 proto:
 	@which protoc >/dev/null || (echo "install protoc (brew install protobuf)" && exit 1)
@@ -105,3 +105,9 @@ frontend-dev:
 
 frontend-build:
 	cd frontend/auth && npm install && npm run build
+
+frontend-client-dev:
+	cd frontend/client && npm install && npm run dev
+
+frontend-client-build:
+	cd frontend/client && npm install && npm run build

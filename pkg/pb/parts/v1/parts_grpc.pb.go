@@ -19,16 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PartsService_CreatePart_FullMethodName   = "/parts.v1.PartsService/CreatePart"
-	PartsService_GetPart_FullMethodName      = "/parts.v1.PartsService/GetPart"
-	PartsService_ListParts_FullMethodName    = "/parts.v1.PartsService/ListParts"
-	PartsService_UpdatePart_FullMethodName   = "/parts.v1.PartsService/UpdatePart"
-	PartsService_DeletePart_FullMethodName   = "/parts.v1.PartsService/DeletePart"
-	PartsService_CreateFolder_FullMethodName = "/parts.v1.PartsService/CreateFolder"
-	PartsService_GetFolder_FullMethodName    = "/parts.v1.PartsService/GetFolder"
-	PartsService_ListFolders_FullMethodName  = "/parts.v1.PartsService/ListFolders"
-	PartsService_UpdateFolder_FullMethodName = "/parts.v1.PartsService/UpdateFolder"
-	PartsService_DeleteFolder_FullMethodName = "/parts.v1.PartsService/DeleteFolder"
+	PartsService_CreatePart_FullMethodName              = "/parts.v1.PartsService/CreatePart"
+	PartsService_GetPart_FullMethodName                 = "/parts.v1.PartsService/GetPart"
+	PartsService_ListParts_FullMethodName               = "/parts.v1.PartsService/ListParts"
+	PartsService_UpdatePart_FullMethodName              = "/parts.v1.PartsService/UpdatePart"
+	PartsService_DeletePart_FullMethodName              = "/parts.v1.PartsService/DeletePart"
+	PartsService_CreateFolder_FullMethodName            = "/parts.v1.PartsService/CreateFolder"
+	PartsService_GetFolder_FullMethodName               = "/parts.v1.PartsService/GetFolder"
+	PartsService_ListFolders_FullMethodName             = "/parts.v1.PartsService/ListFolders"
+	PartsService_UpdateFolder_FullMethodName            = "/parts.v1.PartsService/UpdateFolder"
+	PartsService_DeleteFolder_FullMethodName            = "/parts.v1.PartsService/DeleteFolder"
+	PartsService_CreateMovementDocument_FullMethodName  = "/parts.v1.PartsService/CreateMovementDocument"
+	PartsService_GetMovementDocument_FullMethodName     = "/parts.v1.PartsService/GetMovementDocument"
+	PartsService_ListMovementDocuments_FullMethodName   = "/parts.v1.PartsService/ListMovementDocuments"
+	PartsService_ConfirmMovementDocument_FullMethodName = "/parts.v1.PartsService/ConfirmMovementDocument"
+	PartsService_CancelMovementDocument_FullMethodName  = "/parts.v1.PartsService/CancelMovementDocument"
 )
 
 // PartsServiceClient is the client API for PartsService service.
@@ -45,6 +50,11 @@ type PartsServiceClient interface {
 	ListFolders(ctx context.Context, in *ListFoldersRequest, opts ...grpc.CallOption) (*ListFoldersResponse, error)
 	UpdateFolder(ctx context.Context, in *UpdateFolderRequest, opts ...grpc.CallOption) (*UpdateFolderResponse, error)
 	DeleteFolder(ctx context.Context, in *DeleteFolderRequest, opts ...grpc.CallOption) (*DeleteFolderResponse, error)
+	CreateMovementDocument(ctx context.Context, in *CreateMovementDocumentRequest, opts ...grpc.CallOption) (*CreateMovementDocumentResponse, error)
+	GetMovementDocument(ctx context.Context, in *GetMovementDocumentRequest, opts ...grpc.CallOption) (*GetMovementDocumentResponse, error)
+	ListMovementDocuments(ctx context.Context, in *ListMovementDocumentsRequest, opts ...grpc.CallOption) (*ListMovementDocumentsResponse, error)
+	ConfirmMovementDocument(ctx context.Context, in *ConfirmMovementDocumentRequest, opts ...grpc.CallOption) (*ConfirmMovementDocumentResponse, error)
+	CancelMovementDocument(ctx context.Context, in *CancelMovementDocumentRequest, opts ...grpc.CallOption) (*CancelMovementDocumentResponse, error)
 }
 
 type partsServiceClient struct {
@@ -155,6 +165,56 @@ func (c *partsServiceClient) DeleteFolder(ctx context.Context, in *DeleteFolderR
 	return out, nil
 }
 
+func (c *partsServiceClient) CreateMovementDocument(ctx context.Context, in *CreateMovementDocumentRequest, opts ...grpc.CallOption) (*CreateMovementDocumentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateMovementDocumentResponse)
+	err := c.cc.Invoke(ctx, PartsService_CreateMovementDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) GetMovementDocument(ctx context.Context, in *GetMovementDocumentRequest, opts ...grpc.CallOption) (*GetMovementDocumentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMovementDocumentResponse)
+	err := c.cc.Invoke(ctx, PartsService_GetMovementDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) ListMovementDocuments(ctx context.Context, in *ListMovementDocumentsRequest, opts ...grpc.CallOption) (*ListMovementDocumentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMovementDocumentsResponse)
+	err := c.cc.Invoke(ctx, PartsService_ListMovementDocuments_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) ConfirmMovementDocument(ctx context.Context, in *ConfirmMovementDocumentRequest, opts ...grpc.CallOption) (*ConfirmMovementDocumentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConfirmMovementDocumentResponse)
+	err := c.cc.Invoke(ctx, PartsService_ConfirmMovementDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) CancelMovementDocument(ctx context.Context, in *CancelMovementDocumentRequest, opts ...grpc.CallOption) (*CancelMovementDocumentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelMovementDocumentResponse)
+	err := c.cc.Invoke(ctx, PartsService_CancelMovementDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PartsServiceServer is the server API for PartsService service.
 // All implementations must embed UnimplementedPartsServiceServer
 // for forward compatibility.
@@ -169,6 +229,11 @@ type PartsServiceServer interface {
 	ListFolders(context.Context, *ListFoldersRequest) (*ListFoldersResponse, error)
 	UpdateFolder(context.Context, *UpdateFolderRequest) (*UpdateFolderResponse, error)
 	DeleteFolder(context.Context, *DeleteFolderRequest) (*DeleteFolderResponse, error)
+	CreateMovementDocument(context.Context, *CreateMovementDocumentRequest) (*CreateMovementDocumentResponse, error)
+	GetMovementDocument(context.Context, *GetMovementDocumentRequest) (*GetMovementDocumentResponse, error)
+	ListMovementDocuments(context.Context, *ListMovementDocumentsRequest) (*ListMovementDocumentsResponse, error)
+	ConfirmMovementDocument(context.Context, *ConfirmMovementDocumentRequest) (*ConfirmMovementDocumentResponse, error)
+	CancelMovementDocument(context.Context, *CancelMovementDocumentRequest) (*CancelMovementDocumentResponse, error)
 	mustEmbedUnimplementedPartsServiceServer()
 }
 
@@ -208,6 +273,21 @@ func (UnimplementedPartsServiceServer) UpdateFolder(context.Context, *UpdateFold
 }
 func (UnimplementedPartsServiceServer) DeleteFolder(context.Context, *DeleteFolderRequest) (*DeleteFolderResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteFolder not implemented")
+}
+func (UnimplementedPartsServiceServer) CreateMovementDocument(context.Context, *CreateMovementDocumentRequest) (*CreateMovementDocumentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateMovementDocument not implemented")
+}
+func (UnimplementedPartsServiceServer) GetMovementDocument(context.Context, *GetMovementDocumentRequest) (*GetMovementDocumentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMovementDocument not implemented")
+}
+func (UnimplementedPartsServiceServer) ListMovementDocuments(context.Context, *ListMovementDocumentsRequest) (*ListMovementDocumentsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMovementDocuments not implemented")
+}
+func (UnimplementedPartsServiceServer) ConfirmMovementDocument(context.Context, *ConfirmMovementDocumentRequest) (*ConfirmMovementDocumentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmMovementDocument not implemented")
+}
+func (UnimplementedPartsServiceServer) CancelMovementDocument(context.Context, *CancelMovementDocumentRequest) (*CancelMovementDocumentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelMovementDocument not implemented")
 }
 func (UnimplementedPartsServiceServer) mustEmbedUnimplementedPartsServiceServer() {}
 func (UnimplementedPartsServiceServer) testEmbeddedByValue()                      {}
@@ -410,6 +490,96 @@ func _PartsService_DeleteFolder_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartsService_CreateMovementDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateMovementDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CreateMovementDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CreateMovementDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CreateMovementDocument(ctx, req.(*CreateMovementDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_GetMovementDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMovementDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).GetMovementDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_GetMovementDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).GetMovementDocument(ctx, req.(*GetMovementDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_ListMovementDocuments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMovementDocumentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).ListMovementDocuments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_ListMovementDocuments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).ListMovementDocuments(ctx, req.(*ListMovementDocumentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_ConfirmMovementDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmMovementDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).ConfirmMovementDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_ConfirmMovementDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).ConfirmMovementDocument(ctx, req.(*ConfirmMovementDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_CancelMovementDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelMovementDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CancelMovementDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CancelMovementDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CancelMovementDocument(ctx, req.(*CancelMovementDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PartsService_ServiceDesc is the grpc.ServiceDesc for PartsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -456,6 +626,26 @@ var PartsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteFolder",
 			Handler:    _PartsService_DeleteFolder_Handler,
+		},
+		{
+			MethodName: "CreateMovementDocument",
+			Handler:    _PartsService_CreateMovementDocument_Handler,
+		},
+		{
+			MethodName: "GetMovementDocument",
+			Handler:    _PartsService_GetMovementDocument_Handler,
+		},
+		{
+			MethodName: "ListMovementDocuments",
+			Handler:    _PartsService_ListMovementDocuments_Handler,
+		},
+		{
+			MethodName: "ConfirmMovementDocument",
+			Handler:    _PartsService_ConfirmMovementDocument_Handler,
+		},
+		{
+			MethodName: "CancelMovementDocument",
+			Handler:    _PartsService_CancelMovementDocument_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

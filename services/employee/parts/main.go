@@ -44,6 +44,8 @@ func main() {
 	repo := repository.NewPartRepository(pool)
 	folderRepo := repository.NewFolderRepository(pool)
 	stockRepo := repository.NewPartStockRepository(pool)
+	movementRepo := repository.NewStockMovementRepository(pool)
+	movementDocRepo := repository.NewMovementDocumentRepository(pool)
 	var brands service.BrandChecker
 	if cfg.BrandsGRPCAddr != "" {
 		dialCtx, dialCancel := context.WithTimeout(ctx, 10*time.Second)
@@ -74,13 +76,44 @@ func main() {
 	} else {
 		logger.Warn("DEALER_POINTS_GRPC_ADDR not set; parts dealer point checks disabled")
 	}
-	svc := service.NewPartService(repo, folderRepo, stockRepo, brands, dealerPoints)
+	var workOrders service.WorkOrdersNotifier
+	if cfg.WorkOrdersGRPCAddr != "" {
+		// Short timeout: workorders may start after parts; blocking here delays gRPC listen and breaks workorders startup.
+		dialCtx, dialCancel := context.WithTimeout(ctx, 2*time.Second)
+		woClient, err := client.NewWorkOrdersNotifier(dialCtx, cfg.WorkOrdersGRPCAddr)
+		dialCancel()
+		if err != nil {
+			logger.Warn("gRPC workorders client connect failed; confirm won't update work orders until restart", "err", err)
+		} else {
+			defer woClient.Close()
+			workOrders = woClient
+			logger.Info("work order notify via gRPC", "workorders", cfg.WorkOrdersGRPCAddr)
+		}
+	} else {
+		logger.Warn("WORKORDERS_GRPC_ADDR not set; movement confirm won't update work orders")
+	}
+	var employees *client.EmployeeResolver
+	if cfg.EmployeesGRPCAddr != "" {
+		dialCtx, dialCancel := context.WithTimeout(ctx, 2*time.Second)
+		empClient, err := client.NewEmployeeResolver(dialCtx, cfg.EmployeesGRPCAddr)
+		dialCancel()
+		if err != nil {
+			logger.Warn("gRPC employees client connect failed; employee names disabled until restart", "err", err)
+		} else if empClient != nil {
+			defer empClient.Close()
+			employees = empClient
+			logger.Info("employee names via gRPC", "employees", cfg.EmployeesGRPCAddr)
+		}
+	} else {
+		logger.Warn("EMPLOYEES_GRPC_ADDR not set; movement document employee names disabled")
+	}
+	svc := service.NewPartService(repo, folderRepo, stockRepo, movementRepo, movementDocRepo, workOrders, brands, dealerPoints)
 
 	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
 		JWTSecret:  cfg.JWTSecret,
-		WriteRoles: []string{"admin", "manager", "parts_manager", "storekeeper"},
+		WriteRoles: []string{"admin", "manager", "parts_manager", "storekeeper", "master", "service_advisor"},
 	})...)
-	partsv1.RegisterPartsServiceServer(gsrv, grpcserver.NewServer(svc))
+	partsv1.RegisterPartsServiceServer(gsrv, grpcserver.NewServer(svc, employees))
 	reflection.Register(gsrv)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))

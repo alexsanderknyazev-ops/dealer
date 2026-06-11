@@ -1,8 +1,10 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
+  BarChart3,
   Building2,
   Car,
   Handshake,
+  ClipboardList,
   Home,
   LogOut,
   MapPin,
@@ -23,11 +25,13 @@ const navItems = [
   { to: '/customers', label: 'Клиенты', icon: Users },
   { to: '/vehicles', label: 'Автомобили', icon: Car },
   { to: '/deals', label: 'Сделки', icon: Handshake },
+  { to: '/work-orders', label: 'Заказ-наряды', icon: ClipboardList },
   { to: '/parts', label: 'Запчасти', icon: Package },
   { to: '/brands', label: 'Бренды', icon: Tag },
   { to: '/dealer-points', label: 'Дилерские точки', icon: MapPin },
   { to: '/legal-entities', label: 'Юр. лица', icon: Scale },
   { to: '/warehouses', label: 'Склады', icon: Warehouse },
+  { to: '/statistics', label: 'Статистика', icon: BarChart3 },
 ]
 
 function GuestShell() {

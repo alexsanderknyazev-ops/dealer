@@ -182,6 +182,7 @@ version_file_for_service() {
 	client-protected-gateway-service) echo services/gateway/client-protected/VERSION ;;
 	employee-statistics-service) echo services/statistics/employee/VERSION ;;
 	client-statistics-service) echo services/statistics/client/VERSION ;;
+	employee-reviews-service) echo services/employee/reviews/VERSION ;;
 	*) echo ""; return 1 ;;
 	esac
 }
@@ -203,6 +204,7 @@ append_version_export() {
 	client-protected-gateway-service) echo "export VER_CLIENT_PROTECTED_GATEWAY_SERVICE=$2" ;;
 	employee-statistics-service) echo "export VER_EMPLOYEE_STATISTICS_SERVICE=$2" ;;
 	client-statistics-service) echo "export VER_CLIENT_STATISTICS_SERVICE=$2" ;;
+	employee-reviews-service) echo "export VER_EMPLOYEE_REVIEWS_SERVICE=$2" ;;
 	*) return 1 ;;
 	esac
 }
@@ -231,7 +233,8 @@ cmd_prepare() {
 		'client-public-gateway-service:build/client-public-gateway-service.Dockerfile' \
 		'client-protected-gateway-service:build/client-protected-gateway-service.Dockerfile' \
 		'employee-statistics-service:build/employee-statistics-service.Dockerfile' \
-		'client-statistics-service:build/client-statistics-service.Dockerfile'; do
+		'client-statistics-service:build/client-statistics-service.Dockerfile' \
+		'employee-reviews-service:build/employee-reviews-service.Dockerfile'; do
 		name="${entry%%:*}"
 		vf="$(version_file_for_service "$name")"
 		test -n "$vf" && test -f "$vf" || {

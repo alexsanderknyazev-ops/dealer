@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package works.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/dealer/dealer/pkg/pb/works/v1;worksv1";
+
+service WorksService {
+  rpc CreateWork(CreateWorkRequest) returns (CreateWorkResponse) {
+    option (google.api.http) = { post: "/api/works" body: "*" response_body: "work" };
+  }
+  rpc GetWork(GetWorkRequest) returns (GetWorkResponse) {
+    option (google.api.http) = { get: "/api/works/{id}" response_body: "work" };
+  }
+  rpc ListWorks(ListWorksRequest) returns (ListWorksResponse) {
+    option (google.api.http) = { get: "/api/works" };
+  }
+  rpc UpdateWork(UpdateWorkRequest) returns (UpdateWorkResponse) {
+    option (google.api.http) = { put: "/api/works/{id}" body: "*" response_body: "work" };
+  }
+  rpc DeleteWork(DeleteWorkRequest) returns (DeleteWorkResponse) {
+    option (google.api.http) = { delete: "/api/works/{id}" };
+  }
+}
+
+message Work {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string category = 4;
+  string labor_hours = 5;
+  string unit_price = 6;
+  string notes = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+}
+
+message CreateWorkRequest {
+  string code = 1;
+  string name = 2;
+  string category = 3;
+  string labor_hours = 4;
+  string unit_price = 5;
+  string notes = 6;
+}
+
+message CreateWorkResponse {
+  Work work = 1;
+}
+
+message GetWorkRequest {
+  string id = 1;
+}
+
+message GetWorkResponse {
+  Work work = 1;
+}
+
+message ListWorksRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string search = 3;
+  string category = 4;
+}
+
+message ListWorksResponse {
+  repeated Work works = 1;
+  int32 total = 2;
+}
+
+message UpdateWorkRequest {
+  string id = 1;
+  optional string code = 2;
+  optional string name = 3;
+  optional string category = 4;
+  optional string labor_hours = 5;
+  optional string unit_price = 6;
+  optional string notes = 7;
+}
+
+message UpdateWorkResponse {
+  Work work = 1;
+}
+
+message DeleteWorkRequest {
+  string id = 1;
+}
+
+message DeleteWorkResponse {}

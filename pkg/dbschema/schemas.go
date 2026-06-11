@@ -12,6 +12,10 @@ const (
 	ClientAuth   = "clientauth"
 	Reviews            = "reviews"
 	EmployeeStatistics = "employee_statistics"
+	EmployeeReviews    = "employee_reviews"
+	WorkOrders         = "workorders"
+	Works              = "works"
+	Employees          = "employees"
 	ClientStatistics   = "client_statistics"
 	Public             = "public"
 )

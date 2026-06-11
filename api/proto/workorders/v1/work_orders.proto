@@ -1,0 +1,193 @@
+syntax = "proto3";
+
+package workorders.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/dealer/dealer/pkg/pb/workorders/v1;workordersv1";
+
+service WorkOrdersService {
+  rpc CreateWorkOrder(CreateWorkOrderRequest) returns (CreateWorkOrderResponse) {
+    option (google.api.http) = { post: "/api/work-orders" body: "*" response_body: "work_order" };
+  }
+  rpc GetWorkOrder(GetWorkOrderRequest) returns (GetWorkOrderResponse) {
+    option (google.api.http) = { get: "/api/work-orders/{id}" response_body: "work_order" };
+  }
+  rpc ListWorkOrders(ListWorkOrdersRequest) returns (ListWorkOrdersResponse) {
+    option (google.api.http) = { get: "/api/work-orders" };
+  }
+  rpc UpdateWorkOrder(UpdateWorkOrderRequest) returns (UpdateWorkOrderResponse) {
+    option (google.api.http) = { put: "/api/work-orders/{id}" body: "*" response_body: "work_order" };
+  }
+  rpc DeleteWorkOrder(DeleteWorkOrderRequest) returns (DeleteWorkOrderResponse) {
+    option (google.api.http) = { delete: "/api/work-orders/{id}" };
+  }
+  rpc MovePartsToWork(MovePartsToWorkRequest) returns (MovePartsToWorkResponse) {
+    option (google.api.http) = { post: "/api/work-orders/{id}/move-parts-to-work" body: "*" response_body: "work_order" };
+  }
+  // Вызывается parts-service при подтверждении документа перемещения (без HTTP).
+  rpc ApplyMovementDocument(ApplyMovementDocumentRequest) returns (ApplyMovementDocumentResponse);
+}
+
+message WorkOrderLabor {
+  string id = 1;
+  string work_id = 2;
+  string description = 3;
+  string quantity = 4;
+  string unit_price = 5;
+  string amount = 6;
+  string executor_id = 7;
+  int32 sort_order = 8;
+  string executor_name = 9;
+}
+
+message WorkOrderPart {
+  string id = 1;
+  string part_id = 2;
+  string warehouse_id = 3;
+  string description = 4;
+  string quantity = 5;
+  string unit_price = 6;
+  string amount = 7;
+  bool issued = 8;
+  int32 sort_order = 9;
+}
+
+message WorkOrder {
+  string id = 1;
+  string order_number = 2;
+  string customer_id = 3;
+  string vehicle_id = 4;
+  string dealer_point_id = 5;
+  string warehouse_id = 6;
+  string repair_type = 7;
+  string status = 8;
+  string service_advisor_id = 9;
+  string complaint = 10;
+  string diagnosis = 11;
+  int64 mileage_km = 12;
+  string labor_cost = 13;
+  string parts_cost = 14;
+  string total_cost = 15;
+  int64 opened_at = 16;
+  int64 closed_at = 17;
+  bool parts_issued = 18;
+  int64 parts_issued_at = 19;
+  string notes = 20;
+  int64 created_at = 21;
+  int64 updated_at = 22;
+  repeated WorkOrderLabor labor = 23;
+  repeated WorkOrderPart parts = 24;
+  string movement_document_id = 25;
+  string movement_document_status = 26;
+  string service_advisor_name = 27;
+}
+
+message WorkOrderLaborInput {
+  string work_id = 1;
+  string description = 2;
+  string quantity = 3;
+  string unit_price = 4;
+  string executor_id = 5;
+  int32 sort_order = 6;
+}
+
+message WorkOrderPartInput {
+  string part_id = 1;
+  string warehouse_id = 2;
+  string description = 3;
+  string quantity = 4;
+  string unit_price = 5;
+  int32 sort_order = 6;
+}
+
+message CreateWorkOrderRequest {
+  string customer_id = 1;
+  string vehicle_id = 2;
+  string dealer_point_id = 3;
+  string warehouse_id = 4;
+  string repair_type = 5;
+  string status = 6;
+  string service_advisor_id = 7;
+  string complaint = 8;
+  string diagnosis = 9;
+  int64 mileage_km = 10;
+  int64 opened_at = 11;
+  string notes = 12;
+  repeated WorkOrderLaborInput labor = 13;
+  repeated WorkOrderPartInput parts = 14;
+}
+
+message CreateWorkOrderResponse {
+  WorkOrder work_order = 1;
+}
+
+message GetWorkOrderRequest {
+  string id = 1;
+}
+
+message GetWorkOrderResponse {
+  WorkOrder work_order = 1;
+}
+
+message ListWorkOrdersRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string status = 3;
+  string repair_type = 4;
+  string customer_id = 5;
+  string vehicle_id = 6;
+}
+
+message ListWorkOrdersResponse {
+  repeated WorkOrder work_orders = 1;
+  int32 total = 2;
+}
+
+message UpdateWorkOrderRequest {
+  string id = 1;
+  optional string customer_id = 2;
+  optional string vehicle_id = 3;
+  optional string dealer_point_id = 4;
+  optional string warehouse_id = 5;
+  optional string repair_type = 6;
+  optional string status = 7;
+  optional string service_advisor_id = 8;
+  optional string complaint = 9;
+  optional string diagnosis = 10;
+  optional int64 mileage_km = 11;
+  optional int64 opened_at = 12;
+  optional int64 closed_at = 13;
+  optional string notes = 14;
+  repeated WorkOrderLaborInput labor = 15;
+  repeated WorkOrderPartInput parts = 16;
+}
+
+message UpdateWorkOrderResponse {
+  WorkOrder work_order = 1;
+}
+
+message DeleteWorkOrderRequest {
+  string id = 1;
+}
+
+message DeleteWorkOrderResponse {}
+
+message MovePartsToWorkRequest {
+  string id = 1;
+  string issued_by = 2;
+}
+
+message MovePartsToWorkResponse {
+  WorkOrder work_order = 1;
+}
+
+message ApplyMovementDocumentRequest {
+  string work_order_id = 1;
+  string movement_document_id = 2;
+  string movement_document_status = 3;
+}
+
+message ApplyMovementDocumentResponse {
+  WorkOrder work_order = 1;
+}

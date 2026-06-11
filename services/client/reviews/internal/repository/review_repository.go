@@ -22,6 +22,12 @@ func NewReviewRepository(pool *pgxpool.Pool) *ReviewRepository {
 	return &ReviewRepository{pool: pool}
 }
 
+func (r *ReviewRepository) ClientProfile(ctx context.Context, clientID uuid.UUID) (email, fullName string, err error) {
+	query := `SELECT email, full_name FROM clients WHERE id = $1`
+	err = r.pool.QueryRow(ctx, query, clientID).Scan(&email, &fullName)
+	return email, fullName, err
+}
+
 func (r *ReviewRepository) ClientVehicle(ctx context.Context, userID, vehicleID uuid.UUID) (clientID uuid.UUID, err error) {
 	query := `
 		SELECT c.id

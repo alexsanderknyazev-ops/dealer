@@ -16,6 +16,14 @@ use ./services/employee/brands
 
 use ./services/employee/dealerpoints
 
+use ./services/employee/reviews
+
+use ./services/employee/workorders
+
+use ./services/employee/works
+
+use ./services/employee/employees
+
 use ./services/gateway/employee
 
 use ./services/gateway/client-public

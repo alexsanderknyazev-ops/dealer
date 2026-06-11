@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee-reviews-service
+  namespace: dealer
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  selector:
+    matchLabels:
+      app: employee-reviews-service
+  template:
+    metadata:
+      labels:
+        app: employee-reviews-service
+    spec:
+      containers:
+        - name: employee-reviews-service
+          image: __IMG_EMPLOYEE_REVIEWS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50063
+            - containerPort: 8096
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8096
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8096
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: EMPLOYEE_REVIEWS_GRPC_PORT
+              value: "50063"
+            - name: EMPLOYEE_REVIEWS_HTTP_PORT
+              value: "8096"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-app-secrets
+                  key: JWT_SECRET
+            - name: VEHICLES_GRPC_ADDR
+              value: "vehicles-service:50053"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_REVIEW_PUBLISHED
+              value: "review.published.v1"
+            - name: KAFKA_CONSUMER_GROUP_EMPLOYEE_REVIEWS
+              value: "employee-reviews"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"

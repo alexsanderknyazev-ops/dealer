@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/keepalive"
 	"google.golang.org/protobuf/encoding/protojson"
 
+	"github.com/dealer/dealer/pkg/grpclient"
 	authv1 "github.com/dealer/dealer/pkg/pb/auth/v1"
 	brandsv1 "github.com/dealer/dealer/pkg/pb/brands/v1"
 	customersv1 "github.com/dealer/dealer/pkg/pb/customers/v1"
@@ -20,7 +18,11 @@ import (
 	partsv1 "github.com/dealer/dealer/pkg/pb/parts/v1"
 	clientstatsv1 "github.com/dealer/dealer/pkg/pb/statistics/client/v1"
 	employeestatsv1 "github.com/dealer/dealer/pkg/pb/statistics/employee/v1"
+	reviewsv1 "github.com/dealer/dealer/pkg/pb/reviews/v1"
 	vehiclesv1 "github.com/dealer/dealer/pkg/pb/vehicles/v1"
+	workordersv1 "github.com/dealer/dealer/pkg/pb/workorders/v1"
+	employeesv1 "github.com/dealer/dealer/pkg/pb/employees/v1"
+	worksv1 "github.com/dealer/dealer/pkg/pb/works/v1"
 	"github.com/dealer/dealer/services/gateway/internal/config"
 )
 
@@ -62,14 +64,7 @@ func (s *Server) Handler() http.Handler {
 }
 
 func (s *Server) registerBackends(ctx context.Context) error {
-	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time:                30 * time.Second,
-			Timeout:             10 * time.Second,
-			PermitWithoutStream: true,
-		}),
-	}
+	opts := grpclient.DefaultDialOptions()
 	registrars := []struct {
 		name string
 		fn   func(context.Context, *runtime.ServeMux, string, []grpc.DialOption) error
@@ -84,6 +79,10 @@ func (s *Server) registerBackends(ctx context.Context) error {
 		{"dealer-points", dealerpointsv1.RegisterDealerPointsServiceHandlerFromEndpoint, s.cfg.DealerPointsGRPCAddr},
 		{"employee-statistics", employeestatsv1.RegisterEmployeeStatisticsServiceHandlerFromEndpoint, s.cfg.EmployeeStatisticsGRPCAddr},
 		{"client-statistics", clientstatsv1.RegisterClientStatisticsServiceHandlerFromEndpoint, s.cfg.ClientStatisticsGRPCAddr},
+		{"employee-reviews", reviewsv1.RegisterEmployeeReviewsServiceHandlerFromEndpoint, s.cfg.EmployeeReviewsGRPCAddr},
+		{"work-orders", workordersv1.RegisterWorkOrdersServiceHandlerFromEndpoint, s.cfg.WorkOrdersGRPCAddr},
+		{"works", worksv1.RegisterWorksServiceHandlerFromEndpoint, s.cfg.WorksGRPCAddr},
+		{"employees", employeesv1.RegisterEmployeesServiceHandlerFromEndpoint, s.cfg.EmployeesGRPCAddr},
 	}
 	for _, r := range registrars {
 		if err := r.fn(ctx, s.mux, r.addr, opts); err != nil {

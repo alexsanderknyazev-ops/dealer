@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package reviews.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/dealer/dealer/pkg/pb/reviews/v1;reviewsv1";
+
+// Отзывы для сотрудников (employee gateway).
+service EmployeeReviewsService {
+  rpc ListReviewsByClient(ListReviewsByClientRequest) returns (ListReviewsByClientResponse) {
+    option (google.api.http) = { get: "/api/clients/{client_id}/reviews" };
+  }
+  rpc ListReviews(ListReviewsRequest) returns (ListReviewsResponse) {
+    option (google.api.http) = { get: "/api/reviews" };
+  }
+  rpc GetReviewStats(GetReviewStatsRequest) returns (GetReviewStatsResponse) {
+    option (google.api.http) = { get: "/api/reviews/stats" };
+  }
+}
+
+message EmployeeReview {
+  string id = 1;
+  string review_id = 2;
+  string client_id = 3;
+  string user_id = 4;
+  string client_email = 5;
+  string client_full_name = 6;
+  string dealer_point_id = 7;
+  string vehicle_id = 8;
+  string vehicle_vin = 9;
+  string vehicle_make = 10;
+  string vehicle_model = 11;
+  int32 vehicle_year = 12;
+  int32 rating = 13;
+  string text = 14;
+  string status = 15;
+  int64 occurred_at = 16;
+  int64 created_at = 17;
+}
+
+message ListReviewsByClientRequest {
+  string client_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListReviewsByClientResponse {
+  repeated EmployeeReview reviews = 1;
+  int64 total = 2;
+}
+
+message ListReviewsRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string client_id = 3;
+  string dealer_point_id = 4;
+  string status = 5;
+}
+
+message ListReviewsResponse {
+  repeated EmployeeReview reviews = 1;
+  int64 total = 2;
+}
+
+message ReviewStatusCount {
+  string status = 1;
+  int64 count = 2;
+}
+
+message GetReviewStatsRequest {
+  string client_id = 1;
+  string dealer_point_id = 2;
+}
+
+message GetReviewStatsResponse {
+  int64 total_count = 1;
+  double average_rating = 2;
+  repeated ReviewStatusCount by_status = 3;
+}

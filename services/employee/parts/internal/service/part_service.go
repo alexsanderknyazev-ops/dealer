@@ -60,6 +60,8 @@ type partStockRepository interface {
 	ListByPart(ctx context.Context, partID uuid.UUID) ([]*domain.PartStock, error)
 	Upsert(ctx context.Context, partID, warehouseID uuid.UUID, quantity int32) error
 	ReplaceForPart(ctx context.Context, partID uuid.UUID, rows []domain.PartWarehouseQty) error
+	Deduct(ctx context.Context, partID, warehouseID uuid.UUID, quantity int32) (int32, error)
+	GetQuantity(ctx context.Context, partID, warehouseID uuid.UUID) (int32, error)
 }
 
 type BrandChecker interface {
@@ -89,17 +91,23 @@ func (noopDealerPointsChecker) WarehouseExists(context.Context, uuid.UUID) (bool
 }
 
 type PartService struct {
-	repo         partRepository
-	folderRepo   folderRepository
-	stockRepo    partStockRepository
-	brands       BrandChecker
-	dealerPoints DealerPointsChecker
+	repo            partRepository
+	folderRepo      folderRepository
+	stockRepo       partStockRepository
+	movementRepo    stockMovementRepository
+	movementDocRepo movementDocumentRepository
+	workOrders      WorkOrdersNotifier
+	brands          BrandChecker
+	dealerPoints    DealerPointsChecker
 }
 
 func NewPartService(
 	repo partRepository,
 	folderRepo folderRepository,
 	stockRepo partStockRepository,
+	movementRepo stockMovementRepository,
+	movementDocRepo movementDocumentRepository,
+	workOrders WorkOrdersNotifier,
 	brands BrandChecker,
 	dealerPoints DealerPointsChecker,
 ) *PartService {
@@ -109,8 +117,12 @@ func NewPartService(
 	if dealerPoints == nil {
 		dealerPoints = noopDealerPointsChecker{}
 	}
+	if workOrders == nil {
+		workOrders = noopWorkOrdersNotifier{}
+	}
 	return &PartService{
-		repo: repo, folderRepo: folderRepo, stockRepo: stockRepo,
+		repo: repo, folderRepo: folderRepo, stockRepo: stockRepo, movementRepo: movementRepo,
+		movementDocRepo: movementDocRepo, workOrders: workOrders,
 		brands: brands, dealerPoints: dealerPoints,
 	}
 }

@@ -27,6 +27,7 @@ var (
 
 type reviewRepository interface {
 	ClientVehicle(ctx context.Context, userID, vehicleID uuid.UUID) (uuid.UUID, error)
+	ClientProfile(ctx context.Context, clientID uuid.UUID) (email, fullName string, err error)
 	Create(ctx context.Context, review *domain.Review) error
 	ListByUserID(ctx context.Context, userID uuid.UUID) ([]*domain.Review, error)
 	GetByIDForUser(ctx context.Context, id, userID uuid.UUID) (*domain.Review, error)
@@ -43,7 +44,7 @@ type ReviewAPI interface {
 }
 
 type reviewPublisher interface {
-	Publish(ctx context.Context, review *domain.Review) error
+	Publish(ctx context.Context, review *domain.Review, clientEmail, clientFullName string) error
 }
 
 type ReviewService struct {
@@ -105,7 +106,8 @@ func (s *ReviewService) CreateReview(ctx context.Context, userID uuid.UUID, vehi
 		return nil, err
 	}
 	if s.publisher != nil {
-		if err := s.publisher.Publish(ctx, review); err != nil {
+		email, fullName, _ := s.repo.ClientProfile(ctx, clientID)
+		if err := s.publisher.Publish(ctx, review, email, fullName); err != nil {
 			obslog.Default.Warn("kafka publish failed", "event", "review.published", "review_id", review.ID.String(), "err", err)
 		}
 	}

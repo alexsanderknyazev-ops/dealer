@@ -11,6 +11,8 @@ type Config struct {
 	JWTSecret            string
 	BrandsGRPCAddr       string
 	DealerPointsGRPCAddr string
+	WorkOrdersGRPCAddr   string
+	EmployeesGRPCAddr    string
 }
 
 func Load() *Config {
@@ -23,5 +25,7 @@ func Load() *Config {
 		JWTSecret:            pj.JWTSecret,
 		BrandsGRPCAddr:       configenv.String("BRANDS_GRPC_ADDR", ""),
 		DealerPointsGRPCAddr: configenv.String("DEALER_POINTS_GRPC_ADDR", ""),
+		WorkOrdersGRPCAddr:   configenv.String("WORKORDERS_GRPC_ADDR", ""),
+		EmployeesGRPCAddr:    configenv.String("EMPLOYEES_GRPC_ADDR", ""),
 	}
 }

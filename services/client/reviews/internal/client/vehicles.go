@@ -26,7 +26,7 @@ func (c *VehiclesClient) Close() error {
 }
 
 func (c *VehiclesClient) GetByID(ctx context.Context, id string) (*vehiclesv1.Vehicle, error) {
-	resp, err := c.api.GetVehicle(ctx, &vehiclesv1.GetVehicleRequest{Id: id})
+	resp, err := c.api.GetVehicle(grpclient.OutgoingContext(ctx), &vehiclesv1.GetVehicleRequest{Id: id})
 	if err != nil {
 		return nil, err
 	}

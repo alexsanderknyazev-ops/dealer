@@ -79,6 +79,27 @@ func (r *PartStockRepository) ReplaceForPart(ctx context.Context, partID uuid.UU
 }
 
 // HasStockInWarehouse — есть ли у запчасти остаток на этом складе (для фильтра списка)
+func (r *PartStockRepository) Deduct(ctx context.Context, partID, warehouseID uuid.UUID, quantity int32) (int32, error) {
+	query := `
+		UPDATE part_stock
+		SET quantity = quantity - $3, updated_at = now()
+		WHERE part_id = $1 AND warehouse_id = $2 AND quantity >= $3
+		RETURNING quantity
+	`
+	var remaining int32
+	err := r.pool.QueryRow(ctx, query, partID, warehouseID, quantity).Scan(&remaining)
+	return remaining, err
+}
+
+func (r *PartStockRepository) GetQuantity(ctx context.Context, partID, warehouseID uuid.UUID) (int32, error) {
+	var qty int32
+	err := r.pool.QueryRow(ctx,
+		`SELECT quantity FROM part_stock WHERE part_id = $1 AND warehouse_id = $2`,
+		partID, warehouseID,
+	).Scan(&qty)
+	return qty, err
+}
+
 func (r *PartStockRepository) PartIDsWithStockInWarehouse(ctx context.Context, warehouseID uuid.UUID) ([]uuid.UUID, error) {
 	query := `SELECT part_id FROM part_stock WHERE warehouse_id = $1 AND quantity > 0`
 	rows, err := r.pool.Query(ctx, query, warehouseID)

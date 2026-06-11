@@ -4,15 +4,16 @@
 
 ```
 Browser (REST/JSON)
-  → auth-service :8080 (SPA + /api/login + proxy)
+  → auth-service :8080 (SPA + proxy)
     → gateway-service :8090 (grpc-gateway)
       → *-service gRPC :5005x
 ```
 
-- Контракт API описан в `api/proto/**` с `google.api.http` аннотациями.
+- Контракт API описан в `api/proto/**` с `google.api.http` аннотациями (включая auth).
 - `make proto` генерирует `*.pb.gw.go` в `pkg/pb/**`.
 - `gateway-service` транслирует REST в gRPC и пробрасывает `Authorization` в metadata.
 - Domain-сервисы проверяют JWT на gRPC через `pkg/grpcauth` interceptor.
+- Domain-сервисы отдают только gRPC API; HTTP на портах 808x — health/metrics (`/healthz`, `/readyz`).
 
 ## Локальный запуск
 
@@ -30,26 +31,19 @@ docker compose restart gateway-service
 
 Прямой доступ к gateway (без auth proxy): `http://localhost:8090/api/customers`.
 
-## Миграция
+## Auth endpoints
 
-1. **Сейчас**: gateway + legacy HTTP handlers в сервисах (оба пути работают).
-2. **Межсервисно (gRPC)**:
-   - `deals-service` → `customers-service`, `vehicles-service` (`GetCustomer` / `GetVehicle` для referential integrity)
-   - `vehicles-service` → `brands-service` (`GetBrand` при `brand_id`)
-   - `vehicles-service` → `dealer-points-service` (`GetDealerPoint` / `GetLegalEntity` / `GetWarehouse`)
-   - `parts-service` → `brands-service`, `dealer-points-service` (FK + stock `warehouse_id`)
-   - JWT пробрасывается через `pkg/grpclient` (из gRPC metadata или HTTP `Authorization`)
-3. **Финал**: удалить `internal/httpapi` из domain-сервисов, оставить только gRPC server.
+`/api/register`, `/api/login`, `/api/refresh`, `/api/logout`, `/api/me` — в `auth.proto`, REST через gateway.
+`auth-service` проксирует эти пути на gateway вместе с domain API.
+`GET /api/me` читает Bearer-токен из `Authorization` (metadata в gRPC `Validate`).
 
-Переменные окружения:
+## Межсервисно (gRPC)
 
 | Сервис | Env |
 |--------|-----|
+| gateway | `AUTH_GRPC_ADDR`, `*_GRPC_ADDR` для всех доменов |
 | deals | `CUSTOMERS_GRPC_ADDR`, `VEHICLES_GRPC_ADDR` |
 | vehicles | `BRANDS_GRPC_ADDR`, `DEALER_POINTS_GRPC_ADDR` |
 | parts | `BRANDS_GRPC_ADDR`, `DEALER_POINTS_GRPC_ADDR` |
 
-## Auth endpoints
-
-`/api/register`, `/api/login`, `/api/refresh`, `/api/logout`, `/api/me` пока остаются на HTTP в `auth-service`.
-Их можно перенести в proto + gateway отдельным этапом.
+JWT пробрасывается через `pkg/grpclient` (из gRPC metadata или HTTP `Authorization`).

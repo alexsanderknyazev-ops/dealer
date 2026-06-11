@@ -22,7 +22,6 @@ import (
 	"github.com/dealer/dealer/services/parts/internal/client"
 	"github.com/dealer/dealer/services/parts/internal/config"
 	grpcserver "github.com/dealer/dealer/services/parts/internal/grpc"
-	"github.com/dealer/dealer/services/parts/internal/httpapi"
 	"github.com/dealer/dealer/services/parts/internal/repository"
 	"github.com/dealer/dealer/services/parts/internal/service"
 )
@@ -97,7 +96,6 @@ func main() {
 	}()
 
 	httpMux := http.NewServeMux()
-	httpapi.NewHandler(svc, cfg.JWTSecret).RegisterRoutes(httpMux)
 	observe.RegisterHTTP(httpMux, health.Postgres(pool))
 	httpHandler := observe.WrapHTTP(serviceName, httpMux, logger)
 	httpLis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.HTTPPort))

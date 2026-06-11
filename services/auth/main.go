@@ -81,7 +81,6 @@ func main() {
 	}()
 
 	httpMux := http.NewServeMux()
-	httpapi.NewHandler(authSvc).RegisterRoutes(httpMux)
 	registerDomainAPIProxy(httpMux, cfg, logger)
 	if cfg.StaticDir != "" {
 		httpMux.Handle("/", httpapi.SPAFileServer(http.Dir(cfg.StaticDir)))

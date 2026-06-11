@@ -81,6 +81,7 @@ services:
       - "8090:8090"
     environment:
       GATEWAY_HTTP_PORT: "8090"
+      AUTH_GRPC_ADDR: "auth-service:50051"
       CUSTOMERS_GRPC_ADDR: "customers-service:50052"
       VEHICLES_GRPC_ADDR: "vehicles-service:50053"
       DEALS_GRPC_ADDR: "deals-service:50054"
@@ -88,6 +89,8 @@ services:
       BRANDS_GRPC_ADDR: "brands-service:50056"
       DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
     depends_on:
+      auth-service:
+        condition: service_started
       dealer-points-service:
         condition: service_started
       brands-service:
@@ -121,8 +124,6 @@ services:
       JWT_SECRET: "change-me-in-production"
       GATEWAY_SERVICE_URL: "http://gateway-service:8090"
     depends_on:
-      gateway-service:
-        condition: service_started
       postgres:
         condition: service_healthy
       redis:
@@ -136,7 +137,6 @@ services:
       dockerfile: build/customers-service.Dockerfile
     ports:
       - "50052:50052"
-      - "8081:8081"
     environment:
       CUSTOMERS_GRPC_PORT: "50052"
       CUSTOMERS_HTTP_PORT: "8081"
@@ -152,7 +152,6 @@ services:
       dockerfile: build/vehicles-service.Dockerfile
     ports:
       - "50053:50053"
-      - "8082:8082"
     environment:
       VEHICLES_GRPC_PORT: "50053"
       VEHICLES_HTTP_PORT: "8082"
@@ -174,7 +173,6 @@ services:
       dockerfile: build/deals-service.Dockerfile
     ports:
       - "50054:50054"
-      - "8083:8083"
     environment:
       DEALS_GRPC_PORT: "50054"
       DEALS_HTTP_PORT: "8083"
@@ -196,7 +194,6 @@ services:
       dockerfile: build/parts-service.Dockerfile
     ports:
       - "50055:50055"
-      - "8084:8084"
     environment:
       PARTS_GRPC_PORT: "50055"
       PARTS_HTTP_PORT: "8084"
@@ -218,7 +215,6 @@ services:
       dockerfile: build/brands-service.Dockerfile
     ports:
       - "50056:50056"
-      - "8085:8085"
     environment:
       BRANDS_GRPC_PORT: "50056"
       BRANDS_HTTP_PORT: "8085"
@@ -234,7 +230,6 @@ services:
       dockerfile: build/dealer-points-service.Dockerfile
     ports:
       - "50057:50057"
-      - "8086:8086"
     environment:
       DEALER_POINTS_GRPC_PORT: "50057"
       DEALER_POINTS_HTTP_PORT: "8086"

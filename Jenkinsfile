@@ -116,7 +116,7 @@ fi
 
 services=()
 if [ "${all_changed}" -eq 1 ]; then
-  services=(auth-service customers-service vehicles-service deals-service parts-service brands-service dealer-points-service)
+  services=(auth-service customers-service vehicles-service deals-service parts-service brands-service dealer-points-service gateway-service)
 else
   rg -n '^services/auth/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(auth-service)
   rg -n '^services/customers/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(customers-service)
@@ -125,6 +125,7 @@ else
   rg -n '^services/parts/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(parts-service)
   rg -n '^services/brands/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(brands-service)
   rg -n '^services/dealerpoints/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(dealer-points-service)
+  rg -n '^services/gateway/' .ci/changed-files.txt >/dev/null 2>&1 && services+=(gateway-service)
 fi
 
 uniq=()
@@ -255,6 +256,7 @@ if [ "${HAS_SERVICE_CHANGES}" = "true" ]; then
       parts-service) targets+=(services/parts) ;;
       brands-service) targets+=(services/brands) ;;
       dealer-points-service) targets+=(services/dealerpoints) ;;
+      gateway-service) targets+=(services/gateway) ;;
       *) echo "Unknown changed service: ${svc}" >&2; exit 1 ;;
     esac
   done
@@ -332,7 +334,7 @@ export DOCKER_REGISTRY="\${DOCKER_REGISTRY}"
 export BUILD_NUMBER='${env.BUILD_NUMBER}'
 cd "\${WORKSPACE}"
 bash scripts/ci/jenkins-docker.sh prepare
-for svc in auth-service customers-service vehicles-service deals-service parts-service brands-service dealer-points-service; do
+for svc in customers-service vehicles-service deals-service parts-service brands-service dealer-points-service auth-service gateway-service; do
   case "\${svc}" in
     auth-service) df='build/auth-service.Dockerfile' ;;
     customers-service) df='build/customers-service.Dockerfile' ;;
@@ -341,6 +343,7 @@ for svc in auth-service customers-service vehicles-service deals-service parts-s
     parts-service) df='build/parts-service.Dockerfile' ;;
     brands-service) df='build/brands-service.Dockerfile' ;;
     dealer-points-service) df='build/dealer-points-service.Dockerfile' ;;
+    gateway-service) df='build/gateway-service.Dockerfile' ;;
     *) echo "Unknown service: \${svc}" >&2; exit 1 ;;
   esac
   bash scripts/ci/jenkins-docker.sh build "\${svc}" "\${df}"
@@ -519,6 +522,10 @@ apply_service() {
       dep="services/dealerpoints/k8s/dealerpoints-deployment.yaml"; svcf="services/dealerpoints/k8s/dealerpoints-service.yaml"
       sed -e "s|__IMG_DEALER_POINTS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
+    gateway-service)
+      dep="services/gateway/k8s/gateway-deployment.yaml"; svcf="services/gateway/k8s/gateway-service.yaml"
+      sed -e "s|__IMG_GATEWAY__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
+      ;;
     *) echo "Unknown service \${svc}" >&2; exit 1 ;;
   esac
   kapply -f "\$svcf"
@@ -535,6 +542,7 @@ if [ -n "\${NEW_VERSION_SERVICES}" ]; then
       parts-service) IMG="\${K8S_PULL_REG}/parts-service:\${VER_PARTS_SERVICE}"; VER="\${VER_PARTS_SERVICE}" ;;
       brands-service) IMG="\${K8S_PULL_REG}/brands-service:\${VER_BRANDS_SERVICE}"; VER="\${VER_BRANDS_SERVICE}" ;;
       dealer-points-service) IMG="\${K8S_PULL_REG}/dealer-points-service:\${VER_DEALER_POINTS_SERVICE}"; VER="\${VER_DEALER_POINTS_SERVICE}" ;;
+      gateway-service) IMG="\${K8S_PULL_REG}/gateway-service:\${VER_GATEWAY_SERVICE}"; VER="\${VER_GATEWAY_SERVICE}" ;;
       *) echo "Unknown changed service \${svc}" >&2; exit 1 ;;
     esac
     load_image_to_minikube "\$svc" "\$IMG" "\$VER"

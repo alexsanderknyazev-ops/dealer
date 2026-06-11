@@ -1,4 +1,4 @@
-# Лабораторный стек dealer: инфраструктура (Postgres, Redis, Zookeeper, Kafka) + 7 микросервисов.
+# Лабораторный стек dealer: инфраструктура (Postgres, Redis, Zookeeper, Kafka) + gateway + 7 микросервисов.
 # Плейсхолдеры подставляет Jenkins: __K8S_DB_HOST__, __K8S_DB_PORT__, __IMG_*__, __PULL_POLICY__
 # Секреты БД создаются при деплое в Secret dealer-db (keys: POSTGRES_PASSWORD, POSTGRES_DSN).
 # По умолчанию K8S_DB_HOST=postgres — совпадает с Service ниже.
@@ -341,18 +341,8 @@ spec:
               value: "auth.events"
             - name: JWT_SECRET
               value: "change-me-in-production"
-            - name: CUSTOMERS_SERVICE_URL
-              value: "http://customers-service.dealer.svc.cluster.local:8081"
-            - name: VEHICLES_SERVICE_URL
-              value: "http://vehicles-service.dealer.svc.cluster.local:8082"
-            - name: DEALS_SERVICE_URL
-              value: "http://deals-service.dealer.svc.cluster.local:8083"
-            - name: PARTS_SERVICE_URL
-              value: "http://parts-service.dealer.svc.cluster.local:8084"
-            - name: BRANDS_SERVICE_URL
-              value: "http://brands-service.dealer.svc.cluster.local:8085"
-            - name: DEALER_POINTS_SERVICE_URL
-              value: "http://dealer-points-service.dealer.svc.cluster.local:8086"
+            - name: GATEWAY_SERVICE_URL
+              value: "http://gateway-service.dealer.svc.cluster.local:8090"
 ---
 #Service
 apiVersion: v1
@@ -820,3 +810,76 @@ spec:
                   key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
+---
+#Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: dealer
+spec:
+  selector:
+    app: gateway-service
+  ports:
+    - name: http
+      port: 8090
+      targetPort: 8090
+---
+#Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-service
+  template:
+    metadata:
+      labels:
+        app: gateway-service
+    spec:
+      containers:
+        - name: gateway-service
+          image: __IMG_GATEWAY__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 8090
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: GATEWAY_HTTP_PORT
+              value: "8090"
+            - name: AUTH_GRPC_ADDR
+              value: "auth-service:50051"
+            - name: CUSTOMERS_GRPC_ADDR
+              value: "customers-service:50052"
+            - name: VEHICLES_GRPC_ADDR
+              value: "vehicles-service:50053"
+            - name: DEALS_GRPC_ADDR
+              value: "deals-service:50054"
+            - name: PARTS_GRPC_ADDR
+              value: "parts-service:50055"
+            - name: BRANDS_GRPC_ADDR
+              value: "brands-service:50056"
+            - name: DEALER_POINTS_GRPC_ADDR
+              value: "dealer-points-service:50057"

@@ -2,10 +2,12 @@ package grpc
 
 import (
 	"context"
+	"strings"
 
 	"github.com/dealer/dealer/auth-service/internal/service"
 	authv1 "github.com/dealer/dealer/pkg/pb/auth/v1"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -87,15 +89,31 @@ func (s *Server) Logout(ctx context.Context, req *authv1.LogoutRequest) (*authv1
 	return &authv1.LogoutResponse{}, nil
 }
 
-// Validate проверяет access-токен.
+// Validate проверяет access-токен (из тела запроса или Authorization metadata для GET /api/me).
 func (s *Server) Validate(ctx context.Context, req *authv1.ValidateRequest) (*authv1.ValidateResponse, error) {
-	if req.AccessToken == "" {
+	token := req.AccessToken
+	if token == "" {
+		token = bearerFromMetadata(ctx)
+	}
+	if token == "" {
 		return &authv1.ValidateResponse{Valid: false}, nil
 	}
-	userID, email, valid := s.svc.Validate(ctx, req.AccessToken)
+	userID, email, valid := s.svc.Validate(ctx, token)
 	return &authv1.ValidateResponse{
 		UserId: userID,
 		Email:  email,
 		Valid:  valid,
 	}, nil
+}
+
+func bearerFromMetadata(ctx context.Context) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+	vals := md.Get("authorization")
+	if len(vals) == 0 {
+		return ""
+	}
+	return strings.TrimPrefix(strings.TrimSpace(vals[0]), "Bearer ")
 }

@@ -174,6 +174,7 @@ version_file_for_service() {
 	parts-service) echo services/parts/VERSION ;;
 	brands-service) echo services/brands/VERSION ;;
 	dealer-points-service) echo services/dealerpoints/VERSION ;;
+	gateway-service) echo services/gateway/VERSION ;;
 	*) echo ""; return 1 ;;
 	esac
 }
@@ -187,6 +188,7 @@ append_version_export() {
 	parts-service) echo "export VER_PARTS_SERVICE=$2" ;;
 	brands-service) echo "export VER_BRANDS_SERVICE=$2" ;;
 	dealer-points-service) echo "export VER_DEALER_POINTS_SERVICE=$2" ;;
+	gateway-service) echo "export VER_GATEWAY_SERVICE=$2" ;;
 	*) return 1 ;;
 	esac
 }
@@ -207,7 +209,8 @@ cmd_prepare() {
 		'deals-service:build/deals-service.Dockerfile' \
 		'parts-service:build/parts-service.Dockerfile' \
 		'brands-service:build/brands-service.Dockerfile' \
-		'dealer-points-service:build/dealer-points-service.Dockerfile'; do
+		'dealer-points-service:build/dealer-points-service.Dockerfile' \
+		'gateway-service:build/gateway-service.Dockerfile'; do
 		name="${entry%%:*}"
 		vf="$(version_file_for_service "$name")"
 		test -n "$vf" && test -f "$vf" || {

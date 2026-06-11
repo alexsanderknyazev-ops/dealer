@@ -86,6 +86,9 @@ func (s *Server) UpdateDeal(ctx context.Context, req *dealsv1.UpdateDealRequest)
 		if errors.Is(err, service.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, "deal not found")
 		}
+		if errors.Is(err, service.ErrCustomerNotFound) || errors.Is(err, service.ErrVehicleNotFound) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &dealsv1.UpdateDealResponse{Deal: toProto(d)}, nil

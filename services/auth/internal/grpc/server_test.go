@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 
@@ -149,6 +150,24 @@ func TestAuthGRPC_RegisterLoginRefreshValidate(t *testing.T) {
 		t.Fatalf("%v", v2)
 	}
 	_, _ = cli.Logout(ctx, &authv1.LogoutRequest{RefreshToken: ref.RefreshToken})
+}
+
+func TestAuthGRPC_ValidateFromMetadata(t *testing.T) {
+	svc, cleanup := newAuthSvc(t)
+	defer cleanup()
+	s := grpc.NewServer()
+	authv1.RegisterAuthServiceServer(s, NewServer(svc))
+	cli := dialAuth(t, s)
+	ctx := context.Background()
+	reg, err := cli.Register(ctx, &authv1.RegisterRequest{Email: "meta@grpc.test", Password: testGRPCRegisterPass, Name: "M"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	mdCtx := metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+reg.AccessToken)
+	v, err := cli.Validate(mdCtx, &authv1.ValidateRequest{})
+	if err != nil || !v.Valid || v.Email != "meta@grpc.test" {
+		t.Fatalf("validate metadata: err=%v resp=%+v", err, v)
+	}
 }
 
 func TestAuthGRPC_RegisterDuplicate(t *testing.T) {

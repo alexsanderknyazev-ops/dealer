@@ -73,6 +73,24 @@ func NewDealService(repo dealRepository, refs ReferenceChecker) *DealService {
 	return &DealService{repo: repo, refs: refs}
 }
 
+func (s *DealService) validateReferences(ctx context.Context, customerID, vehicleID uuid.UUID) error {
+	customerExists, err := s.refs.CustomerExists(ctx, customerID)
+	if err != nil {
+		return err
+	}
+	if !customerExists {
+		return ErrCustomerNotFound
+	}
+	vehicleExists, err := s.refs.VehicleExists(ctx, vehicleID)
+	if err != nil {
+		return err
+	}
+	if !vehicleExists {
+		return ErrVehicleNotFound
+	}
+	return nil
+}
+
 func (s *DealService) Create(ctx context.Context, in CreateDealInput) (*domain.Deal, error) {
 	stage := in.Stage
 	if stage == "" {
@@ -86,19 +104,8 @@ func (s *DealService) Create(ctx context.Context, in CreateDealInput) (*domain.D
 	if err != nil {
 		return nil, errors.New("invalid vehicle_id")
 	}
-	customerExists, err := s.refs.CustomerExists(ctx, cid)
-	if err != nil {
+	if err := s.validateReferences(ctx, cid, vid); err != nil {
 		return nil, err
-	}
-	if !customerExists {
-		return nil, ErrCustomerNotFound
-	}
-	vehicleExists, err := s.refs.VehicleExists(ctx, vid)
-	if err != nil {
-		return nil, err
-	}
-	if !vehicleExists {
-		return nil, ErrVehicleNotFound
 	}
 	amount := strings.TrimSpace(in.Amount)
 	if amount == "" {
@@ -191,7 +198,11 @@ func mergeDealUpdateInput(d *domain.Deal, in UpdateDealInput) {
 	applyDealCustomerIDIfValid(d, in.CustomerID)
 	applyDealVehicleIDIfValid(d, in.VehicleID)
 	if in.Amount != nil {
-		d.Amount = *in.Amount
+		amount := strings.TrimSpace(*in.Amount)
+		if amount == "" {
+			amount = "0"
+		}
+		d.Amount = amount
 	}
 	if in.Stage != nil {
 		d.Stage = *in.Stage
@@ -212,6 +223,9 @@ func (s *DealService) Update(ctx context.Context, id string, in UpdateDealInput)
 		return nil, ErrNotFound
 	}
 	mergeDealUpdateInput(existing, in)
+	if err := s.validateReferences(ctx, existing.CustomerID, existing.VehicleID); err != nil {
+		return nil, err
+	}
 	existing.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, existing); err != nil {
 		return nil, err

@@ -2,6 +2,12 @@
 package routepaths
 
 const (
+	APIRegister = "/api/register"
+	APILogin    = "/api/login"
+	APIRefresh  = "/api/refresh"
+	APILogout   = "/api/logout"
+	APIMe       = "/api/me"
+
 	APICustomers        = "/api/customers"
 	APICustomersPrefix  = "/api/customers/"
 	APIVehicles         = "/api/vehicles"
@@ -23,6 +29,11 @@ const (
 // GatewayProxyPrefixes — REST paths served by grpc-gateway (Variant A).
 func GatewayProxyPrefixes() []string {
 	return []string{
+		APIRegister,
+		APILogin,
+		APIRefresh,
+		APILogout,
+		APIMe,
 		APICustomers,
 		APIVehicles,
 		APIDeals,

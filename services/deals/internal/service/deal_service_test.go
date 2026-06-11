@@ -218,6 +218,21 @@ func TestDealService_Get_DBErr(t *testing.T) {
 	}
 }
 
+func TestDealService_Update_ReferenceIntegrity(t *testing.T) {
+	missing := false
+	r := &memDealRepo{byID: map[uuid.UUID]*domain.Deal{}}
+	s := NewDealService(r, nil)
+	cid, vid := uuid.New(), uuid.New()
+	d, _ := s.Create(context.Background(), CreateDealInput{CustomerID: cid.String(), VehicleID: vid.String(), Amount: "1"})
+
+	badCustomer := uuid.New().String()
+	s2 := NewDealService(r, &memRefs{custOK: &missing})
+	_, err := s2.Update(context.Background(), d.ID.String(), UpdateDealInput{CustomerID: &badCustomer})
+	if !errors.Is(err, ErrCustomerNotFound) {
+		t.Fatalf("want ErrCustomerNotFound, got %v", err)
+	}
+}
+
 func TestDealService_Update_NotFound(t *testing.T) {
 	s := NewDealService(&memDealRepo{byID: map[uuid.UUID]*domain.Deal{}}, nil)
 	x := "x"

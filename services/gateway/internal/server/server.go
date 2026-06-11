@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/protobuf/encoding/protojson"
 
+	authv1 "github.com/dealer/dealer/pkg/pb/auth/v1"
 	brandsv1 "github.com/dealer/dealer/pkg/pb/brands/v1"
 	customersv1 "github.com/dealer/dealer/pkg/pb/customers/v1"
 	dealerpointsv1 "github.com/dealer/dealer/pkg/pb/dealerpoints/v1"
@@ -72,6 +73,7 @@ func (s *Server) registerBackends(ctx context.Context) error {
 		fn   func(context.Context, *runtime.ServeMux, string, []grpc.DialOption) error
 		addr string
 	}{
+		{"auth", authv1.RegisterAuthServiceHandlerFromEndpoint, s.cfg.AuthGRPCAddr},
 		{"customers", customersv1.RegisterCustomersServiceHandlerFromEndpoint, s.cfg.CustomersGRPCAddr},
 		{"vehicles", vehiclesv1.RegisterVehiclesServiceHandlerFromEndpoint, s.cfg.VehiclesGRPCAddr},
 		{"deals", dealsv1.RegisterDealsServiceHandlerFromEndpoint, s.cfg.DealsGRPCAddr},

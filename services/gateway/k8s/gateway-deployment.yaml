@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-service
+  template:
+    metadata:
+      labels:
+        app: gateway-service
+    spec:
+      containers:
+        - name: gateway-service
+          image: __IMG_GATEWAY__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 8090
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: GATEWAY_HTTP_PORT
+              value: "8090"
+            - name: AUTH_GRPC_ADDR
+              value: "auth-service:50051"
+            - name: CUSTOMERS_GRPC_ADDR
+              value: "customers-service:50052"
+            - name: VEHICLES_GRPC_ADDR
+              value: "vehicles-service:50053"
+            - name: DEALS_GRPC_ADDR
+              value: "deals-service:50054"
+            - name: PARTS_GRPC_ADDR
+              value: "parts-service:50055"
+            - name: BRANDS_GRPC_ADDR
+              value: "brands-service:50056"
+            - name: DEALER_POINTS_GRPC_ADDR
+              value: "dealer-points-service:50057"

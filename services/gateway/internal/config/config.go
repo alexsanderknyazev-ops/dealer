@@ -6,18 +6,20 @@ import (
 )
 
 type Config struct {
-	HTTPPort              int
-	CustomersGRPCAddr     string
-	VehiclesGRPCAddr      string
-	DealsGRPCAddr         string
-	PartsGRPCAddr         string
-	BrandsGRPCAddr        string
-	DealerPointsGRPCAddr  string
+	HTTPPort             int
+	AuthGRPCAddr         string
+	CustomersGRPCAddr    string
+	VehiclesGRPCAddr     string
+	DealsGRPCAddr        string
+	PartsGRPCAddr        string
+	BrandsGRPCAddr       string
+	DealerPointsGRPCAddr string
 }
 
 func Load() *Config {
 	return &Config{
 		HTTPPort:             getEnvInt("GATEWAY_HTTP_PORT", 8090),
+		AuthGRPCAddr:         getEnv("AUTH_GRPC_ADDR", "127.0.0.1:50051"),
 		CustomersGRPCAddr:    getEnv("CUSTOMERS_GRPC_ADDR", "127.0.0.1:50052"),
 		VehiclesGRPCAddr:     getEnv("VEHICLES_GRPC_ADDR", "127.0.0.1:50053"),
 		DealsGRPCAddr:        getEnv("DEALS_GRPC_ADDR", "127.0.0.1:50054"),

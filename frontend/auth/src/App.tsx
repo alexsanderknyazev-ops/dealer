@@ -28,14 +28,22 @@ import { WarehouseForm } from './WarehouseForm'
 
 function RequireAuth(props: { children: ReactNode }) {
   const { user, loading } = useAuth()
-  if (loading) return <div className="layout"><div className="main loading">Загрузка…</div></div>
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center text-muted-foreground">Загрузка…</div>
+    )
+  }
   if (!user) return <Navigate to="/login" replace />
   return <>{props.children}</>
 }
 
 function GuestOnly(props: { children: ReactNode }) {
   const { user, loading } = useAuth()
-  if (loading) return <div className="layout"><div className="main loading">Загрузка…</div></div>
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center text-muted-foreground">Загрузка…</div>
+    )
+  }
   if (user) return <Navigate to="/" replace />
   return <>{props.children}</>
 }

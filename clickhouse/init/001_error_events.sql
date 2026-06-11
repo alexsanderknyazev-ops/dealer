@@ -25,4 +25,4 @@ CREATE TABLE IF NOT EXISTS analytics.error_events
 ENGINE = MergeTree()
 PARTITION BY toYYYYMM(occurred_at)
 ORDER BY (service, occurred_at)
-TTL occurred_at + INTERVAL 90 DAY;
+TTL toDateTime(occurred_at) + INTERVAL 90 DAY;

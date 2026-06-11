@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth'
-import './Form.css'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export function Login() {
   const { login } = useAuth()
@@ -26,39 +29,51 @@ export function Login() {
   }
 
   return (
-    <div className="form-card">
-      <h1 className="form-title">Вход</h1>
-      <form onSubmit={handleSubmit} className="form">
-        {error && <div className="form-error">{error}</div>}
-        <label className="form-label">
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-            className="form-input"
-          />
-        </label>
-        <label className="form-label">
-          Пароль
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-            className="form-input"
-          />
-        </label>
-        <button type="submit" disabled={submitting} className="form-submit">
-          {submitting ? 'Вход…' : 'Войти'}
-        </button>
-      </form>
-      <p className="form-footer">
-        Нет аккаунта? <Link to="/register">Регистрация</Link>
-      </p>
-    </div>
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>Вход</CardTitle>
+        <CardDescription>Войдите в систему управления дилером</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Пароль</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? 'Вход…' : 'Войти'}
+          </Button>
+        </form>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Нет аккаунта?{' '}
+          <Link to="/register" className="font-medium text-primary hover:underline">
+            Регистрация
+          </Link>
+        </p>
+      </CardContent>
+    </Card>
   )
 }

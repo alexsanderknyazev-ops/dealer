@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import { ThemeProvider } from '@/app/ThemeProvider'
 import App from './App'
 import { AuthProvider } from './auth'
 import './index.css'
@@ -30,9 +31,11 @@ if (!root) {
     <React.StrictMode>
       <ErrorBoundary>
         <BrowserRouter>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </ThemeProvider>
         </BrowserRouter>
       </ErrorBoundary>
     </React.StrictMode>,

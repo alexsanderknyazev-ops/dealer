@@ -19,3 +19,17 @@ const (
 	APIWarehouses       = "/api/warehouses"
 	APIWarehousesPrefix = "/api/warehouses/"
 )
+
+// GatewayProxyPrefixes — REST paths served by grpc-gateway (Variant A).
+func GatewayProxyPrefixes() []string {
+	return []string{
+		APICustomers,
+		APIVehicles,
+		APIDeals,
+		APIParts,
+		APIBrands,
+		APIDealerPoints,
+		APILegalEntities,
+		APIWarehouses,
+	}
+}

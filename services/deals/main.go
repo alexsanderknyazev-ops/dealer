@@ -14,10 +14,12 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/dealer/dealer/pkg/dbschema"
+	"github.com/dealer/dealer/pkg/grpcauth"
 	"github.com/dealer/dealer/pkg/health"
 	"github.com/dealer/dealer/pkg/observe"
 	dealsv1 "github.com/dealer/dealer/pkg/pb/deals/v1"
 	"github.com/dealer/dealer/pkg/postgres"
+	"github.com/dealer/dealer/services/deals/internal/client"
 	"github.com/dealer/dealer/services/deals/internal/config"
 	grpcserver "github.com/dealer/dealer/services/deals/internal/grpc"
 	"github.com/dealer/dealer/services/deals/internal/httpapi"
@@ -41,9 +43,27 @@ func main() {
 	defer pool.Close()
 
 	repo := repository.NewDealRepository(pool)
-	svc := service.NewDealService(repo)
+	var refs service.ReferenceChecker
+	if cfg.CustomersGRPCAddr != "" && cfg.VehiclesGRPCAddr != "" {
+		dialCtx, dialCancel := context.WithTimeout(ctx, 10*time.Second)
+		refClient, err := client.NewReferenceChecker(dialCtx, cfg.CustomersGRPCAddr, cfg.VehiclesGRPCAddr)
+		dialCancel()
+		if err != nil {
+			logger.Error("gRPC ref clients connect failed", "err", err)
+			os.Exit(1)
+		}
+		defer refClient.Close()
+		refs = refClient
+		logger.Info("reference checks via gRPC", "customers", cfg.CustomersGRPCAddr, "vehicles", cfg.VehiclesGRPCAddr)
+	} else {
+		logger.Warn("CUSTOMERS_GRPC_ADDR/VEHICLES_GRPC_ADDR not set; deal reference checks disabled")
+	}
+	svc := service.NewDealService(repo, refs)
 
-	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger)...)
+	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
+		JWTSecret:  cfg.JWTSecret,
+		WriteRoles: []string{"admin", "manager", "sales"},
+	})...)
 	dealsv1.RegisterDealsServiceServer(gsrv, grpcserver.NewServer(svc))
 	reflection.Register(gsrv)
 

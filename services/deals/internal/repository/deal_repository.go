@@ -111,14 +111,3 @@ func (r *DealRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-func (r *DealRepository) CustomerExists(ctx context.Context, id uuid.UUID) (bool, error) {
-	var exists bool
-	err := r.pool.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM customers WHERE id = $1)", id).Scan(&exists)
-	return exists, err
-}
-
-func (r *DealRepository) VehicleExists(ctx context.Context, id uuid.UUID) (bool, error) {
-	var exists bool
-	err := r.pool.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM vehicles WHERE id = $1)", id).Scan(&exists)
-	return exists, err
-}

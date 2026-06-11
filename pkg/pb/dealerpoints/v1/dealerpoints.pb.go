@@ -7,6 +7,7 @@
 package dealerpointsv1
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -1993,7 +1994,7 @@ var File_dealerpoints_v1_dealerpoints_proto protoreflect.FileDescriptor
 
 const file_dealerpoints_v1_dealerpoints_proto_rawDesc = "" +
 	"\n" +
-	"\"dealerpoints/v1/dealerpoints.proto\x12\x0fdealerpoints.v1\"\x89\x01\n" +
+	"\"dealerpoints/v1/dealerpoints.proto\x12\x0fdealerpoints.v1\x1a\x1cgoogle/api/annotations.proto\"\x89\x01\n" +
 	"\vDealerPoint\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
@@ -2122,26 +2123,26 @@ const file_dealerpoints_v1_dealerpoints_proto_rawDesc = "" +
 	"\twarehouse\x18\x01 \x01(\v2\x1a.dealerpoints.v1.WarehouseR\twarehouse\"(\n" +
 	"\x16DeleteWarehouseRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x19\n" +
-	"\x17DeleteWarehouseResponse2\x9f\x0f\n" +
-	"\x13DealerPointsService\x12j\n" +
-	"\x11CreateDealerPoint\x12).dealerpoints.v1.CreateDealerPointRequest\x1a*.dealerpoints.v1.CreateDealerPointResponse\x12a\n" +
-	"\x0eGetDealerPoint\x12&.dealerpoints.v1.GetDealerPointRequest\x1a'.dealerpoints.v1.GetDealerPointResponse\x12g\n" +
-	"\x10ListDealerPoints\x12(.dealerpoints.v1.ListDealerPointsRequest\x1a).dealerpoints.v1.ListDealerPointsResponse\x12j\n" +
-	"\x11UpdateDealerPoint\x12).dealerpoints.v1.UpdateDealerPointRequest\x1a*.dealerpoints.v1.UpdateDealerPointResponse\x12j\n" +
-	"\x11DeleteDealerPoint\x12).dealerpoints.v1.DeleteDealerPointRequest\x1a*.dealerpoints.v1.DeleteDealerPointResponse\x12j\n" +
-	"\x11CreateLegalEntity\x12).dealerpoints.v1.CreateLegalEntityRequest\x1a*.dealerpoints.v1.CreateLegalEntityResponse\x12a\n" +
-	"\x0eGetLegalEntity\x12&.dealerpoints.v1.GetLegalEntityRequest\x1a'.dealerpoints.v1.GetLegalEntityResponse\x12j\n" +
-	"\x11ListLegalEntities\x12).dealerpoints.v1.ListLegalEntitiesRequest\x1a*.dealerpoints.v1.ListLegalEntitiesResponse\x12j\n" +
-	"\x11UpdateLegalEntity\x12).dealerpoints.v1.UpdateLegalEntityRequest\x1a*.dealerpoints.v1.UpdateLegalEntityResponse\x12j\n" +
-	"\x11DeleteLegalEntity\x12).dealerpoints.v1.DeleteLegalEntityRequest\x1a*.dealerpoints.v1.DeleteLegalEntityResponse\x12q\n" +
-	"\x1cLinkLegalEntityToDealerPoint\x12'.dealerpoints.v1.LinkLegalEntityRequest\x1a(.dealerpoints.v1.LinkLegalEntityResponse\x12y\n" +
-	" UnlinkLegalEntityFromDealerPoint\x12).dealerpoints.v1.UnlinkLegalEntityRequest\x1a*.dealerpoints.v1.UnlinkLegalEntityResponse\x12\x84\x01\n" +
-	"\x1eListLegalEntitiesByDealerPoint\x126.dealerpoints.v1.ListLegalEntitiesByDealerPointRequest\x1a*.dealerpoints.v1.ListLegalEntitiesResponse\x12d\n" +
-	"\x0fCreateWarehouse\x12'.dealerpoints.v1.CreateWarehouseRequest\x1a(.dealerpoints.v1.CreateWarehouseResponse\x12[\n" +
-	"\fGetWarehouse\x12$.dealerpoints.v1.GetWarehouseRequest\x1a%.dealerpoints.v1.GetWarehouseResponse\x12a\n" +
-	"\x0eListWarehouses\x12&.dealerpoints.v1.ListWarehousesRequest\x1a'.dealerpoints.v1.ListWarehousesResponse\x12d\n" +
-	"\x0fUpdateWarehouse\x12'.dealerpoints.v1.UpdateWarehouseRequest\x1a(.dealerpoints.v1.UpdateWarehouseResponse\x12d\n" +
-	"\x0fDeleteWarehouse\x12'.dealerpoints.v1.DeleteWarehouseRequest\x1a(.dealerpoints.v1.DeleteWarehouseResponseB@Z>github.com/dealer/dealer/pkg/pb/dealerpoints/v1;dealerpointsv1b\x06proto3"
+	"\x17DeleteWarehouseResponse2\xd7\x15\n" +
+	"\x13DealerPointsService\x12\x97\x01\n" +
+	"\x11CreateDealerPoint\x12).dealerpoints.v1.CreateDealerPointRequest\x1a*.dealerpoints.v1.CreateDealerPointResponse\"+\x82\xd3\xe4\x93\x02%:\x01*b\fdealer_point\"\x12/api/dealer-points\x12\x90\x01\n" +
+	"\x0eGetDealerPoint\x12&.dealerpoints.v1.GetDealerPointRequest\x1a'.dealerpoints.v1.GetDealerPointResponse\"-\x82\xd3\xe4\x93\x02'b\fdealer_point\x12\x17/api/dealer-points/{id}\x12\x83\x01\n" +
+	"\x10ListDealerPoints\x12(.dealerpoints.v1.ListDealerPointsRequest\x1a).dealerpoints.v1.ListDealerPointsResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/dealer-points\x12\x9c\x01\n" +
+	"\x11UpdateDealerPoint\x12).dealerpoints.v1.UpdateDealerPointRequest\x1a*.dealerpoints.v1.UpdateDealerPointResponse\"0\x82\xd3\xe4\x93\x02*:\x01*b\fdealer_point\x1a\x17/api/dealer-points/{id}\x12\x8b\x01\n" +
+	"\x11DeleteDealerPoint\x12).dealerpoints.v1.DeleteDealerPointRequest\x1a*.dealerpoints.v1.DeleteDealerPointResponse\"\x1f\x82\xd3\xe4\x93\x02\x19*\x17/api/dealer-points/{id}\x12\x98\x01\n" +
+	"\x11CreateLegalEntity\x12).dealerpoints.v1.CreateLegalEntityRequest\x1a*.dealerpoints.v1.CreateLegalEntityResponse\",\x82\xd3\xe4\x93\x02&:\x01*b\flegal_entity\"\x13/api/legal-entities\x12\x91\x01\n" +
+	"\x0eGetLegalEntity\x12&.dealerpoints.v1.GetLegalEntityRequest\x1a'.dealerpoints.v1.GetLegalEntityResponse\".\x82\xd3\xe4\x93\x02(b\flegal_entity\x12\x18/api/legal-entities/{id}\x12\x87\x01\n" +
+	"\x11ListLegalEntities\x12).dealerpoints.v1.ListLegalEntitiesRequest\x1a*.dealerpoints.v1.ListLegalEntitiesResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/legal-entities\x12\x9d\x01\n" +
+	"\x11UpdateLegalEntity\x12).dealerpoints.v1.UpdateLegalEntityRequest\x1a*.dealerpoints.v1.UpdateLegalEntityResponse\"1\x82\xd3\xe4\x93\x02+:\x01*b\flegal_entity\x1a\x18/api/legal-entities/{id}\x12\x8c\x01\n" +
+	"\x11DeleteLegalEntity\x12).dealerpoints.v1.DeleteLegalEntityRequest\x1a*.dealerpoints.v1.DeleteLegalEntityResponse\" \x82\xd3\xe4\x93\x02\x1a*\x18/api/legal-entities/{id}\x12\xbf\x01\n" +
+	"\x1cLinkLegalEntityToDealerPoint\x12'.dealerpoints.v1.LinkLegalEntityRequest\x1a(.dealerpoints.v1.LinkLegalEntityResponse\"L\x82\xd3\xe4\x93\x02F:\x0flegal_entity_id\"3/api/dealer-points/{dealer_point_id}/legal-entities\x12\xc8\x01\n" +
+	" UnlinkLegalEntityFromDealerPoint\x12).dealerpoints.v1.UnlinkLegalEntityRequest\x1a*.dealerpoints.v1.UnlinkLegalEntityResponse\"M\x82\xd3\xe4\x93\x02G*E/api/dealer-points/{dealer_point_id}/legal-entities/{legal_entity_id}\x12\xc1\x01\n" +
+	"\x1eListLegalEntitiesByDealerPoint\x126.dealerpoints.v1.ListLegalEntitiesByDealerPointRequest\x1a*.dealerpoints.v1.ListLegalEntitiesResponse\";\x82\xd3\xe4\x93\x025\x123/api/dealer-points/{dealer_point_id}/legal-entities\x12\x8b\x01\n" +
+	"\x0fCreateWarehouse\x12'.dealerpoints.v1.CreateWarehouseRequest\x1a(.dealerpoints.v1.CreateWarehouseResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*b\twarehouse\"\x0f/api/warehouses\x12\x84\x01\n" +
+	"\fGetWarehouse\x12$.dealerpoints.v1.GetWarehouseRequest\x1a%.dealerpoints.v1.GetWarehouseResponse\"'\x82\xd3\xe4\x93\x02!b\twarehouse\x12\x14/api/warehouses/{id}\x12z\n" +
+	"\x0eListWarehouses\x12&.dealerpoints.v1.ListWarehousesRequest\x1a'.dealerpoints.v1.ListWarehousesResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/api/warehouses\x12\x90\x01\n" +
+	"\x0fUpdateWarehouse\x12'.dealerpoints.v1.UpdateWarehouseRequest\x1a(.dealerpoints.v1.UpdateWarehouseResponse\"*\x82\xd3\xe4\x93\x02$:\x01*b\twarehouse\x1a\x14/api/warehouses/{id}\x12\x82\x01\n" +
+	"\x0fDeleteWarehouse\x12'.dealerpoints.v1.DeleteWarehouseRequest\x1a(.dealerpoints.v1.DeleteWarehouseResponse\"\x1c\x82\xd3\xe4\x93\x02\x16*\x14/api/warehouses/{id}B@Z>github.com/dealer/dealer/pkg/pb/dealerpoints/v1;dealerpointsv1b\x06proto3"
 
 var (
 	file_dealerpoints_v1_dealerpoints_proto_rawDescOnce sync.Once

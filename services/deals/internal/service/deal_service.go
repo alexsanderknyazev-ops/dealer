@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -38,9 +39,18 @@ type dealRepository interface {
 	List(ctx context.Context, limit, offset int32, stageFilter, customerID string) ([]*domain.Deal, int32, error)
 	Update(ctx context.Context, d *domain.Deal) error
 	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+// ReferenceChecker validates customer_id and vehicle_id via other services (gRPC).
+type ReferenceChecker interface {
 	CustomerExists(ctx context.Context, id uuid.UUID) (bool, error)
 	VehicleExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
+
+type noopReferenceChecker struct{}
+
+func (noopReferenceChecker) CustomerExists(context.Context, uuid.UUID) (bool, error) { return true, nil }
+func (noopReferenceChecker) VehicleExists(context.Context, uuid.UUID) (bool, error)  { return true, nil }
 
 // DealAPI — HTTP/gRPC и тесты.
 type DealAPI interface {
@@ -53,10 +63,14 @@ type DealAPI interface {
 
 type DealService struct {
 	repo dealRepository
+	refs ReferenceChecker
 }
 
-func NewDealService(repo dealRepository) *DealService {
-	return &DealService{repo: repo}
+func NewDealService(repo dealRepository, refs ReferenceChecker) *DealService {
+	if refs == nil {
+		refs = noopReferenceChecker{}
+	}
+	return &DealService{repo: repo, refs: refs}
 }
 
 func (s *DealService) Create(ctx context.Context, in CreateDealInput) (*domain.Deal, error) {
@@ -72,19 +86,23 @@ func (s *DealService) Create(ctx context.Context, in CreateDealInput) (*domain.D
 	if err != nil {
 		return nil, errors.New("invalid vehicle_id")
 	}
-	customerExists, err := s.repo.CustomerExists(ctx, cid)
+	customerExists, err := s.refs.CustomerExists(ctx, cid)
 	if err != nil {
 		return nil, err
 	}
 	if !customerExists {
 		return nil, ErrCustomerNotFound
 	}
-	vehicleExists, err := s.repo.VehicleExists(ctx, vid)
+	vehicleExists, err := s.refs.VehicleExists(ctx, vid)
 	if err != nil {
 		return nil, err
 	}
 	if !vehicleExists {
 		return nil, ErrVehicleNotFound
+	}
+	amount := strings.TrimSpace(in.Amount)
+	if amount == "" {
+		amount = "0"
 	}
 	var assigned *uuid.UUID
 	if in.AssignedTo != "" {
@@ -97,7 +115,7 @@ func (s *DealService) Create(ctx context.Context, in CreateDealInput) (*domain.D
 		ID:         uuid.New(),
 		CustomerID: cid,
 		VehicleID:  vid,
-		Amount:     in.Amount,
+		Amount:     amount,
 		Stage:      stage,
 		AssignedTo: assigned,
 		Notes:      in.Notes,

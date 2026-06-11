@@ -1,10 +1,14 @@
 .PHONY: proto docker-up docker-down run-auth seed-admin frontend-dev frontend-build
 
 proto:
-	@which protoc >/dev/null || (echo "install: go install google.golang.org/protobuf/cmd/protoc-gen-go@latest; go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest" && exit 1)
+	@which protoc >/dev/null || (echo "install protoc (brew install protobuf)" && exit 1)
+	@which protoc-gen-go >/dev/null || (echo "go install google.golang.org/protobuf/cmd/protoc-gen-go@latest" && exit 1)
+	@which protoc-gen-go-grpc >/dev/null || (echo "go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest" && exit 1)
+	@which protoc-gen-grpc-gateway >/dev/null || (echo "go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest" && exit 1)
 	mkdir -p pkg/pb/auth/v1 pkg/pb/customers/v1 pkg/pb/vehicles/v1 pkg/pb/deals/v1 pkg/pb/parts/v1 pkg/pb/brands/v1 pkg/pb/dealerpoints/v1
 	protoc -I api/proto --go_out=module=github.com/dealer/dealer:. \
 		--go-grpc_out=module=github.com/dealer/dealer:. \
+		--grpc-gateway_out=module=github.com/dealer/dealer:. \
 		api/proto/auth/v1/auth.proto api/proto/customers/v1/customers.proto api/proto/vehicles/v1/vehicles.proto api/proto/deals/v1/deals.proto api/proto/parts/v1/parts.proto api/proto/brands/v1/brands.proto api/proto/dealerpoints/v1/dealerpoints.proto
 
 docker-up:
@@ -41,6 +45,9 @@ run-brands:
 
 run-dealer-points:
 	go run ./services/dealerpoints
+
+run-gateway:
+	go run ./services/gateway
 
 # Тестовые клиенты, автомобили, запчасти (нужны миграции 001–006 и POSTGRES_DSN)
 seed-data:

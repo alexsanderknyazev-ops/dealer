@@ -49,6 +49,58 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
+  ydb:
+    image: ydbplatform/local-ydb:latest
+    platform: linux/amd64
+    hostname: localhost
+    ports:
+      - "2135:2135"   # gRPC TLS
+      - "2136:2136"   # gRPC
+      - "8765:8765"   # Web UI / monitoring
+    environment:
+      GRPC_TLS_PORT: "2135"
+      GRPC_PORT: "2136"
+      MON_PORT: "8765"
+      YDB_USE_IN_MEMORY_PDISKS: "true"
+      YDB_DEFAULT_LOG_LEVEL: NOTICE
+    volumes:
+      - ydb_data:/ydb_data
+      - ydb_certs:/ydb_certs
+    healthcheck:
+      test: ["CMD-SHELL", "ydb -e grpc://localhost:2136 -d /local scheme ls >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  gateway-service:
+    build:
+      context: .
+      dockerfile: build/gateway-service.Dockerfile
+    ports:
+      - "8090:8090"
+    environment:
+      GATEWAY_HTTP_PORT: "8090"
+      CUSTOMERS_GRPC_ADDR: "customers-service:50052"
+      VEHICLES_GRPC_ADDR: "vehicles-service:50053"
+      DEALS_GRPC_ADDR: "deals-service:50054"
+      PARTS_GRPC_ADDR: "parts-service:50055"
+      BRANDS_GRPC_ADDR: "brands-service:50056"
+      DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
+    depends_on:
+      dealer-points-service:
+        condition: service_started
+      brands-service:
+        condition: service_started
+      customers-service:
+        condition: service_started
+      vehicles-service:
+        condition: service_started
+      deals-service:
+        condition: service_started
+      parts-service:
+        condition: service_started
+
   auth-service:
     build:
       context: .
@@ -67,24 +119,9 @@ services:
       KAFKA_BROKERS: "kafka:29092"
       KAFKA_TOPIC_AUTH_EVENTS: "auth.events"
       JWT_SECRET: "change-me-in-production"
-      CUSTOMERS_SERVICE_URL: "http://customers-service:8081"
-      VEHICLES_SERVICE_URL: "http://vehicles-service:8082"
-      DEALS_SERVICE_URL: "http://deals-service:8083"
-      PARTS_SERVICE_URL: "http://parts-service:8084"
-      BRANDS_SERVICE_URL: "http://brands-service:8085"
-      DEALER_POINTS_SERVICE_URL: "http://dealer-points-service:8086"
+      GATEWAY_SERVICE_URL: "http://gateway-service:8090"
     depends_on:
-      dealer-points-service:
-        condition: service_started
-      brands-service:
-        condition: service_started
-      customers-service:
-        condition: service_started
-      vehicles-service:
-        condition: service_started
-      deals-service:
-        condition: service_started
-      parts-service:
+      gateway-service:
         condition: service_started
       postgres:
         condition: service_healthy
@@ -121,9 +158,12 @@ services:
       VEHICLES_HTTP_PORT: "8082"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      BRANDS_GRPC_ADDR: "brands-service:50056"
     depends_on:
       postgres:
         condition: service_healthy
+      brands-service:
+        condition: service_started
 
   deals-service:
     build:
@@ -137,9 +177,15 @@ services:
       DEALS_HTTP_PORT: "8083"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      CUSTOMERS_GRPC_ADDR: "customers-service:50052"
+      VEHICLES_GRPC_ADDR: "vehicles-service:50053"
     depends_on:
       postgres:
         condition: service_healthy
+      customers-service:
+        condition: service_started
+      vehicles-service:
+        condition: service_started
 
   parts-service:
     build:
@@ -191,3 +237,5 @@ services:
 
 volumes:
   postgres_data: {}
+  ydb_data: {}
+  ydb_certs: {}

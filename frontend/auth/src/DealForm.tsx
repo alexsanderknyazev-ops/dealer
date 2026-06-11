@@ -65,8 +65,8 @@ export function DealForm() {
     if (nextForm.amount && !/^\d+(\.\d{1,2})?$/.test(nextForm.amount.trim())) {
       nextErrors.amount = 'Укажите сумму в формате 10000 или 10000.50'
     }
-    if (nextForm.amount && Number(nextForm.amount) <= 0) {
-      nextErrors.amount = 'Сумма должна быть больше нуля'
+    if (nextForm.amount && Number(nextForm.amount) < 0) {
+      nextErrors.amount = 'Сумма не может быть отрицательной'
     }
     if (nextForm.stage && !DEAL_STAGES.includes(nextForm.stage as (typeof DEAL_STAGES)[number])) {
       nextErrors.stage = 'Выберите корректный этап'
@@ -87,7 +87,7 @@ export function DealForm() {
     const payload = {
       customer_id: form.customer_id,
       vehicle_id: form.vehicle_id,
-      amount: form.amount || undefined,
+      amount: (form.amount ?? '').trim() !== '' ? (form.amount ?? '').trim() : '0',
       stage: form.stage || undefined,
       assigned_to: form.assigned_to || undefined,
       notes: form.notes || undefined,

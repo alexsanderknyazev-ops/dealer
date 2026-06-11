@@ -14,10 +14,12 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/dealer/dealer/pkg/dbschema"
+	"github.com/dealer/dealer/pkg/grpcauth"
 	"github.com/dealer/dealer/pkg/health"
 	"github.com/dealer/dealer/pkg/observe"
 	vehiclesv1 "github.com/dealer/dealer/pkg/pb/vehicles/v1"
 	"github.com/dealer/dealer/pkg/postgres"
+	"github.com/dealer/dealer/services/vehicles/internal/client"
 	"github.com/dealer/dealer/services/vehicles/internal/config"
 	grpcserver "github.com/dealer/dealer/services/vehicles/internal/grpc"
 	"github.com/dealer/dealer/services/vehicles/internal/httpapi"
@@ -41,9 +43,27 @@ func main() {
 	defer pool.Close()
 
 	repo := repository.NewVehicleRepository(pool)
-	svc := service.NewVehicleService(repo)
+	var brands service.BrandChecker
+	if cfg.BrandsGRPCAddr != "" {
+		dialCtx, dialCancel := context.WithTimeout(ctx, 10*time.Second)
+		brandClient, err := client.NewBrandChecker(dialCtx, cfg.BrandsGRPCAddr)
+		dialCancel()
+		if err != nil {
+			logger.Error("gRPC brands client connect failed", "err", err)
+			os.Exit(1)
+		}
+		defer brandClient.Close()
+		brands = brandClient
+		logger.Info("brand checks via gRPC", "brands", cfg.BrandsGRPCAddr)
+	} else {
+		logger.Warn("BRANDS_GRPC_ADDR not set; vehicle brand checks disabled")
+	}
+	svc := service.NewVehicleService(repo, brands)
 
-	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger)...)
+	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
+		JWTSecret:  cfg.JWTSecret,
+		WriteRoles: []string{"admin", "manager", "sales"},
+	})...)
 	vehiclesv1.RegisterVehiclesServiceServer(gsrv, grpcserver.NewServer(svc))
 	reflection.Register(gsrv)
 

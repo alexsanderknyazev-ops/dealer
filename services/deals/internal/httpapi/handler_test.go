@@ -89,14 +89,6 @@ func (m *mockDeal) Delete(_ context.Context, id string) error {
 	return nil
 }
 
-func (m *mockDeal) CustomerExists(_ context.Context, _ uuid.UUID) (bool, error) {
-	return true, nil
-}
-
-func (m *mockDeal) VehicleExists(_ context.Context, _ uuid.UUID) (bool, error) {
-	return true, nil
-}
-
 func bearerDeal(secret, role string) string {
 	cl := &jwt.Claims{UserID: testBearerUserID, Email: testBearerEmail, Role: role, RegisteredClaims: jwtlib.RegisteredClaims{
 		ExpiresAt: jwtlib.NewNumericDate(time.Now().Add(time.Hour)),

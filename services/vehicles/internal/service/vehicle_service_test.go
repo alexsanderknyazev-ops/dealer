@@ -78,7 +78,7 @@ func (m *memVehicleRepo) Delete(_ context.Context, id uuid.UUID) error {
 
 func TestVehicleService_Create_DefaultStatus(t *testing.T) {
 	r := &memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}}
-	s := NewVehicleService(r)
+	s := NewVehicleService(r, nil)
 	v, err := s.Create(context.Background(), CreateVehicleInput{VIN: "VIN1", Make: "M", Model: "X", Year: 2020, MileageKm: 0, Price: "100"})
 	if err != nil || v.Status != "available" {
 		t.Fatalf("%v %+v", err, v)
@@ -86,7 +86,7 @@ func TestVehicleService_Create_DefaultStatus(t *testing.T) {
 }
 
 func TestVehicleService_Get_NotFound(t *testing.T) {
-	s := NewVehicleService(&memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}})
+	s := NewVehicleService(&memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}}, nil)
 	_, err := s.Get(context.Background(), uuid.New().String())
 	if err != ErrNotFound {
 		t.Fatalf("%v", err)
@@ -98,7 +98,7 @@ func TestVehicleService_Get_NotFound(t *testing.T) {
 }
 
 func TestVehicleService_List_DefaultLimit(t *testing.T) {
-	s := NewVehicleService(&memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}})
+	s := NewVehicleService(&memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}}, nil)
 	_, _, err := s.List(context.Background(), domain.VehicleListFilter{})
 	if err != nil {
 		t.Fatal(err)
@@ -107,7 +107,7 @@ func TestVehicleService_List_DefaultLimit(t *testing.T) {
 
 func TestVehicleService_Update_Delete(t *testing.T) {
 	r := &memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}}
-	s := NewVehicleService(r)
+	s := NewVehicleService(r, nil)
 	v, _ := s.Create(context.Background(), CreateVehicleInput{VIN: "V", Make: "mk", Model: "md", Year: 2021, MileageKm: 1, Price: "1", Status: "sold", Color: "c", Notes: "n"})
 	nm := "newmake"
 	upd, err := s.Update(context.Background(), v.ID.String(), UpdateVehicleInput{Make: &nm})
@@ -121,7 +121,7 @@ func TestVehicleService_Update_Delete(t *testing.T) {
 
 func TestVehicleService_Update_ClearBrand(t *testing.T) {
 	r := &memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}}
-	s := NewVehicleService(r)
+	s := NewVehicleService(r, nil)
 	bid := uuid.New()
 	v, _ := s.Create(context.Background(), CreateVehicleInput{VIN: "V2", Make: "m", Model: "m", Year: 2022, MileageKm: 0, Price: "0", Status: "a", BrandID: &bid})
 	upd, err := s.Update(context.Background(), v.ID.String(), UpdateVehicleInput{ClearBrand: true})
@@ -131,7 +131,7 @@ func TestVehicleService_Update_ClearBrand(t *testing.T) {
 }
 
 func TestVehicleService_Create_Err(t *testing.T) {
-	s := NewVehicleService(&memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}, err: errors.New("db")})
+	s := NewVehicleService(&memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}, err: errors.New("db")}, nil)
 	_, err := s.Create(context.Background(), CreateVehicleInput{VIN: "x"})
 	if err == nil {
 		t.Fatal("want err")
@@ -139,7 +139,7 @@ func TestVehicleService_Create_Err(t *testing.T) {
 }
 
 func TestVehicleService_Get_DBErr(t *testing.T) {
-	s := NewVehicleService(&memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}, err: errors.New("db")})
+	s := NewVehicleService(&memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}, err: errors.New("db")}, nil)
 	_, err := s.Get(context.Background(), uuid.New().String())
 	if err == nil || errors.Is(err, ErrNotFound) {
 		t.Fatalf("%v", err)
@@ -148,7 +148,7 @@ func TestVehicleService_Get_DBErr(t *testing.T) {
 
 func TestVehicleService_List_NormalizesLimit(t *testing.T) {
 	r := &memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}}
-	s := NewVehicleService(r)
+	s := NewVehicleService(r, nil)
 	_, total, err := s.List(context.Background(), domain.VehicleListFilter{Limit: 500})
 	if err != nil || total != 0 {
 		t.Fatalf("%v %d", err, total)
@@ -157,7 +157,7 @@ func TestVehicleService_List_NormalizesLimit(t *testing.T) {
 
 func TestVehicleService_Update_RepoFails(t *testing.T) {
 	r := &memVehicleRepo{byID: map[uuid.UUID]*domain.Vehicle{}, updateErr: errors.New("db")}
-	s := NewVehicleService(r)
+	s := NewVehicleService(r, nil)
 	v, _ := s.Create(context.Background(), CreateVehicleInput{VIN: "V", Make: "m", Model: "m", Year: 2020, MileageKm: 0, Price: "1", Status: "a"})
 	mk := "z"
 	_, err := s.Update(context.Background(), v.ID.String(), UpdateVehicleInput{Make: &mk})

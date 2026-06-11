@@ -6,18 +6,22 @@ import (
 )
 
 type Config struct {
-	GRPCPort    int
-	HTTPPort    int
-	PostgresDSN string
-	JWTSecret   string
+	GRPCPort          int
+	HTTPPort          int
+	PostgresDSN       string
+	JWTSecret         string
+	CustomersGRPCAddr string
+	VehiclesGRPCAddr  string
 }
 
 func Load() *Config {
 	return &Config{
-		GRPCPort:    getEnvInt("DEALS_GRPC_PORT", 50054),
-		HTTPPort:    getEnvInt("DEALS_HTTP_PORT", 8083),
-		PostgresDSN: getEnv("POSTGRES_DSN", ""),
-		JWTSecret:   getEnv("JWT_SECRET", "change-me-in-production"),
+		GRPCPort:          getEnvInt("DEALS_GRPC_PORT", 50054),
+		HTTPPort:          getEnvInt("DEALS_HTTP_PORT", 8083),
+		PostgresDSN:       getEnv("POSTGRES_DSN", ""),
+		JWTSecret:         getEnv("JWT_SECRET", "change-me-in-production"),
+		CustomersGRPCAddr: getEnv("CUSTOMERS_GRPC_ADDR", ""),
+		VehiclesGRPCAddr:  getEnv("VEHICLES_GRPC_ADDR", ""),
 	}
 }
 

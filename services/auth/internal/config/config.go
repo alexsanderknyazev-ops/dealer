@@ -11,6 +11,7 @@ type Config struct {
 	GRPCPort     int
 	HTTPPort     int    // HTTP API + фронт для браузера
 	StaticDir         string // каталог статики (SPA); пусто = не раздавать
+	GatewayServiceURL   string // URL grpc-gateway (REST→gRPC); если задан — проксирует все domain API
 	CustomersServiceURL string // URL customers-service для прокси /api/customers (пусто = не проксировать)
 	VehiclesServiceURL  string // URL vehicles-service для прокси /api/vehicles (пусто = не проксировать)
 	DealsServiceURL    string // URL deals-service для прокси /api/deals (пусто = не проксировать)
@@ -36,6 +37,7 @@ func Load() *Config {
 		GRPCPort:     getEnvInt("AUTH_GRPC_PORT", 50051),
 		HTTPPort:     getEnvInt("AUTH_HTTP_PORT", 8080),
 		StaticDir:         getEnv("STATIC_DIR", ""),
+		GatewayServiceURL:   getEnv("GATEWAY_SERVICE_URL", ""),
 		CustomersServiceURL: getEnv("CUSTOMERS_SERVICE_URL", ""),
 		VehiclesServiceURL:  getEnv("VEHICLES_SERVICE_URL", ""),
 		DealsServiceURL:    getEnv("DEALS_SERVICE_URL", ""),

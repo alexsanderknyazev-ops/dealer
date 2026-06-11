@@ -7,6 +7,7 @@
 package vehiclesv1
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -885,7 +886,7 @@ var File_vehicles_v1_vehicles_proto protoreflect.FileDescriptor
 
 const file_vehicles_v1_vehicles_proto_rawDesc = "" +
 	"\n" +
-	"\x1avehicles/v1/vehicles.proto\x12\vvehicles.v1\"\xae\x03\n" +
+	"\x1avehicles/v1/vehicles.proto\x12\vvehicles.v1\x1a\x1cgoogle/api/annotations.proto\"\xae\x03\n" +
 	"\aVehicle\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +
 	"\x03vin\x18\x02 \x01(\tR\x03vin\x12\x12\n" +
@@ -976,14 +977,14 @@ const file_vehicles_v1_vehicles_proto_rawDesc = "" +
 	"\avehicle\x18\x01 \x01(\v2\x14.vehicles.v1.VehicleR\avehicle\"&\n" +
 	"\x14DeleteVehicleRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x17\n" +
-	"\x15DeleteVehicleResponse2\xbd\x03\n" +
-	"\x0fVehiclesService\x12V\n" +
-	"\rCreateVehicle\x12!.vehicles.v1.CreateVehicleRequest\x1a\".vehicles.v1.CreateVehicleResponse\x12M\n" +
+	"\x15DeleteVehicleResponse2\xe0\x04\n" +
+	"\x0fVehiclesService\x12y\n" +
+	"\rCreateVehicle\x12!.vehicles.v1.CreateVehicleRequest\x1a\".vehicles.v1.CreateVehicleResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*b\avehicle\"\r/api/vehicles\x12r\n" +
 	"\n" +
-	"GetVehicle\x12\x1e.vehicles.v1.GetVehicleRequest\x1a\x1f.vehicles.v1.GetVehicleResponse\x12S\n" +
-	"\fListVehicles\x12 .vehicles.v1.ListVehiclesRequest\x1a!.vehicles.v1.ListVehiclesResponse\x12V\n" +
-	"\rUpdateVehicle\x12!.vehicles.v1.UpdateVehicleRequest\x1a\".vehicles.v1.UpdateVehicleResponse\x12V\n" +
-	"\rDeleteVehicle\x12!.vehicles.v1.DeleteVehicleRequest\x1a\".vehicles.v1.DeleteVehicleResponseB8Z6github.com/dealer/dealer/pkg/pb/vehicles/v1;vehiclesv1b\x06proto3"
+	"GetVehicle\x12\x1e.vehicles.v1.GetVehicleRequest\x1a\x1f.vehicles.v1.GetVehicleResponse\"#\x82\xd3\xe4\x93\x02\x1db\avehicle\x12\x12/api/vehicles/{id}\x12j\n" +
+	"\fListVehicles\x12 .vehicles.v1.ListVehiclesRequest\x1a!.vehicles.v1.ListVehiclesResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/vehicles\x12~\n" +
+	"\rUpdateVehicle\x12!.vehicles.v1.UpdateVehicleRequest\x1a\".vehicles.v1.UpdateVehicleResponse\"&\x82\xd3\xe4\x93\x02 :\x01*b\avehicle\x1a\x12/api/vehicles/{id}\x12r\n" +
+	"\rDeleteVehicle\x12!.vehicles.v1.DeleteVehicleRequest\x1a\".vehicles.v1.DeleteVehicleResponse\"\x1a\x82\xd3\xe4\x93\x02\x14*\x12/api/vehicles/{id}B8Z6github.com/dealer/dealer/pkg/pb/vehicles/v1;vehiclesv1b\x06proto3"
 
 var (
 	file_vehicles_v1_vehicles_proto_rawDescOnce sync.Once

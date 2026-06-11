@@ -7,6 +7,7 @@
 package customersv1
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -701,7 +702,7 @@ var File_customers_v1_customers_proto protoreflect.FileDescriptor
 
 const file_customers_v1_customers_proto_rawDesc = "" +
 	"\n" +
-	"\x1ccustomers/v1/customers.proto\x12\fcustomers.v1\"\xff\x01\n" +
+	"\x1ccustomers/v1/customers.proto\x12\fcustomers.v1\x1a\x1cgoogle/api/annotations.proto\"\xff\x01\n" +
 	"\bCustomer\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
@@ -758,13 +759,13 @@ const file_customers_v1_customers_proto_rawDesc = "" +
 	"\bcustomer\x18\x01 \x01(\v2\x16.customers.v1.CustomerR\bcustomer\"'\n" +
 	"\x15DeleteCustomerRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x18\n" +
-	"\x16DeleteCustomerResponse2\xd7\x03\n" +
-	"\x10CustomersService\x12[\n" +
-	"\x0eCreateCustomer\x12#.customers.v1.CreateCustomerRequest\x1a$.customers.v1.CreateCustomerResponse\x12R\n" +
-	"\vGetCustomer\x12 .customers.v1.GetCustomerRequest\x1a!.customers.v1.GetCustomerResponse\x12X\n" +
-	"\rListCustomers\x12\".customers.v1.ListCustomersRequest\x1a#.customers.v1.ListCustomersResponse\x12[\n" +
-	"\x0eUpdateCustomer\x12#.customers.v1.UpdateCustomerRequest\x1a$.customers.v1.UpdateCustomerResponse\x12[\n" +
-	"\x0eDeleteCustomer\x12#.customers.v1.DeleteCustomerRequest\x1a$.customers.v1.DeleteCustomerResponseB:Z8github.com/dealer/dealer/pkg/pb/customers/v1;customersv1b\x06proto3"
+	"\x16DeleteCustomerResponse2\x84\x05\n" +
+	"\x10CustomersService\x12\x80\x01\n" +
+	"\x0eCreateCustomer\x12#.customers.v1.CreateCustomerRequest\x1a$.customers.v1.CreateCustomerResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*b\bcustomer\"\x0e/api/customers\x12y\n" +
+	"\vGetCustomer\x12 .customers.v1.GetCustomerRequest\x1a!.customers.v1.GetCustomerResponse\"%\x82\xd3\xe4\x93\x02\x1fb\bcustomer\x12\x13/api/customers/{id}\x12p\n" +
+	"\rListCustomers\x12\".customers.v1.ListCustomersRequest\x1a#.customers.v1.ListCustomersResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/customers\x12\x85\x01\n" +
+	"\x0eUpdateCustomer\x12#.customers.v1.UpdateCustomerRequest\x1a$.customers.v1.UpdateCustomerResponse\"(\x82\xd3\xe4\x93\x02\":\x01*b\bcustomer\x1a\x13/api/customers/{id}\x12x\n" +
+	"\x0eDeleteCustomer\x12#.customers.v1.DeleteCustomerRequest\x1a$.customers.v1.DeleteCustomerResponse\"\x1b\x82\xd3\xe4\x93\x02\x15*\x13/api/customers/{id}B:Z8github.com/dealer/dealer/pkg/pb/customers/v1;customersv1b\x06proto3"
 
 var (
 	file_customers_v1_customers_proto_rawDescOnce sync.Once

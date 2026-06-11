@@ -7,6 +7,7 @@
 package partsv1
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -1425,7 +1426,7 @@ var File_parts_v1_parts_proto protoreflect.FileDescriptor
 
 const file_parts_v1_parts_proto_rawDesc = "" +
 	"\n" +
-	"\x14parts/v1/parts.proto\x12\bparts.v1\"\x8b\x01\n" +
+	"\x14parts/v1/parts.proto\x12\bparts.v1\x1a\x1cgoogle/api/annotations.proto\"\x8b\x01\n" +
 	"\n" +
 	"PartFolder\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
@@ -1549,21 +1550,23 @@ const file_parts_v1_parts_proto_rawDesc = "" +
 	"\x04part\x18\x01 \x01(\v2\x0e.parts.v1.PartR\x04part\"#\n" +
 	"\x11DeletePartRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
-	"\x12DeletePartResponse2\xee\x05\n" +
-	"\fPartsService\x12G\n" +
+	"\x12DeletePartResponse2\xb2\b\n" +
+	"\fPartsService\x12d\n" +
 	"\n" +
-	"CreatePart\x12\x1b.parts.v1.CreatePartRequest\x1a\x1c.parts.v1.CreatePartResponse\x12>\n" +
-	"\aGetPart\x12\x18.parts.v1.GetPartRequest\x1a\x19.parts.v1.GetPartResponse\x12D\n" +
-	"\tListParts\x12\x1a.parts.v1.ListPartsRequest\x1a\x1b.parts.v1.ListPartsResponse\x12G\n" +
+	"CreatePart\x12\x1b.parts.v1.CreatePartRequest\x1a\x1c.parts.v1.CreatePartResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*b\x04part\"\n" +
+	"/api/parts\x12]\n" +
+	"\aGetPart\x12\x18.parts.v1.GetPartRequest\x1a\x19.parts.v1.GetPartResponse\"\x1d\x82\xd3\xe4\x93\x02\x17b\x04part\x12\x0f/api/parts/{id}\x12X\n" +
+	"\tListParts\x12\x1a.parts.v1.ListPartsRequest\x1a\x1b.parts.v1.ListPartsResponse\"\x12\x82\xd3\xe4\x93\x02\f\x12\n" +
+	"/api/parts\x12i\n" +
 	"\n" +
-	"UpdatePart\x12\x1b.parts.v1.UpdatePartRequest\x1a\x1c.parts.v1.UpdatePartResponse\x12G\n" +
+	"UpdatePart\x12\x1b.parts.v1.UpdatePartRequest\x1a\x1c.parts.v1.UpdatePartResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*b\x04part\x1a\x0f/api/parts/{id}\x12`\n" +
 	"\n" +
-	"DeletePart\x12\x1b.parts.v1.DeletePartRequest\x1a\x1c.parts.v1.DeletePartResponse\x12M\n" +
-	"\fCreateFolder\x12\x1d.parts.v1.CreateFolderRequest\x1a\x1e.parts.v1.CreateFolderResponse\x12D\n" +
-	"\tGetFolder\x12\x1a.parts.v1.GetFolderRequest\x1a\x1b.parts.v1.GetFolderResponse\x12J\n" +
-	"\vListFolders\x12\x1c.parts.v1.ListFoldersRequest\x1a\x1d.parts.v1.ListFoldersResponse\x12M\n" +
-	"\fUpdateFolder\x12\x1d.parts.v1.UpdateFolderRequest\x1a\x1e.parts.v1.UpdateFolderResponse\x12M\n" +
-	"\fDeleteFolder\x12\x1d.parts.v1.DeleteFolderRequest\x1a\x1e.parts.v1.DeleteFolderResponseB2Z0github.com/dealer/dealer/pkg/pb/parts/v1;partsv1b\x06proto3"
+	"DeletePart\x12\x1b.parts.v1.DeletePartRequest\x1a\x1c.parts.v1.DeletePartResponse\"\x17\x82\xd3\xe4\x93\x02\x11*\x0f/api/parts/{id}\x12t\n" +
+	"\fCreateFolder\x12\x1d.parts.v1.CreateFolderRequest\x1a\x1e.parts.v1.CreateFolderResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*b\x06folder\"\x12/api/parts/folders\x12m\n" +
+	"\tGetFolder\x12\x1a.parts.v1.GetFolderRequest\x1a\x1b.parts.v1.GetFolderResponse\"'\x82\xd3\xe4\x93\x02!b\x06folder\x12\x17/api/parts/folders/{id}\x12f\n" +
+	"\vListFolders\x12\x1c.parts.v1.ListFoldersRequest\x1a\x1d.parts.v1.ListFoldersResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/parts/folders\x12y\n" +
+	"\fUpdateFolder\x12\x1d.parts.v1.UpdateFolderRequest\x1a\x1e.parts.v1.UpdateFolderResponse\"*\x82\xd3\xe4\x93\x02$:\x01*b\x06folder\x1a\x17/api/parts/folders/{id}\x12n\n" +
+	"\fDeleteFolder\x12\x1d.parts.v1.DeleteFolderRequest\x1a\x1e.parts.v1.DeleteFolderResponse\"\x1f\x82\xd3\xe4\x93\x02\x19*\x17/api/parts/folders/{id}B2Z0github.com/dealer/dealer/pkg/pb/parts/v1;partsv1b\x06proto3"
 
 var (
 	file_parts_v1_parts_proto_rawDescOnce sync.Once

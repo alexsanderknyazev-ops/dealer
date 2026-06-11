@@ -1,10 +1,18 @@
 go 1.22
 
 use .
+
 use ./services/auth
+
 use ./services/customers
+
 use ./services/vehicles
+
 use ./services/deals
+
 use ./services/parts
+
 use ./services/brands
+
 use ./services/dealerpoints
+use ./services/gateway

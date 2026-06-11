@@ -1,16 +1,19 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
+
+	"github.com/dealer/dealer/pkg/grpclient"
 	"github.com/dealer/dealer/services/vehicles/internal/domain"
 	"github.com/dealer/dealer/services/vehicles/internal/jwt"
 	"github.com/dealer/dealer/services/vehicles/internal/service"
-	"github.com/google/uuid"
 )
 
 type Handler struct {
@@ -44,6 +47,13 @@ func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {
 			next(w, r)
 		}
 	}
+}
+
+func requestContext(r *http.Request) context.Context {
+	if auth := r.Header.Get("Authorization"); auth != "" {
+		return grpclient.WithAuthorization(r.Context(), auth)
+	}
+	return r.Context()
 }
 
 func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
@@ -87,7 +97,7 @@ func (h *Handler) handleList(w http.ResponseWriter, r *http.Request) {
 	legalEntityID := parseUUIDQuery("legal_entity_id")
 	warehouseID := parseUUIDQuery("warehouse_id")
 
-	list, total, err := h.svc.List(r.Context(), domain.VehicleListFilter{
+	list, total, err := h.svc.List(requestContext(r), domain.VehicleListFilter{
 		Limit: int32(limit), Offset: int32(offset), Search: search, StatusFilter: statusFilter,
 		BrandID: brandID, DealerPointID: dealerPointID, LegalEntityID: legalEntityID, WarehouseID: warehouseID,
 	})
@@ -136,13 +146,17 @@ func (h *Handler) handleCreate(w http.ResponseWriter, r *http.Request) {
 		}
 		return &uid
 	}
-	v, err := h.svc.Create(r.Context(), service.CreateVehicleInput{
+	v, err := h.svc.Create(requestContext(r), service.CreateVehicleInput{
 		VIN: req.VIN, Make: req.Make, Model: req.Model, Year: req.Year, MileageKm: req.MileageKm,
 		Price: req.Price, Status: req.Status, Color: req.Color, Notes: req.Notes,
 		BrandID: parseOpt(req.BrandID), DealerPointID: parseOpt(req.DealerPointID),
 		LegalEntityID: parseOpt(req.LegalEntityID), WarehouseID: parseOpt(req.WarehouseID),
 	})
 	if err != nil {
+		if errors.Is(err, service.ErrBrandNotFound) {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
+		}
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
@@ -155,7 +169,7 @@ func (h *Handler) handleGet(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "id required"})
 		return
 	}
-	v, err := h.svc.Get(r.Context(), id)
+	v, err := h.svc.Get(requestContext(r), id)
 	if err != nil {
 		if errors.Is(err, service.ErrNotFound) {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
@@ -209,7 +223,7 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 	dpID, clearDP := parseOptClear(req.DealerPointID)
 	leID, clearLE := parseOptClear(req.LegalEntityID)
 	whID, clearWH := parseOptClear(req.WarehouseID)
-	v, err := h.svc.Update(r.Context(), id, service.UpdateVehicleInput{
+	v, err := h.svc.Update(requestContext(r), id, service.UpdateVehicleInput{
 		VIN: req.VIN, Make: req.Make, Model: req.Model, Year: req.Year, MileageKm: req.MileageKm,
 		Price: req.Price, Status: req.Status, Color: req.Color, Notes: req.Notes,
 		BrandID: brandID, ClearBrand: clearBrand, DealerPointID: dpID, LegalEntityID: leID, WarehouseID: whID,
@@ -218,6 +232,10 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, service.ErrNotFound) {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
+			return
+		}
+		if errors.Is(err, service.ErrBrandNotFound) {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 			return
 		}
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -232,7 +250,7 @@ func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "id required"})
 		return
 	}
-	if err := h.svc.Delete(r.Context(), id); err != nil {
+	if err := h.svc.Delete(requestContext(r), id); err != nil {
 		if err == service.ErrNotFound {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
 			return

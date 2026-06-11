@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dealer/dealer/pkg/grpclient"
 	"github.com/dealer/dealer/services/deals/internal/domain"
 	"github.com/dealer/dealer/services/deals/internal/jwt"
 	"github.com/dealer/dealer/services/deals/internal/service"
@@ -83,6 +85,13 @@ func actionFromMethod(method string) string {
 	}
 }
 
+func requestContext(r *http.Request) context.Context {
+	if auth := r.Header.Get("Authorization"); auth != "" {
+		return grpclient.WithAuthorization(r.Context(), auth)
+	}
+	return r.Context()
+}
+
 func hasAllowedRole(role string, allowed ...string) bool {
 	for _, r := range allowed {
 		if role == r {
@@ -107,7 +116,7 @@ func (h *Handler) handleList(w http.ResponseWriter, r *http.Request) {
 	stage := r.URL.Query().Get("stage")
 	customerID := r.URL.Query().Get("customer_id")
 
-	list, total, err := h.svc.List(r.Context(), int32(limit), int32(offset), stage, customerID)
+	list, total, err := h.svc.List(requestContext(r), int32(limit), int32(offset), stage, customerID)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
@@ -136,7 +145,7 @@ func (h *Handler) handleCreate(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "customer_id and vehicle_id required"})
 		return
 	}
-	d, err := h.svc.Create(r.Context(), service.CreateDealInput{
+	d, err := h.svc.Create(requestContext(r), service.CreateDealInput{
 		CustomerID: req.CustomerID, VehicleID: req.VehicleID, Amount: req.Amount, Stage: req.Stage, AssignedTo: req.AssignedTo, Notes: req.Notes,
 	})
 	if err != nil {
@@ -156,7 +165,7 @@ func (h *Handler) handleGet(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "id required"})
 		return
 	}
-	d, err := h.svc.Get(r.Context(), id)
+	d, err := h.svc.Get(requestContext(r), id)
 	if err != nil {
 		if err == service.ErrNotFound {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
@@ -186,7 +195,7 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid body"})
 		return
 	}
-	d, err := h.svc.Update(r.Context(), id, service.UpdateDealInput{
+	d, err := h.svc.Update(requestContext(r), id, service.UpdateDealInput{
 		CustomerID: req.CustomerID, VehicleID: req.VehicleID, Amount: req.Amount,
 		Stage: req.Stage, AssignedTo: req.AssignedTo, Notes: req.Notes,
 	})
@@ -207,7 +216,7 @@ func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "id required"})
 		return
 	}
-	if err := h.svc.Delete(r.Context(), id); err != nil {
+	if err := h.svc.Delete(requestContext(r), id); err != nil {
 		if err == service.ErrNotFound {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
 			return

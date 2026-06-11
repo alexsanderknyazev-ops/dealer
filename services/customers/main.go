@@ -19,6 +19,7 @@ import (
 	"github.com/dealer/dealer/customers-service/internal/repository"
 	"github.com/dealer/dealer/customers-service/internal/service"
 	"github.com/dealer/dealer/pkg/dbschema"
+	"github.com/dealer/dealer/pkg/grpcauth"
 	"github.com/dealer/dealer/pkg/health"
 	"github.com/dealer/dealer/pkg/observe"
 	customersv1 "github.com/dealer/dealer/pkg/pb/customers/v1"
@@ -43,7 +44,10 @@ func main() {
 	repo := repository.NewCustomerRepository(pool)
 	svc := service.NewCustomerService(repo)
 
-	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger)...)
+	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
+		JWTSecret:  cfg.JWTSecret,
+		WriteRoles: []string{"admin", "manager", "sales"},
+	})...)
 	customersv1.RegisterCustomersServiceServer(gsrv, grpcserver.NewServer(svc))
 	reflection.Register(gsrv)
 

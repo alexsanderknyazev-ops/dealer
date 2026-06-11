@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/dealer/dealer/pkg/dbschema"
+	"github.com/dealer/dealer/pkg/grpcauth"
 	"github.com/dealer/dealer/pkg/health"
 	"github.com/dealer/dealer/pkg/observe"
 	brandsv1 "github.com/dealer/dealer/pkg/pb/brands/v1"
@@ -43,7 +44,10 @@ func main() {
 	repo := repository.NewBrandRepository(pool)
 	svc := service.NewBrandService(repo)
 
-	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger)...)
+	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
+		JWTSecret:  cfg.JWTSecret,
+		WriteRoles: []string{"admin", "manager", "sales"},
+	})...)
 	brandsv1.RegisterBrandsServiceServer(gsrv, grpcserver.NewServer(svc))
 	reflection.Register(gsrv)
 

@@ -37,7 +37,7 @@ func TestObserve_HTTPAndGRPC(t *testing.T) {
 		t.Fatalf("metrics status=%d", rec.Code)
 	}
 
-	opts := GRPCServerOptions(obstest.ServiceObserve, logger)
+	opts := GRPCServerOptions(obstest.ServiceObserve, logger, nil)
 	if len(opts) != 1 {
 		t.Fatalf("opts=%d", len(opts))
 	}

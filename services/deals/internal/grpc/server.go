@@ -46,6 +46,9 @@ func (s *Server) CreateDeal(ctx context.Context, req *dealsv1.CreateDealRequest)
 		CustomerID: req.CustomerId, VehicleID: req.VehicleId, Amount: req.Amount, Stage: req.Stage, AssignedTo: req.AssignedTo, Notes: req.Notes,
 	})
 	if err != nil {
+		if errors.Is(err, service.ErrCustomerNotFound) || errors.Is(err, service.ErrVehicleNotFound) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &dealsv1.CreateDealResponse{Deal: toProto(d)}, nil

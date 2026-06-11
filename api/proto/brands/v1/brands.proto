@@ -2,14 +2,26 @@ syntax = "proto3";
 
 package brands.v1;
 
+import "google/api/annotations.proto";
+
 option go_package = "github.com/dealer/dealer/pkg/pb/brands/v1;brandsv1";
 
 service BrandsService {
-  rpc CreateBrand(CreateBrandRequest) returns (CreateBrandResponse);
-  rpc GetBrand(GetBrandRequest) returns (GetBrandResponse);
-  rpc ListBrands(ListBrandsRequest) returns (ListBrandsResponse);
-  rpc UpdateBrand(UpdateBrandRequest) returns (UpdateBrandResponse);
-  rpc DeleteBrand(DeleteBrandRequest) returns (DeleteBrandResponse);
+  rpc CreateBrand(CreateBrandRequest) returns (CreateBrandResponse) {
+    option (google.api.http) = { post: "/api/brands" body: "*" response_body: "brand" };
+  }
+  rpc GetBrand(GetBrandRequest) returns (GetBrandResponse) {
+    option (google.api.http) = { get: "/api/brands/{id}" response_body: "brand" };
+  }
+  rpc ListBrands(ListBrandsRequest) returns (ListBrandsResponse) {
+    option (google.api.http) = { get: "/api/brands" };
+  }
+  rpc UpdateBrand(UpdateBrandRequest) returns (UpdateBrandResponse) {
+    option (google.api.http) = { put: "/api/brands/{id}" body: "*" response_body: "brand" };
+  }
+  rpc DeleteBrand(DeleteBrandRequest) returns (DeleteBrandResponse) {
+    option (google.api.http) = { delete: "/api/brands/{id}" };
+  }
 }
 
 message Brand {

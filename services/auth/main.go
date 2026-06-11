@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -19,7 +17,6 @@ import (
 	authgrpc "github.com/dealer/dealer/auth-service/internal/grpc"
 	"github.com/dealer/dealer/auth-service/internal/httpapi"
 	"github.com/dealer/dealer/auth-service/internal/repository"
-	"github.com/dealer/dealer/auth-service/internal/routepaths"
 	"github.com/dealer/dealer/auth-service/internal/service"
 	"github.com/dealer/dealer/pkg/dbschema"
 	"github.com/dealer/dealer/pkg/kafka"
@@ -66,7 +63,7 @@ func main() {
 		RefreshPrefix: "auth:refresh:",
 	})
 
-	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger)...)
+	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, nil)...)
 	authv1.RegisterAuthServiceServer(gsrv, authgrpc.NewServer(authSvc))
 	reflection.Register(gsrv)
 
@@ -85,58 +82,7 @@ func main() {
 
 	httpMux := http.NewServeMux()
 	httpapi.NewHandler(authSvc).RegisterRoutes(httpMux)
-	if cfg.CustomersServiceURL != "" {
-		if targetURL, err := url.Parse(cfg.CustomersServiceURL); err == nil {
-			proxy := httputil.NewSingleHostReverseProxy(targetURL)
-			httpMux.Handle(routepaths.APICustomers, proxy)
-			httpMux.Handle(routepaths.APICustomersPrefix, proxy)
-			logger.Info("proxying customers API", "target", cfg.CustomersServiceURL)
-		}
-	}
-	if cfg.VehiclesServiceURL != "" {
-		if targetURL, err := url.Parse(cfg.VehiclesServiceURL); err == nil {
-			proxy := httputil.NewSingleHostReverseProxy(targetURL)
-			httpMux.Handle(routepaths.APIVehicles, proxy)
-			httpMux.Handle(routepaths.APIVehiclesPrefix, proxy)
-			logger.Info("proxying vehicles API", "target", cfg.VehiclesServiceURL)
-		}
-	}
-	if cfg.DealsServiceURL != "" {
-		if targetURL, err := url.Parse(cfg.DealsServiceURL); err == nil {
-			proxy := httputil.NewSingleHostReverseProxy(targetURL)
-			httpMux.Handle(routepaths.APIDeals, proxy)
-			httpMux.Handle(routepaths.APIDealsPrefix, proxy)
-			logger.Info("proxying deals API", "target", cfg.DealsServiceURL)
-		}
-	}
-	if cfg.PartsServiceURL != "" {
-		if targetURL, err := url.Parse(cfg.PartsServiceURL); err == nil {
-			proxy := httputil.NewSingleHostReverseProxy(targetURL)
-			httpMux.Handle(routepaths.APIParts, proxy)
-			httpMux.Handle(routepaths.APIPartsPrefix, proxy)
-			logger.Info("proxying parts API", "target", cfg.PartsServiceURL)
-		}
-	}
-	if cfg.BrandsServiceURL != "" {
-		if targetURL, err := url.Parse(cfg.BrandsServiceURL); err == nil {
-			proxy := httputil.NewSingleHostReverseProxy(targetURL)
-			httpMux.Handle(routepaths.APIBrands, proxy)
-			httpMux.Handle(routepaths.APIBrandsPrefix, proxy)
-			logger.Info("proxying brands API", "target", cfg.BrandsServiceURL)
-		}
-	}
-	if cfg.DealerPointsServiceURL != "" {
-		if targetURL, err := url.Parse(cfg.DealerPointsServiceURL); err == nil {
-			proxy := httputil.NewSingleHostReverseProxy(targetURL)
-			httpMux.Handle(routepaths.APIDealerPoints, proxy)
-			httpMux.Handle(routepaths.APIDealerPointsPre, proxy)
-			httpMux.Handle(routepaths.APILegalEntities, proxy)
-			httpMux.Handle(routepaths.APILegalEntitiesPre, proxy)
-			httpMux.Handle(routepaths.APIWarehouses, proxy)
-			httpMux.Handle(routepaths.APIWarehousesPrefix, proxy)
-			logger.Info("proxying dealer-points API", "target", cfg.DealerPointsServiceURL)
-		}
-	}
+	registerDomainAPIProxy(httpMux, cfg, logger)
 	if cfg.StaticDir != "" {
 		httpMux.Handle("/", httpapi.SPAFileServer(http.Dir(cfg.StaticDir)))
 		logger.Info("serving static files", "dir", cfg.StaticDir)

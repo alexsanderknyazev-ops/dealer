@@ -7,6 +7,7 @@
 package dealsv1
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -685,7 +686,7 @@ var File_deals_v1_deals_proto protoreflect.FileDescriptor
 
 const file_deals_v1_deals_proto_rawDesc = "" +
 	"\n" +
-	"\x14deals/v1/deals.proto\x12\bdeals.v1\"\xf9\x01\n" +
+	"\x14deals/v1/deals.proto\x12\bdeals.v1\x1a\x1cgoogle/api/annotations.proto\"\xf9\x01\n" +
 	"\x04Deal\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
 	"\vcustomer_id\x18\x02 \x01(\tR\n" +
@@ -747,16 +748,18 @@ const file_deals_v1_deals_proto_rawDesc = "" +
 	"\x04deal\x18\x01 \x01(\v2\x0e.deals.v1.DealR\x04deal\"#\n" +
 	"\x11DeleteDealRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
-	"\x12DeleteDealResponse2\xef\x02\n" +
-	"\fDealsService\x12G\n" +
+	"\x12DeleteDealResponse2\xfa\x03\n" +
+	"\fDealsService\x12d\n" +
 	"\n" +
-	"CreateDeal\x12\x1b.deals.v1.CreateDealRequest\x1a\x1c.deals.v1.CreateDealResponse\x12>\n" +
-	"\aGetDeal\x12\x18.deals.v1.GetDealRequest\x1a\x19.deals.v1.GetDealResponse\x12D\n" +
-	"\tListDeals\x12\x1a.deals.v1.ListDealsRequest\x1a\x1b.deals.v1.ListDealsResponse\x12G\n" +
+	"CreateDeal\x12\x1b.deals.v1.CreateDealRequest\x1a\x1c.deals.v1.CreateDealResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*b\x04deal\"\n" +
+	"/api/deals\x12]\n" +
+	"\aGetDeal\x12\x18.deals.v1.GetDealRequest\x1a\x19.deals.v1.GetDealResponse\"\x1d\x82\xd3\xe4\x93\x02\x17b\x04deal\x12\x0f/api/deals/{id}\x12X\n" +
+	"\tListDeals\x12\x1a.deals.v1.ListDealsRequest\x1a\x1b.deals.v1.ListDealsResponse\"\x12\x82\xd3\xe4\x93\x02\f\x12\n" +
+	"/api/deals\x12i\n" +
 	"\n" +
-	"UpdateDeal\x12\x1b.deals.v1.UpdateDealRequest\x1a\x1c.deals.v1.UpdateDealResponse\x12G\n" +
+	"UpdateDeal\x12\x1b.deals.v1.UpdateDealRequest\x1a\x1c.deals.v1.UpdateDealResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*b\x04deal\x1a\x0f/api/deals/{id}\x12`\n" +
 	"\n" +
-	"DeleteDeal\x12\x1b.deals.v1.DeleteDealRequest\x1a\x1c.deals.v1.DeleteDealResponseB2Z0github.com/dealer/dealer/pkg/pb/deals/v1;dealsv1b\x06proto3"
+	"DeleteDeal\x12\x1b.deals.v1.DeleteDealRequest\x1a\x1c.deals.v1.DeleteDealResponse\"\x17\x82\xd3\xe4\x93\x02\x11*\x0f/api/deals/{id}B2Z0github.com/dealer/dealer/pkg/pb/deals/v1;dealsv1b\x06proto3"
 
 var (
 	file_deals_v1_deals_proto_rawDescOnce sync.Once

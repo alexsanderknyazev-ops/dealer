@@ -7,6 +7,7 @@
 package brandsv1
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -557,7 +558,7 @@ var File_brands_v1_brands_proto protoreflect.FileDescriptor
 
 const file_brands_v1_brands_proto_rawDesc = "" +
 	"\n" +
-	"\x16brands/v1/brands.proto\x12\tbrands.v1\"i\n" +
+	"\x16brands/v1/brands.proto\x12\tbrands.v1\x1a\x1cgoogle/api/annotations.proto\"i\n" +
 	"\x05Brand\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
@@ -588,14 +589,14 @@ const file_brands_v1_brands_proto_rawDesc = "" +
 	"\x05brand\x18\x01 \x01(\v2\x10.brands.v1.BrandR\x05brand\"$\n" +
 	"\x12DeleteBrandRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x15\n" +
-	"\x13DeleteBrandResponse2\x89\x03\n" +
-	"\rBrandsService\x12L\n" +
-	"\vCreateBrand\x12\x1d.brands.v1.CreateBrandRequest\x1a\x1e.brands.v1.CreateBrandResponse\x12C\n" +
-	"\bGetBrand\x12\x1a.brands.v1.GetBrandRequest\x1a\x1b.brands.v1.GetBrandResponse\x12I\n" +
+	"\x13DeleteBrandResponse2\x9c\x04\n" +
+	"\rBrandsService\x12k\n" +
+	"\vCreateBrand\x12\x1d.brands.v1.CreateBrandRequest\x1a\x1e.brands.v1.CreateBrandResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*b\x05brand\"\v/api/brands\x12d\n" +
+	"\bGetBrand\x12\x1a.brands.v1.GetBrandRequest\x1a\x1b.brands.v1.GetBrandResponse\"\x1f\x82\xd3\xe4\x93\x02\x19b\x05brand\x12\x10/api/brands/{id}\x12^\n" +
 	"\n" +
-	"ListBrands\x12\x1c.brands.v1.ListBrandsRequest\x1a\x1d.brands.v1.ListBrandsResponse\x12L\n" +
-	"\vUpdateBrand\x12\x1d.brands.v1.UpdateBrandRequest\x1a\x1e.brands.v1.UpdateBrandResponse\x12L\n" +
-	"\vDeleteBrand\x12\x1d.brands.v1.DeleteBrandRequest\x1a\x1e.brands.v1.DeleteBrandResponseB4Z2github.com/dealer/dealer/pkg/pb/brands/v1;brandsv1b\x06proto3"
+	"ListBrands\x12\x1c.brands.v1.ListBrandsRequest\x1a\x1d.brands.v1.ListBrandsResponse\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/api/brands\x12p\n" +
+	"\vUpdateBrand\x12\x1d.brands.v1.UpdateBrandRequest\x1a\x1e.brands.v1.UpdateBrandResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*b\x05brand\x1a\x10/api/brands/{id}\x12f\n" +
+	"\vDeleteBrand\x12\x1d.brands.v1.DeleteBrandRequest\x1a\x1e.brands.v1.DeleteBrandResponse\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/api/brands/{id}B4Z2github.com/dealer/dealer/pkg/pb/brands/v1;brandsv1b\x06proto3"
 
 var (
 	file_brands_v1_brands_proto_rawDescOnce sync.Once

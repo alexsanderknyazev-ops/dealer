@@ -11,7 +11,10 @@ import (
 	"github.com/dealer/dealer/services/vehicles/internal/domain"
 )
 
-var ErrNotFound = errors.New("vehicle not found")
+var (
+	ErrNotFound      = errors.New("vehicle not found")
+	ErrBrandNotFound = errors.New("brand not found")
+)
 
 // CreateVehicleInput — поля для создания ТС (снижает число параметров VehicleAPI.Create).
 type CreateVehicleInput struct {
@@ -46,6 +49,15 @@ type vehicleRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
+// BrandChecker validates brand_id via brands service (gRPC).
+type BrandChecker interface {
+	BrandExists(ctx context.Context, id uuid.UUID) (bool, error)
+}
+
+type noopBrandChecker struct{}
+
+func (noopBrandChecker) BrandExists(context.Context, uuid.UUID) (bool, error) { return true, nil }
+
 // VehicleAPI — HTTP/gRPC и тесты.
 type VehicleAPI interface {
 	Create(ctx context.Context, in CreateVehicleInput) (*domain.Vehicle, error)
@@ -56,17 +68,38 @@ type VehicleAPI interface {
 }
 
 type VehicleService struct {
-	repo vehicleRepository
+	repo   vehicleRepository
+	brands BrandChecker
 }
 
-func NewVehicleService(repo vehicleRepository) *VehicleService {
-	return &VehicleService{repo: repo}
+func NewVehicleService(repo vehicleRepository, brands BrandChecker) *VehicleService {
+	if brands == nil {
+		brands = noopBrandChecker{}
+	}
+	return &VehicleService{repo: repo, brands: brands}
+}
+
+func (s *VehicleService) validateBrand(ctx context.Context, brandID *uuid.UUID) error {
+	if brandID == nil {
+		return nil
+	}
+	ok, err := s.brands.BrandExists(ctx, *brandID)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return ErrBrandNotFound
+	}
+	return nil
 }
 
 func (s *VehicleService) Create(ctx context.Context, in CreateVehicleInput) (*domain.Vehicle, error) {
 	status := in.Status
 	if status == "" {
 		status = "available"
+	}
+	if err := s.validateBrand(ctx, in.BrandID); err != nil {
+		return nil, err
 	}
 	now := time.Now().UTC()
 	v := &domain.Vehicle{
@@ -172,6 +205,9 @@ func (s *VehicleService) Update(ctx context.Context, id string, in UpdateVehicle
 		return nil, ErrNotFound
 	}
 	mergeVehicleUpdateInput(existing, in)
+	if err := s.validateBrand(ctx, existing.BrandID); err != nil {
+		return nil, err
+	}
 	existing.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, existing); err != nil {
 		return nil, err

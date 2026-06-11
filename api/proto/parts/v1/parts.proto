@@ -2,20 +2,42 @@ syntax = "proto3";
 
 package parts.v1;
 
+import "google/api/annotations.proto";
+
 option go_package = "github.com/dealer/dealer/pkg/pb/parts/v1;partsv1";
 
 service PartsService {
-  rpc CreatePart(CreatePartRequest) returns (CreatePartResponse);
-  rpc GetPart(GetPartRequest) returns (GetPartResponse);
-  rpc ListParts(ListPartsRequest) returns (ListPartsResponse);
-  rpc UpdatePart(UpdatePartRequest) returns (UpdatePartResponse);
-  rpc DeletePart(DeletePartRequest) returns (DeletePartResponse);
+  rpc CreatePart(CreatePartRequest) returns (CreatePartResponse) {
+    option (google.api.http) = { post: "/api/parts" body: "*" response_body: "part" };
+  }
+  rpc GetPart(GetPartRequest) returns (GetPartResponse) {
+    option (google.api.http) = { get: "/api/parts/{id}" response_body: "part" };
+  }
+  rpc ListParts(ListPartsRequest) returns (ListPartsResponse) {
+    option (google.api.http) = { get: "/api/parts" };
+  }
+  rpc UpdatePart(UpdatePartRequest) returns (UpdatePartResponse) {
+    option (google.api.http) = { put: "/api/parts/{id}" body: "*" response_body: "part" };
+  }
+  rpc DeletePart(DeletePartRequest) returns (DeletePartResponse) {
+    option (google.api.http) = { delete: "/api/parts/{id}" };
+  }
 
-  rpc CreateFolder(CreateFolderRequest) returns (CreateFolderResponse);
-  rpc GetFolder(GetFolderRequest) returns (GetFolderResponse);
-  rpc ListFolders(ListFoldersRequest) returns (ListFoldersResponse);
-  rpc UpdateFolder(UpdateFolderRequest) returns (UpdateFolderResponse);
-  rpc DeleteFolder(DeleteFolderRequest) returns (DeleteFolderResponse);
+  rpc CreateFolder(CreateFolderRequest) returns (CreateFolderResponse) {
+    option (google.api.http) = { post: "/api/parts/folders" body: "*" response_body: "folder" };
+  }
+  rpc GetFolder(GetFolderRequest) returns (GetFolderResponse) {
+    option (google.api.http) = { get: "/api/parts/folders/{id}" response_body: "folder" };
+  }
+  rpc ListFolders(ListFoldersRequest) returns (ListFoldersResponse) {
+    option (google.api.http) = { get: "/api/parts/folders" };
+  }
+  rpc UpdateFolder(UpdateFolderRequest) returns (UpdateFolderResponse) {
+    option (google.api.http) = { put: "/api/parts/folders/{id}" body: "*" response_body: "folder" };
+  }
+  rpc DeleteFolder(DeleteFolderRequest) returns (DeleteFolderResponse) {
+    option (google.api.http) = { delete: "/api/parts/folders/{id}" };
+  }
 }
 
 message PartFolder {

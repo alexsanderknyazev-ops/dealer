@@ -159,10 +159,13 @@ services:
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
       BRANDS_GRPC_ADDR: "brands-service:50056"
+      DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
     depends_on:
       postgres:
         condition: service_healthy
       brands-service:
+        condition: service_started
+      dealer-points-service:
         condition: service_started
 
   deals-service:
@@ -199,9 +202,15 @@ services:
       PARTS_HTTP_PORT: "8084"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      BRANDS_GRPC_ADDR: "brands-service:50056"
+      DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
     depends_on:
       postgres:
         condition: service_healthy
+      brands-service:
+        condition: service_started
+      dealer-points-service:
+        condition: service_started
 
   brands-service:
     build:

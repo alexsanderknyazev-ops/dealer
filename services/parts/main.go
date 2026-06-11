@@ -19,6 +19,7 @@ import (
 	"github.com/dealer/dealer/pkg/observe"
 	partsv1 "github.com/dealer/dealer/pkg/pb/parts/v1"
 	"github.com/dealer/dealer/pkg/postgres"
+	"github.com/dealer/dealer/services/parts/internal/client"
 	"github.com/dealer/dealer/services/parts/internal/config"
 	grpcserver "github.com/dealer/dealer/services/parts/internal/grpc"
 	"github.com/dealer/dealer/services/parts/internal/httpapi"
@@ -44,7 +45,37 @@ func main() {
 	repo := repository.NewPartRepository(pool)
 	folderRepo := repository.NewFolderRepository(pool)
 	stockRepo := repository.NewPartStockRepository(pool)
-	svc := service.NewPartService(repo, folderRepo, stockRepo)
+	var brands service.BrandChecker
+	if cfg.BrandsGRPCAddr != "" {
+		dialCtx, dialCancel := context.WithTimeout(ctx, 10*time.Second)
+		brandClient, err := client.NewBrandChecker(dialCtx, cfg.BrandsGRPCAddr)
+		dialCancel()
+		if err != nil {
+			logger.Error("gRPC brands client connect failed", "err", err)
+			os.Exit(1)
+		}
+		defer brandClient.Close()
+		brands = brandClient
+		logger.Info("brand checks via gRPC", "brands", cfg.BrandsGRPCAddr)
+	} else {
+		logger.Warn("BRANDS_GRPC_ADDR not set; parts brand checks disabled")
+	}
+	var dealerPoints service.DealerPointsChecker
+	if cfg.DealerPointsGRPCAddr != "" {
+		dialCtx, dialCancel := context.WithTimeout(ctx, 10*time.Second)
+		dpClient, err := client.NewDealerPointsChecker(dialCtx, cfg.DealerPointsGRPCAddr)
+		dialCancel()
+		if err != nil {
+			logger.Error("gRPC dealer-points client connect failed", "err", err)
+			os.Exit(1)
+		}
+		defer dpClient.Close()
+		dealerPoints = dpClient
+		logger.Info("dealer point checks via gRPC", "dealer_points", cfg.DealerPointsGRPCAddr)
+	} else {
+		logger.Warn("DEALER_POINTS_GRPC_ADDR not set; parts dealer point checks disabled")
+	}
+	svc := service.NewPartService(repo, folderRepo, stockRepo, brands, dealerPoints)
 
 	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
 		JWTSecret:  cfg.JWTSecret,

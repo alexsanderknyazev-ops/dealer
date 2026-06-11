@@ -137,9 +137,103 @@ func (f *fakeFolderRepo) Delete(_ context.Context, id uuid.UUID) error {
 	return nil
 }
 
+type memBrands struct {
+	ok *bool
+}
+
+func (m *memBrands) BrandExists(_ context.Context, _ uuid.UUID) (bool, error) {
+	if m.ok == nil {
+		return true, nil
+	}
+	return *m.ok, nil
+}
+
+type memDealerPoints struct {
+	dpOK, leOK, whOK *bool
+}
+
+func (m *memDealerPoints) DealerPointExists(_ context.Context, _ uuid.UUID) (bool, error) {
+	if m.dpOK == nil {
+		return true, nil
+	}
+	return *m.dpOK, nil
+}
+func (m *memDealerPoints) LegalEntityExists(_ context.Context, _ uuid.UUID) (bool, error) {
+	if m.leOK == nil {
+		return true, nil
+	}
+	return *m.leOK, nil
+}
+func (m *memDealerPoints) WarehouseExists(_ context.Context, _ uuid.UUID) (bool, error) {
+	if m.whOK == nil {
+		return true, nil
+	}
+	return *m.whOK, nil
+}
+
+func TestPartService_Create_ReferenceIntegrity(t *testing.T) {
+	missing := false
+	pr := &fakePartRepo{parts: map[uuid.UUID]*domain.Part{}}
+	fr := &fakeFolderRepo{folders: map[uuid.UUID]*domain.PartFolder{}}
+	st := &fakeStock{repo: pr}
+	bid := uuid.New()
+	dpID := uuid.New()
+	leID := uuid.New()
+	whID := uuid.New()
+	base := CreatePartInput{SKU: "S", Name: "N", Category: "c"}
+
+	_, err := NewPartService(pr, fr, st, &memBrands{ok: &missing}, &memDealerPoints{}).Create(
+		context.Background(), func() CreatePartInput {
+			in := base
+			in.BrandID = &bid
+			return in
+		}(),
+	)
+	if err != ErrBrandNotFound {
+		t.Fatalf("brand: %v", err)
+	}
+
+	_, err = NewPartService(pr, fr, st, nil, &memDealerPoints{whOK: &missing}).Create(context.Background(), CreatePartInput{
+		SKU: "S2", Name: "N", Category: "c", WarehouseID: &whID, Quantity: 1,
+	})
+	if err != ErrWarehouseNotFound {
+		t.Fatalf("warehouse: %v", err)
+	}
+
+	_, err = NewPartService(pr, fr, st, nil, &memDealerPoints{whOK: &missing}).Create(context.Background(), CreatePartInput{
+		SKU: "S3", Name: "N", Category: "c",
+		InitialStock: []StockRow{{WarehouseID: whID, Quantity: 2}},
+	})
+	if err != ErrWarehouseNotFound {
+		t.Fatalf("stock warehouse: %v", err)
+	}
+
+	fid := uuid.New()
+	_, err = NewPartService(pr, fr, st, nil, &memDealerPoints{}).Create(context.Background(), CreatePartInput{
+		SKU: "S4", Name: "N", Category: "c", FolderID: &fid,
+	})
+	if err != ErrFolderNotFound {
+		t.Fatalf("folder: %v", err)
+	}
+
+	_, err = NewPartService(pr, fr, st, nil, &memDealerPoints{dpOK: &missing}).Create(context.Background(), CreatePartInput{
+		SKU: "S5", Name: "N", Category: "c", DealerPointID: &dpID,
+	})
+	if err != ErrDealerPointNotFound {
+		t.Fatalf("dealer point: %v", err)
+	}
+
+	_, err = NewPartService(pr, fr, st, nil, &memDealerPoints{leOK: &missing}).Create(context.Background(), CreatePartInput{
+		SKU: "S6", Name: "N", Category: "c", DealerPointID: &dpID, LegalEntityID: &leID,
+	})
+	if err != ErrLegalEntityNotFound {
+		t.Fatalf("legal entity: %v", err)
+	}
+}
+
 func TestPartService_Create_DefaultUnit(t *testing.T) {
 	pr := &fakePartRepo{parts: map[uuid.UUID]*domain.Part{}}
-	s := NewPartService(pr, &fakeFolderRepo{}, &fakeStock{repo: pr})
+	s := NewPartService(pr, &fakeFolderRepo{}, &fakeStock{repo: pr}, nil, nil)
 	p, err := s.Create(context.Background(), CreatePartInput{SKU: "SKU1", Name: "N", Category: "cat", Price: "10"})
 	if err != nil || p.Unit != "шт" {
 		t.Fatalf("%v %+v", err, p)
@@ -148,7 +242,7 @@ func TestPartService_Create_DefaultUnit(t *testing.T) {
 
 func TestPartService_Get_NotFound(t *testing.T) {
 	pr := &fakePartRepo{parts: map[uuid.UUID]*domain.Part{}}
-	s := NewPartService(pr, &fakeFolderRepo{}, &fakeStock{repo: pr})
+	s := NewPartService(pr, &fakeFolderRepo{}, &fakeStock{repo: pr}, nil, nil)
 	_, err := s.Get(context.Background(), uuid.New().String())
 	if err != ErrNotFound {
 		t.Fatalf("%v", err)
@@ -162,7 +256,7 @@ func TestPartService_Get_NotFound(t *testing.T) {
 func TestPartService_Create_WithWarehouseQty(t *testing.T) {
 	pr := &fakePartRepo{parts: map[uuid.UUID]*domain.Part{}}
 	st := &fakeStock{repo: pr}
-	s := NewPartService(pr, &fakeFolderRepo{}, st)
+	s := NewPartService(pr, &fakeFolderRepo{}, st, nil, nil)
 	wid := uuid.New()
 	p, err := s.Create(context.Background(), CreatePartInput{SKU: "S2", Name: "N", Category: "c", WarehouseID: &wid, Quantity: 5})
 	if err != nil || p.Quantity != 5 {
@@ -173,7 +267,7 @@ func TestPartService_Create_WithWarehouseQty(t *testing.T) {
 func TestPartService_FolderCRUD(t *testing.T) {
 	pr := &fakePartRepo{parts: map[uuid.UUID]*domain.Part{}}
 	fr := &fakeFolderRepo{folders: map[uuid.UUID]*domain.PartFolder{}}
-	s := NewPartService(pr, fr, &fakeStock{repo: pr})
+	s := NewPartService(pr, fr, &fakeStock{repo: pr}, nil, nil)
 	f, err := s.CreateFolder(context.Background(), "root", nil)
 	if err != nil || f.Name != "root" {
 		t.Fatal(err)
@@ -187,7 +281,7 @@ func TestPartService_FolderCRUD(t *testing.T) {
 func TestPartService_Update_Delete_ListStock(t *testing.T) {
 	pr := &fakePartRepo{parts: map[uuid.UUID]*domain.Part{}}
 	st := &fakeStock{repo: pr}
-	s := NewPartService(pr, &fakeFolderRepo{}, st)
+	s := NewPartService(pr, &fakeFolderRepo{}, st, nil, nil)
 	p, err := s.Create(context.Background(), CreatePartInput{SKU: "U1", Name: "Part", Category: "c", Unit: "шт", Price: "1"})
 	if err != nil {
 		t.Fatal(err)

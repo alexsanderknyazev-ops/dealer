@@ -49,6 +49,21 @@ func (h *Handler) cors(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+func writeVehicleReferenceErr(w http.ResponseWriter, err error) bool {
+	for _, refErr := range []error{
+		service.ErrBrandNotFound,
+		service.ErrDealerPointNotFound,
+		service.ErrLegalEntityNotFound,
+		service.ErrWarehouseNotFound,
+	} {
+		if errors.Is(err, refErr) {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return true
+		}
+	}
+	return false
+}
+
 func requestContext(r *http.Request) context.Context {
 	if auth := r.Header.Get("Authorization"); auth != "" {
 		return grpclient.WithAuthorization(r.Context(), auth)
@@ -153,8 +168,7 @@ func (h *Handler) handleCreate(w http.ResponseWriter, r *http.Request) {
 		LegalEntityID: parseOpt(req.LegalEntityID), WarehouseID: parseOpt(req.WarehouseID),
 	})
 	if err != nil {
-		if errors.Is(err, service.ErrBrandNotFound) {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		if writeVehicleReferenceErr(w, err) {
 			return
 		}
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -234,8 +248,7 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
 			return
 		}
-		if errors.Is(err, service.ErrBrandNotFound) {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		if writeVehicleReferenceErr(w, err) {
 			return
 		}
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})

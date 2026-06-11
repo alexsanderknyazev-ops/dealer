@@ -21,6 +21,24 @@ func NewServer(svc *service.PartService) *Server {
 	return &Server{svc: svc}
 }
 
+func partWriteErr(err error) error {
+	if errors.Is(err, service.ErrNotFound) {
+		return status.Error(codes.NotFound, "part not found")
+	}
+	for _, refErr := range []error{
+		service.ErrFolderNotFound,
+		service.ErrBrandNotFound,
+		service.ErrDealerPointNotFound,
+		service.ErrLegalEntityNotFound,
+		service.ErrWarehouseNotFound,
+	} {
+		if errors.Is(err, refErr) {
+			return status.Error(codes.NotFound, err.Error())
+		}
+	}
+	return status.Error(codes.Internal, err.Error())
+}
+
 func folderToProto(f *domain.PartFolder) *partsv1.PartFolder {
 	if f == nil {
 		return nil
@@ -103,7 +121,7 @@ func (s *Server) CreatePart(ctx context.Context, req *partsv1.CreatePartRequest)
 		Quantity: req.Quantity, Unit: req.Unit, Price: req.Price, Location: req.Location, Notes: req.Notes,
 	})
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, partWriteErr(err)
 	}
 	return &partsv1.CreatePartResponse{Part: toProto(p)}, nil
 }
@@ -157,10 +175,7 @@ func (s *Server) UpdatePart(ctx context.Context, req *partsv1.UpdatePartRequest)
 	}
 	p, err := s.svc.Update(ctx, req.Id, in)
 	if err != nil {
-		if errors.Is(err, service.ErrNotFound) {
-			return nil, status.Error(codes.NotFound, "part not found")
-		}
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, partWriteErr(err)
 	}
 	return &partsv1.UpdatePartResponse{Part: toProto(p)}, nil
 }

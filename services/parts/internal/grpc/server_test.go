@@ -137,7 +137,7 @@ func dialParts(t *testing.T, srv *grpc.Server) partsv1.PartsServiceClient {
 
 func TestPartsGRPC_PartFlow(t *testing.T) {
 	pr := &gprPart{parts: map[uuid.UUID]*domain.Part{}}
-	svc := service.NewPartService(pr, &gprFolder{folders: map[uuid.UUID]*domain.PartFolder{}}, &gprStock{repo: pr})
+	svc := service.NewPartService(pr, &gprFolder{folders: map[uuid.UUID]*domain.PartFolder{}}, &gprStock{repo: pr}, nil, nil)
 	s := grpc.NewServer()
 	partsv1.RegisterPartsServiceServer(s, NewServer(svc))
 	cli := dialParts(t, s)
@@ -165,7 +165,7 @@ func TestPartsGRPC_PartFlow(t *testing.T) {
 func TestPartsGRPC_FolderFlow(t *testing.T) {
 	pr := &gprPart{parts: map[uuid.UUID]*domain.Part{}}
 	fr := &gprFolder{folders: map[uuid.UUID]*domain.PartFolder{}}
-	svc := service.NewPartService(pr, fr, &gprStock{repo: pr})
+	svc := service.NewPartService(pr, fr, &gprStock{repo: pr}, nil, nil)
 	s := grpc.NewServer()
 	partsv1.RegisterPartsServiceServer(s, NewServer(svc))
 	cli := dialParts(t, s)

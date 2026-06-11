@@ -6,11 +6,11 @@ import (
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
+
 	brandsv1 "github.com/dealer/dealer/pkg/pb/brands/v1"
 	"github.com/dealer/dealer/pkg/grpclient"
 )
 
-// BrandChecker validates brand_id via brands gRPC.
 type BrandChecker struct {
 	brands brandsv1.BrandsServiceClient
 	conn   *grpc.ClientConn

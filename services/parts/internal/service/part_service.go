@@ -11,8 +11,14 @@ import (
 	"github.com/dealer/dealer/services/parts/internal/domain"
 )
 
-var ErrNotFound = errors.New("part not found")
-var ErrFolderNotFound = errors.New("folder not found")
+var (
+	ErrNotFound            = errors.New("part not found")
+	ErrFolderNotFound      = errors.New("folder not found")
+	ErrBrandNotFound       = errors.New("brand not found")
+	ErrDealerPointNotFound = errors.New("dealer point not found")
+	ErrLegalEntityNotFound = errors.New("legal entity not found")
+	ErrWarehouseNotFound   = errors.New("warehouse not found")
+)
 
 // StockRow — alias для строк остатков (HTTP JSON и ReplaceStock).
 type StockRow = domain.PartWarehouseQty
@@ -56,14 +62,129 @@ type partStockRepository interface {
 	ReplaceForPart(ctx context.Context, partID uuid.UUID, rows []domain.PartWarehouseQty) error
 }
 
-type PartService struct {
-	repo       partRepository
-	folderRepo folderRepository
-	stockRepo  partStockRepository
+type BrandChecker interface {
+	BrandExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
-func NewPartService(repo partRepository, folderRepo folderRepository, stockRepo partStockRepository) *PartService {
-	return &PartService{repo: repo, folderRepo: folderRepo, stockRepo: stockRepo}
+type DealerPointsChecker interface {
+	DealerPointExists(ctx context.Context, id uuid.UUID) (bool, error)
+	LegalEntityExists(ctx context.Context, id uuid.UUID) (bool, error)
+	WarehouseExists(ctx context.Context, id uuid.UUID) (bool, error)
+}
+
+type noopBrandChecker struct{}
+
+func (noopBrandChecker) BrandExists(context.Context, uuid.UUID) (bool, error) { return true, nil }
+
+type noopDealerPointsChecker struct{}
+
+func (noopDealerPointsChecker) DealerPointExists(context.Context, uuid.UUID) (bool, error) {
+	return true, nil
+}
+func (noopDealerPointsChecker) LegalEntityExists(context.Context, uuid.UUID) (bool, error) {
+	return true, nil
+}
+func (noopDealerPointsChecker) WarehouseExists(context.Context, uuid.UUID) (bool, error) {
+	return true, nil
+}
+
+type PartService struct {
+	repo         partRepository
+	folderRepo   folderRepository
+	stockRepo    partStockRepository
+	brands       BrandChecker
+	dealerPoints DealerPointsChecker
+}
+
+func NewPartService(
+	repo partRepository,
+	folderRepo folderRepository,
+	stockRepo partStockRepository,
+	brands BrandChecker,
+	dealerPoints DealerPointsChecker,
+) *PartService {
+	if brands == nil {
+		brands = noopBrandChecker{}
+	}
+	if dealerPoints == nil {
+		dealerPoints = noopDealerPointsChecker{}
+	}
+	return &PartService{
+		repo: repo, folderRepo: folderRepo, stockRepo: stockRepo,
+		brands: brands, dealerPoints: dealerPoints,
+	}
+}
+
+func (s *PartService) checkRef(
+	ctx context.Context,
+	id *uuid.UUID,
+	exists func(context.Context, uuid.UUID) (bool, error),
+	notFound error,
+) error {
+	if id == nil {
+		return nil
+	}
+	ok, err := exists(ctx, *id)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return notFound
+	}
+	return nil
+}
+
+func (s *PartService) validateFolder(ctx context.Context, folderID *uuid.UUID) error {
+	if folderID == nil {
+		return nil
+	}
+	_, err := s.folderRepo.GetByID(ctx, *folderID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrFolderNotFound
+		}
+		return err
+	}
+	return nil
+}
+
+func (s *PartService) validatePartRefs(ctx context.Context, p *domain.Part) error {
+	if err := s.validateFolder(ctx, p.FolderID); err != nil {
+		return err
+	}
+	if err := s.checkRef(ctx, p.BrandID, s.brands.BrandExists, ErrBrandNotFound); err != nil {
+		return err
+	}
+	if err := s.checkRef(ctx, p.DealerPointID, s.dealerPoints.DealerPointExists, ErrDealerPointNotFound); err != nil {
+		return err
+	}
+	if err := s.checkRef(ctx, p.LegalEntityID, s.dealerPoints.LegalEntityExists, ErrLegalEntityNotFound); err != nil {
+		return err
+	}
+	if err := s.checkRef(ctx, p.WarehouseID, s.dealerPoints.WarehouseExists, ErrWarehouseNotFound); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *PartService) validateStockWarehouses(ctx context.Context, rows []domain.PartWarehouseQty, warehouseID *uuid.UUID, quantity int32) error {
+	seen := make(map[uuid.UUID]struct{}, len(rows)+1)
+	for _, row := range rows {
+		if _, ok := seen[row.WarehouseID]; ok {
+			continue
+		}
+		seen[row.WarehouseID] = struct{}{}
+		if err := s.checkRef(ctx, &row.WarehouseID, s.dealerPoints.WarehouseExists, ErrWarehouseNotFound); err != nil {
+			return err
+		}
+	}
+	if warehouseID != nil && quantity > 0 {
+		if _, ok := seen[*warehouseID]; ok {
+			return nil
+		}
+		return s.checkRef(ctx, warehouseID, s.dealerPoints.WarehouseExists, ErrWarehouseNotFound)
+	}
+	return nil
 }
 
 func (s *PartService) Create(ctx context.Context, in CreatePartInput) (*domain.Part, error) {
@@ -89,6 +210,12 @@ func (s *PartService) Create(ctx context.Context, in CreatePartInput) (*domain.P
 		Notes:         in.Notes,
 		CreatedAt:     now,
 		UpdatedAt:     now,
+	}
+	if err := s.validatePartRefs(ctx, p); err != nil {
+		return nil, err
+	}
+	if err := s.validateStockWarehouses(ctx, in.InitialStock, in.WarehouseID, in.Quantity); err != nil {
+		return nil, err
 	}
 	if err := s.repo.Create(ctx, p); err != nil {
 		return nil, err
@@ -179,6 +306,9 @@ func (s *PartService) Update(ctx context.Context, id string, in UpdatePartInput)
 		return nil, ErrNotFound
 	}
 	mergePartUpdateInput(existing, in)
+	if err := s.validatePartRefs(ctx, existing); err != nil {
+		return nil, err
+	}
 	existing.UpdatedAt = time.Now().UTC()
 	if err := s.repo.Update(ctx, existing); err != nil {
 		return nil, err
@@ -215,6 +345,9 @@ func (s *PartService) ReplaceStock(ctx context.Context, partID string, rows []St
 			continue
 		}
 		repoRows = append(repoRows, row)
+	}
+	if err := s.validateStockWarehouses(ctx, repoRows, nil, 0); err != nil {
+		return err
 	}
 	return s.stockRepo.ReplaceForPart(ctx, uid, repoRows)
 }

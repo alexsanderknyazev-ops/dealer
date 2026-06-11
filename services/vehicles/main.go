@@ -58,7 +58,22 @@ func main() {
 	} else {
 		logger.Warn("BRANDS_GRPC_ADDR not set; vehicle brand checks disabled")
 	}
-	svc := service.NewVehicleService(repo, brands)
+	var dealerPoints service.DealerPointsChecker
+	if cfg.DealerPointsGRPCAddr != "" {
+		dialCtx, dialCancel := context.WithTimeout(ctx, 10*time.Second)
+		dpClient, err := client.NewDealerPointsChecker(dialCtx, cfg.DealerPointsGRPCAddr)
+		dialCancel()
+		if err != nil {
+			logger.Error("gRPC dealer-points client connect failed", "err", err)
+			os.Exit(1)
+		}
+		defer dpClient.Close()
+		dealerPoints = dpClient
+		logger.Info("dealer point checks via gRPC", "dealer_points", cfg.DealerPointsGRPCAddr)
+	} else {
+		logger.Warn("DEALER_POINTS_GRPC_ADDR not set; vehicle dealer point checks disabled")
+	}
+	svc := service.NewVehicleService(repo, brands, dealerPoints)
 
 	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
 		JWTSecret:  cfg.JWTSecret,

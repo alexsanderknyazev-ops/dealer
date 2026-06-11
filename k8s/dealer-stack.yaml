@@ -522,6 +522,8 @@ spec:
               value: "change-me-in-production"
             - name: BRANDS_GRPC_ADDR
               value: "brands-service.dealer.svc.cluster.local:50056"
+            - name: DEALER_POINTS_GRPC_ADDR
+              value: "dealer-points-service.dealer.svc.cluster.local:50057"
 ---
 #Service
 apiVersion: v1
@@ -670,6 +672,10 @@ spec:
                   key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
+            - name: BRANDS_GRPC_ADDR
+              value: "brands-service.dealer.svc.cluster.local:50056"
+            - name: DEALER_POINTS_GRPC_ADDR
+              value: "dealer-points-service.dealer.svc.cluster.local:50057"
 ---
 #Service
 apiVersion: v1

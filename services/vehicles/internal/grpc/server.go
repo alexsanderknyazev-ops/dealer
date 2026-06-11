@@ -21,6 +21,23 @@ func NewServer(svc service.VehicleAPI) *Server {
 	return &Server{svc: svc}
 }
 
+func vehicleWriteErr(err error) error {
+	if errors.Is(err, service.ErrNotFound) {
+		return status.Error(codes.NotFound, "vehicle not found")
+	}
+	for _, refErr := range []error{
+		service.ErrBrandNotFound,
+		service.ErrDealerPointNotFound,
+		service.ErrLegalEntityNotFound,
+		service.ErrWarehouseNotFound,
+	} {
+		if errors.Is(err, refErr) {
+			return status.Error(codes.NotFound, err.Error())
+		}
+	}
+	return status.Error(codes.Internal, err.Error())
+}
+
 func toProto(v *domain.Vehicle) *vehiclesv1.Vehicle {
 	if v == nil {
 		return nil
@@ -73,10 +90,7 @@ func (s *Server) CreateVehicle(ctx context.Context, req *vehiclesv1.CreateVehicl
 		LegalEntityID: parseUUIDOptional(req.LegalEntityId), WarehouseID: parseUUIDOptional(req.WarehouseId),
 	})
 	if err != nil {
-		if errors.Is(err, service.ErrBrandNotFound) {
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, vehicleWriteErr(err)
 	}
 	return &vehiclesv1.CreateVehicleResponse{Vehicle: toProto(v)}, nil
 }
@@ -146,13 +160,7 @@ func (s *Server) UpdateVehicle(ctx context.Context, req *vehiclesv1.UpdateVehicl
 		ClearDealerPoint: clearDealerPoint, ClearLegalEntity: clearLegalEntity, ClearWarehouse: clearWarehouse,
 	})
 	if err != nil {
-		if errors.Is(err, service.ErrNotFound) {
-			return nil, status.Error(codes.NotFound, "vehicle not found")
-		}
-		if errors.Is(err, service.ErrBrandNotFound) {
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, vehicleWriteErr(err)
 	}
 	return &vehiclesv1.UpdateVehicleResponse{Vehicle: toProto(v)}, nil
 }

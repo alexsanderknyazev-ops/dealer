@@ -1,13 +1,17 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
+
+	"github.com/dealer/dealer/pkg/grpclient"
 	"github.com/dealer/dealer/services/parts/internal/domain"
 	"github.com/dealer/dealer/services/parts/internal/jwt"
 	"github.com/dealer/dealer/services/parts/internal/service"
@@ -20,6 +24,29 @@ type Handler struct {
 
 func NewHandler(svc *service.PartService, jwtSecret string) *Handler {
 	return &Handler{svc: svc, jwtSecret: jwtSecret}
+}
+
+func writePartReferenceErr(w http.ResponseWriter, err error) bool {
+	for _, refErr := range []error{
+		service.ErrFolderNotFound,
+		service.ErrBrandNotFound,
+		service.ErrDealerPointNotFound,
+		service.ErrLegalEntityNotFound,
+		service.ErrWarehouseNotFound,
+	} {
+		if errors.Is(err, refErr) {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return true
+		}
+	}
+	return false
+}
+
+func requestContext(r *http.Request) context.Context {
+	if auth := r.Header.Get("Authorization"); auth != "" {
+		return grpclient.WithAuthorization(r.Context(), auth)
+	}
+	return r.Context()
 }
 
 func parseUUIDOpt(s string) *uuid.UUID {
@@ -182,7 +209,7 @@ func (h *Handler) handleCreate(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	p, err := h.svc.Create(r.Context(), service.CreatePartInput{
+	p, err := h.svc.Create(requestContext(r), service.CreatePartInput{
 		SKU: req.SKU, Name: req.Name, Category: req.Category,
 		FolderID: parseUUIDOpt(req.FolderID), BrandID: parseUUIDOpt(req.BrandID), DealerPointID: parseUUIDOpt(req.DealerPointID),
 		LegalEntityID: parseUUIDOpt(req.LegalEntityID), WarehouseID: parseUUIDOpt(req.WarehouseID),
@@ -190,11 +217,14 @@ func (h *Handler) handleCreate(w http.ResponseWriter, r *http.Request) {
 		InitialStock: initialStock,
 	})
 	if err != nil {
+		if writePartReferenceErr(w, err) {
+			return
+		}
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
 	out := partToMap(p)
-	if list, _ := h.svc.ListStock(r.Context(), p.ID.String()); len(list) > 0 {
+	if list, _ := h.svc.ListStock(requestContext(r), p.ID.String()); len(list) > 0 {
 		out["stock"] = stockToList(list)
 	}
 	writeJSON(w, http.StatusOK, out)
@@ -258,12 +288,15 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 				rows = append(rows, service.StockRow{WarehouseID: *w, Quantity: row.Quantity})
 			}
 		}
-		if err := h.svc.ReplaceStock(r.Context(), id, rows); err != nil && err != service.ErrNotFound {
+		if err := h.svc.ReplaceStock(requestContext(r), id, rows); err != nil && err != service.ErrNotFound {
+			if writePartReferenceErr(w, err) {
+				return
+			}
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
 		}
 	}
-	p, err := h.svc.Update(r.Context(), id, service.UpdatePartInput{
+	p, err := h.svc.Update(requestContext(r), id, service.UpdatePartInput{
 		SKU: req.SKU, Name: req.Name, Category: req.Category, FolderID: req.FolderID, BrandID: req.BrandID,
 		DealerPointID: req.DealerPointID, LegalEntityID: req.LegalEntityID, WarehouseID: req.WarehouseID,
 		Quantity: req.Quantity, Unit: req.Unit, Price: req.Price, Location: req.Location, Notes: req.Notes,
@@ -273,11 +306,14 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
 			return
 		}
+		if writePartReferenceErr(w, err) {
+			return
+		}
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
 	out := partToMap(p)
-	if list, _ := h.svc.ListStock(r.Context(), id); len(list) > 0 {
+	if list, _ := h.svc.ListStock(requestContext(r), id); len(list) > 0 {
 		out["stock"] = stockToList(list)
 	}
 	writeJSON(w, http.StatusOK, out)

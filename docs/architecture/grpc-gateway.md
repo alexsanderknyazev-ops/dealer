@@ -36,6 +36,8 @@ docker compose restart gateway-service
 2. **Межсервисно (gRPC)**:
    - `deals-service` → `customers-service`, `vehicles-service` (`GetCustomer` / `GetVehicle` для referential integrity)
    - `vehicles-service` → `brands-service` (`GetBrand` при `brand_id`)
+   - `vehicles-service` → `dealer-points-service` (`GetDealerPoint` / `GetLegalEntity` / `GetWarehouse`)
+   - `parts-service` → `brands-service`, `dealer-points-service` (FK + stock `warehouse_id`)
    - JWT пробрасывается через `pkg/grpclient` (из gRPC metadata или HTTP `Authorization`)
 3. **Финал**: удалить `internal/httpapi` из domain-сервисов, оставить только gRPC server.
 
@@ -44,7 +46,8 @@ docker compose restart gateway-service
 | Сервис | Env |
 |--------|-----|
 | deals | `CUSTOMERS_GRPC_ADDR`, `VEHICLES_GRPC_ADDR` |
-| vehicles | `BRANDS_GRPC_ADDR` |
+| vehicles | `BRANDS_GRPC_ADDR`, `DEALER_POINTS_GRPC_ADDR` |
+| parts | `BRANDS_GRPC_ADDR`, `DEALER_POINTS_GRPC_ADDR` |
 
 ## Auth endpoints
 

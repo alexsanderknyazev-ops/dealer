@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-registration-service
+  namespace: dealer
+spec:
+  selector:
+    app: client-registration-service
+  ports:
+    - name: grpc
+      port: 50058
+      targetPort: 50058
+    - name: http
+      port: 8087
+      targetPort: 8087

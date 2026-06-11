@@ -55,3 +55,11 @@ spec:
               value: "brands-service:50056"
             - name: DEALER_POINTS_GRPC_ADDR
               value: "dealer-points-service:50057"
+            - name: EMPLOYEE_STATISTICS_GRPC_ADDR
+              value: "employee-statistics-service:50061"
+            - name: CLIENT_STATISTICS_GRPC_ADDR
+              value: "client-statistics-service:50062"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"

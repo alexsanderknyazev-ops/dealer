@@ -196,6 +196,13 @@ append_version_export() {
 	brands-service) echo "export VER_BRANDS_SERVICE=$2" ;;
 	dealer-points-service) echo "export VER_DEALER_POINTS_SERVICE=$2" ;;
 	gateway-service) echo "export VER_GATEWAY_SERVICE=$2" ;;
+	client-auth-service) echo "export VER_CLIENT_AUTH_SERVICE=$2" ;;
+	client-registration-service) echo "export VER_CLIENT_REGISTRATION_SERVICE=$2" ;;
+	client-reviews-service) echo "export VER_CLIENT_REVIEWS_SERVICE=$2" ;;
+	client-public-gateway-service) echo "export VER_CLIENT_PUBLIC_GATEWAY_SERVICE=$2" ;;
+	client-protected-gateway-service) echo "export VER_CLIENT_PROTECTED_GATEWAY_SERVICE=$2" ;;
+	employee-statistics-service) echo "export VER_EMPLOYEE_STATISTICS_SERVICE=$2" ;;
+	client-statistics-service) echo "export VER_CLIENT_STATISTICS_SERVICE=$2" ;;
 	*) return 1 ;;
 	esac
 }
@@ -217,7 +224,14 @@ cmd_prepare() {
 		'parts-service:build/parts-service.Dockerfile' \
 		'brands-service:build/brands-service.Dockerfile' \
 		'dealer-points-service:build/dealer-points-service.Dockerfile' \
-		'gateway-service:build/gateway-service.Dockerfile'; do
+		'gateway-service:build/gateway-service.Dockerfile' \
+		'client-auth-service:build/client-auth-service.Dockerfile' \
+		'client-registration-service:build/client-registration-service.Dockerfile' \
+		'client-reviews-service:build/client-reviews-service.Dockerfile' \
+		'client-public-gateway-service:build/client-public-gateway-service.Dockerfile' \
+		'client-protected-gateway-service:build/client-protected-gateway-service.Dockerfile' \
+		'employee-statistics-service:build/employee-statistics-service.Dockerfile' \
+		'client-statistics-service:build/client-statistics-service.Dockerfile'; do
 		name="${entry%%:*}"
 		vf="$(version_file_for_service "$name")"
 		test -n "$vf" && test -f "$vf" || {

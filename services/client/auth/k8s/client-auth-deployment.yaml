@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-auth-service
+  namespace: dealer
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  selector:
+    matchLabels:
+      app: client-auth-service
+  template:
+    metadata:
+      labels:
+        app: client-auth-service
+    spec:
+      containers:
+        - name: client-auth-service
+          image: __IMG_CLIENT_AUTH__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50059
+            - containerPort: 8088
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8088
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8088
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: CLIENT_AUTH_GRPC_PORT
+              value: "50059"
+            - name: CLIENT_AUTH_HTTP_PORT
+              value: "8088"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: REDIS_ADDR
+              value: "redis:6379"
+            - name: REDIS_PASSWORD
+              value: ""
+            - name: REDIS_DB
+              value: "0"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-app-secrets
+                  key: JWT_SECRET
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_CLIENT_REGISTRATION
+              value: "client.registration.v1"
+            - name: KAFKA_CONSUMER_GROUP_CLIENT_AUTH
+              value: "client-auth"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"

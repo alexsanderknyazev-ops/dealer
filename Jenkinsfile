@@ -348,7 +348,7 @@ export DOCKER_REGISTRY="\${DOCKER_REGISTRY}"
 export BUILD_NUMBER='${env.BUILD_NUMBER}'
 cd "\${WORKSPACE}"
 bash scripts/ci/jenkins-docker.sh prepare
-for svc in customers-service vehicles-service deals-service parts-service brands-service dealer-points-service auth-service gateway-service; do
+for svc in customers-service vehicles-service deals-service parts-service brands-service dealer-points-service auth-service gateway-service client-auth-service client-registration-service client-reviews-service client-public-gateway-service client-protected-gateway-service employee-statistics-service client-statistics-service; do
   case "\${svc}" in
     auth-service) df='build/auth-service.Dockerfile' ;;
     customers-service) df='build/customers-service.Dockerfile' ;;
@@ -358,6 +358,13 @@ for svc in customers-service vehicles-service deals-service parts-service brands
     brands-service) df='build/brands-service.Dockerfile' ;;
     dealer-points-service) df='build/dealer-points-service.Dockerfile' ;;
     gateway-service) df='build/gateway-service.Dockerfile' ;;
+    client-auth-service) df='build/client-auth-service.Dockerfile' ;;
+    client-registration-service) df='build/client-registration-service.Dockerfile' ;;
+    client-reviews-service) df='build/client-reviews-service.Dockerfile' ;;
+    client-public-gateway-service) df='build/client-public-gateway-service.Dockerfile' ;;
+    client-protected-gateway-service) df='build/client-protected-gateway-service.Dockerfile' ;;
+    employee-statistics-service) df='build/employee-statistics-service.Dockerfile' ;;
+    client-statistics-service) df='build/client-statistics-service.Dockerfile' ;;
     *) echo "Unknown service: \${svc}" >&2; exit 1 ;;
   esac
   bash scripts/ci/jenkins-docker.sh build "\${svc}" "\${df}"
@@ -540,6 +547,34 @@ apply_service() {
       dep="services/gateway/employee/k8s/gateway-deployment.yaml"; svcf="services/gateway/employee/k8s/gateway-service.yaml"
       sed -e "s|__IMG_GATEWAY__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
       ;;
+    client-auth-service)
+      dep="services/client/auth/k8s/client-auth-deployment.yaml"; svcf="services/client/auth/k8s/client-auth-service.yaml"
+      sed -e "s|__IMG_CLIENT_AUTH__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
+      ;;
+    client-registration-service)
+      dep="services/client/registration/k8s/client-registration-deployment.yaml"; svcf="services/client/registration/k8s/client-registration-service.yaml"
+      sed -e "s|__IMG_CLIENT_REGISTRATION__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
+      ;;
+    client-reviews-service)
+      dep="services/client/reviews/k8s/client-reviews-deployment.yaml"; svcf="services/client/reviews/k8s/client-reviews-service.yaml"
+      sed -e "s|__IMG_CLIENT_REVIEWS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
+      ;;
+    client-public-gateway-service)
+      dep="services/gateway/client-public/k8s/client-public-gateway-deployment.yaml"; svcf="services/gateway/client-public/k8s/client-public-gateway-service.yaml"
+      sed -e "s|__IMG_CLIENT_PUBLIC_GATEWAY__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
+      ;;
+    client-protected-gateway-service)
+      dep="services/gateway/client-protected/k8s/client-protected-gateway-deployment.yaml"; svcf="services/gateway/client-protected/k8s/client-protected-gateway-service.yaml"
+      sed -e "s|__IMG_CLIENT_PROTECTED_GATEWAY__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
+      ;;
+    employee-statistics-service)
+      dep="services/statistics/employee/k8s/employee-statistics-deployment.yaml"; svcf="services/statistics/employee/k8s/employee-statistics-service.yaml"
+      sed -e "s|__IMG_EMPLOYEE_STATISTICS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
+      ;;
+    client-statistics-service)
+      dep="services/statistics/client/k8s/client-statistics-deployment.yaml"; svcf="services/statistics/client/k8s/client-statistics-service.yaml"
+      sed -e "s|__IMG_CLIENT_STATISTICS__|\${img}|g" -e "s|__PULL_POLICY__|IfNotPresent|g" "\$dep" | kapply -f -
+      ;;
     *) echo "Unknown service \${svc}" >&2; exit 1 ;;
   esac
   kapply -f "\$svcf"
@@ -557,6 +592,13 @@ if [ -n "\${NEW_VERSION_SERVICES}" ]; then
       brands-service) IMG="\${K8S_PULL_REG}/brands-service:\${VER_BRANDS_SERVICE}"; VER="\${VER_BRANDS_SERVICE}" ;;
       dealer-points-service) IMG="\${K8S_PULL_REG}/dealer-points-service:\${VER_DEALER_POINTS_SERVICE}"; VER="\${VER_DEALER_POINTS_SERVICE}" ;;
       gateway-service) IMG="\${K8S_PULL_REG}/gateway-service:\${VER_GATEWAY_SERVICE}"; VER="\${VER_GATEWAY_SERVICE}" ;;
+      client-auth-service) IMG="\${K8S_PULL_REG}/client-auth-service:\${VER_CLIENT_AUTH_SERVICE}"; VER="\${VER_CLIENT_AUTH_SERVICE}" ;;
+      client-registration-service) IMG="\${K8S_PULL_REG}/client-registration-service:\${VER_CLIENT_REGISTRATION_SERVICE}"; VER="\${VER_CLIENT_REGISTRATION_SERVICE}" ;;
+      client-reviews-service) IMG="\${K8S_PULL_REG}/client-reviews-service:\${VER_CLIENT_REVIEWS_SERVICE}"; VER="\${VER_CLIENT_REVIEWS_SERVICE}" ;;
+      client-public-gateway-service) IMG="\${K8S_PULL_REG}/client-public-gateway-service:\${VER_CLIENT_PUBLIC_GATEWAY_SERVICE}"; VER="\${VER_CLIENT_PUBLIC_GATEWAY_SERVICE}" ;;
+      client-protected-gateway-service) IMG="\${K8S_PULL_REG}/client-protected-gateway-service:\${VER_CLIENT_PROTECTED_GATEWAY_SERVICE}"; VER="\${VER_CLIENT_PROTECTED_GATEWAY_SERVICE}" ;;
+      employee-statistics-service) IMG="\${K8S_PULL_REG}/employee-statistics-service:\${VER_EMPLOYEE_STATISTICS_SERVICE}"; VER="\${VER_EMPLOYEE_STATISTICS_SERVICE}" ;;
+      client-statistics-service) IMG="\${K8S_PULL_REG}/client-statistics-service:\${VER_CLIENT_STATISTICS_SERVICE}"; VER="\${VER_CLIENT_STATISTICS_SERVICE}" ;;
       *) echo "Unknown changed service \${svc}" >&2; exit 1 ;;
     esac
     load_image_to_minikube "\$svc" "\$IMG" "\$VER"

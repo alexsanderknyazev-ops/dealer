@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	VehiclesService_CreateVehicle_FullMethodName = "/vehicles.v1.VehiclesService/CreateVehicle"
-	VehiclesService_GetVehicle_FullMethodName    = "/vehicles.v1.VehiclesService/GetVehicle"
-	VehiclesService_ListVehicles_FullMethodName  = "/vehicles.v1.VehiclesService/ListVehicles"
-	VehiclesService_UpdateVehicle_FullMethodName = "/vehicles.v1.VehiclesService/UpdateVehicle"
-	VehiclesService_DeleteVehicle_FullMethodName = "/vehicles.v1.VehiclesService/DeleteVehicle"
+	VehiclesService_CreateVehicle_FullMethodName   = "/vehicles.v1.VehiclesService/CreateVehicle"
+	VehiclesService_GetVehicle_FullMethodName      = "/vehicles.v1.VehiclesService/GetVehicle"
+	VehiclesService_ListVehicles_FullMethodName    = "/vehicles.v1.VehiclesService/ListVehicles"
+	VehiclesService_UpdateVehicle_FullMethodName   = "/vehicles.v1.VehiclesService/UpdateVehicle"
+	VehiclesService_DeleteVehicle_FullMethodName   = "/vehicles.v1.VehiclesService/DeleteVehicle"
+	VehiclesService_GetVehicleByVIN_FullMethodName = "/vehicles.v1.VehiclesService/GetVehicleByVIN"
 )
 
 // VehiclesServiceClient is the client API for VehiclesService service.
@@ -35,6 +36,8 @@ type VehiclesServiceClient interface {
 	ListVehicles(ctx context.Context, in *ListVehiclesRequest, opts ...grpc.CallOption) (*ListVehiclesResponse, error)
 	UpdateVehicle(ctx context.Context, in *UpdateVehicleRequest, opts ...grpc.CallOption) (*UpdateVehicleResponse, error)
 	DeleteVehicle(ctx context.Context, in *DeleteVehicleRequest, opts ...grpc.CallOption) (*DeleteVehicleResponse, error)
+	// Внутренний RPC: точный поиск по VIN (для client-registration-service).
+	GetVehicleByVIN(ctx context.Context, in *GetVehicleByVINRequest, opts ...grpc.CallOption) (*GetVehicleResponse, error)
 }
 
 type vehiclesServiceClient struct {
@@ -95,6 +98,16 @@ func (c *vehiclesServiceClient) DeleteVehicle(ctx context.Context, in *DeleteVeh
 	return out, nil
 }
 
+func (c *vehiclesServiceClient) GetVehicleByVIN(ctx context.Context, in *GetVehicleByVINRequest, opts ...grpc.CallOption) (*GetVehicleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetVehicleResponse)
+	err := c.cc.Invoke(ctx, VehiclesService_GetVehicleByVIN_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VehiclesServiceServer is the server API for VehiclesService service.
 // All implementations must embed UnimplementedVehiclesServiceServer
 // for forward compatibility.
@@ -104,6 +117,8 @@ type VehiclesServiceServer interface {
 	ListVehicles(context.Context, *ListVehiclesRequest) (*ListVehiclesResponse, error)
 	UpdateVehicle(context.Context, *UpdateVehicleRequest) (*UpdateVehicleResponse, error)
 	DeleteVehicle(context.Context, *DeleteVehicleRequest) (*DeleteVehicleResponse, error)
+	// Внутренний RPC: точный поиск по VIN (для client-registration-service).
+	GetVehicleByVIN(context.Context, *GetVehicleByVINRequest) (*GetVehicleResponse, error)
 	mustEmbedUnimplementedVehiclesServiceServer()
 }
 
@@ -128,6 +143,9 @@ func (UnimplementedVehiclesServiceServer) UpdateVehicle(context.Context, *Update
 }
 func (UnimplementedVehiclesServiceServer) DeleteVehicle(context.Context, *DeleteVehicleRequest) (*DeleteVehicleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteVehicle not implemented")
+}
+func (UnimplementedVehiclesServiceServer) GetVehicleByVIN(context.Context, *GetVehicleByVINRequest) (*GetVehicleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetVehicleByVIN not implemented")
 }
 func (UnimplementedVehiclesServiceServer) mustEmbedUnimplementedVehiclesServiceServer() {}
 func (UnimplementedVehiclesServiceServer) testEmbeddedByValue()                         {}
@@ -240,6 +258,24 @@ func _VehiclesService_DeleteVehicle_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VehiclesService_GetVehicleByVIN_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVehicleByVINRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VehiclesServiceServer).GetVehicleByVIN(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VehiclesService_GetVehicleByVIN_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VehiclesServiceServer).GetVehicleByVIN(ctx, req.(*GetVehicleByVINRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VehiclesService_ServiceDesc is the grpc.ServiceDesc for VehiclesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +302,10 @@ var VehiclesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteVehicle",
 			Handler:    _VehiclesService_DeleteVehicle_Handler,
+		},
+		{
+			MethodName: "GetVehicleByVIN",
+			Handler:    _VehiclesService_GetVehicleByVIN_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

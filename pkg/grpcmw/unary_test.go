@@ -53,7 +53,7 @@ func TestUnaryServerInterceptor(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			ic := UnaryServerInterceptor(obstest.ServiceName, tc.logger)
+			ic := UnaryServerInterceptor(obstest.ServiceName, tc.logger, nil)
 			resp, err := ic(context.Background(), testRequest, &grpc.UnaryServerInfo{
 				FullMethod: obstest.GRPCFullMethod,
 			}, tc.handler)

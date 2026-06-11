@@ -9,11 +9,11 @@ COPY pkg/ ./pkg/
 #копируем api/ в рабочую директорию
 COPY api/ ./api/
 #копируем services/brands/ в рабочую директорию
-COPY services/brands/ ./services/brands/
+COPY services/employee/brands/ ./services/employee/brands/
 #устанавливаем рабочую директорию
-WORKDIR /app/services/brands
+WORKDIR /app/services/employee/brands
 #строим проект
-RUN go build -o /brands-service .
+RUN go mod tidy && go build -o /brands-service .
 
 #берем alpine 3.19
 FROM alpine:3.19

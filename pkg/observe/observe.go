@@ -5,6 +5,8 @@ import (
 
 	"log/slog"
 
+	"github.com/dealer/dealer/pkg/errorreport"
+	"github.com/dealer/dealer/pkg/grpcauth"
 	"github.com/dealer/dealer/pkg/grpcmw"
 	"github.com/dealer/dealer/pkg/health"
 	"github.com/dealer/dealer/pkg/httplog"
@@ -24,14 +26,22 @@ func RegisterHTTP(mux *http.ServeMux, ready health.Check) {
 	metrics.RegisterHTTP(mux)
 }
 
-// WrapHTTP — логи + метрики поверх mux.
+// WrapHTTP — логи, метрики и опциональная отправка HTTP 5xx в Kafka.
 func WrapHTTP(service string, mux http.Handler, logger *slog.Logger) http.Handler {
-	return httplog.Wrap(service, mux, logger)
+	reporter := errorreport.NewFromEnv(service, logger)
+	return httplog.Wrap(service, mux, logger, reporter)
 }
 
-// GRPCServerOptions — interceptors для grpc.NewServer.
-func GRPCServerOptions(service string, logger *slog.Logger) []grpc.ServerOption {
+// GRPCServerOptions — interceptors для grpc.NewServer. auth != nil включает JWT/RBAC на gRPC.
+func GRPCServerOptions(service string, logger *slog.Logger, auth *grpcauth.Config) []grpc.ServerOption {
+	reporter := errorreport.NewFromEnv(service, logger)
+	chain := []grpc.UnaryServerInterceptor{
+		grpcmw.UnaryServerInterceptor(service, logger, reporter),
+	}
+	if auth != nil && auth.JWTSecret != "" {
+		chain = append(chain, grpcauth.UnaryServerInterceptor(*auth))
+	}
 	return []grpc.ServerOption{
-		grpc.ChainUnaryInterceptor(grpcmw.UnaryServerInterceptor(service, logger)),
+		grpc.ChainUnaryInterceptor(chain...),
 	}
 }

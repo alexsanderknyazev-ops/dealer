@@ -1,9 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import type { Deal } from './dealsApi'
 import * as api from './dealsApi'
 import { useAuth } from './auth'
-import './Deals.css'
+import { PageHeader } from '@/components/common/PageHeader'
+import { ErrorAlert } from '@/components/common/ErrorAlert'
+import { LoadingState } from '@/components/common/LoadingState'
+import { EmptyState } from '@/components/common/EmptyState'
+import { Pagination } from '@/components/common/Pagination'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
 
 const STAGE_LABEL: Record<string, string> = {
   draft: 'Черновик',
@@ -29,7 +39,8 @@ export function Deals() {
     let cancelled = false
     setLoading(true)
     setError(null)
-    api.listDeals({ limit, offset: page * limit, stage: stageFilter || undefined })
+    api
+      .listDeals({ limit, offset: page * limit, stage: stageFilter || undefined })
       .then((r) => {
         if (!cancelled) {
           setList(r.deals)
@@ -47,21 +58,35 @@ export function Deals() {
           setError(err instanceof Error ? err.message : 'Ошибка загрузки')
         }
       })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [page, stageFilter, retry, logout, navigate])
 
   return (
-    <div className="deals">
-      <div className="deals-header">
-        <h1 className="deals-title">Сделки</h1>
-        <Link to="/deals/new" className="deals-add">+ Новая сделка</Link>
-      </div>
-      <div className="deals-toolbar">
-        <select
+    <div className="mx-auto w-full max-w-5xl">
+      <PageHeader
+        title="Сделки"
+        action={
+          <Button asChild>
+            <Link to="/deals/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Новая сделка
+            </Link>
+          </Button>
+        }
+      />
+
+      <div className="mb-4 max-w-xs">
+        <NativeSelect
           value={stageFilter}
-          onChange={(e) => { setStageFilter(e.target.value); setPage(0) }}
-          className="deals-stage-filter"
+          onChange={(e) => {
+            setStageFilter(e.target.value)
+            setPage(0)
+          }}
         >
           <option value="">Все этапы</option>
           <option value="draft">Черновик</option>
@@ -69,53 +94,50 @@ export function Deals() {
           <option value="paid">Оплачено</option>
           <option value="completed">Завершено</option>
           <option value="cancelled">Отменено</option>
-        </select>
+        </NativeSelect>
       </div>
-      {error && (
-        <div className="deals-error">
-          <p style={{ margin: '0 0 8px 0' }}>{error}</p>
-          <button type="button" onClick={() => setRetry((r) => r + 1)} className="deals-retry">Повторить</button>
-        </div>
-      )}
+
+      {error && <ErrorAlert message={error} onRetry={() => setRetry((r) => r + 1)} />}
+
       {loading ? (
-        <p className="deals-loading">Загрузка…</p>
+        <LoadingState />
       ) : list.length === 0 && !error ? (
-        <p className="deals-empty">
-          Нет сделок. Нажмите «+ Новая сделка» для создания.
-        </p>
+        <EmptyState>Нет сделок. Нажмите «Новая сделка» для создания.</EmptyState>
       ) : (
         <>
-          <table className="deals-table">
-            <thead>
-              <tr>
-                <th>Клиент ID</th>
-                <th>Авто ID</th>
-                <th>Сумма</th>
-                <th>Этап</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.map((d) => (
-                <tr key={d.id}>
-                  <td className="deals-id">{d.customer_id.slice(0, 8)}…</td>
-                  <td className="deals-id">{d.vehicle_id.slice(0, 8)}…</td>
-                  <td>{d.amount ? Number(d.amount).toLocaleString('ru') : '—'}</td>
-                  <td>{STAGE_LABEL[d.stage] || d.stage}</td>
-                  <td>
-                    <Link to={`/deals/${d.id}`} className="deals-link">Открыть</Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {total > limit && (
-            <div className="deals-pagination">
-              <button type="button" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Назад</button>
-              <span>Стр. {page + 1} из {Math.ceil(total / limit) || 1}</span>
-              <button type="button" disabled={(page + 1) * limit >= total} onClick={() => setPage((p) => p + 1)}>Вперёд</button>
-            </div>
-          )}
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Клиент ID</TableHead>
+                    <TableHead>Авто ID</TableHead>
+                    <TableHead>Сумма</TableHead>
+                    <TableHead>Этап</TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {list.map((d) => (
+                    <TableRow key={d.id}>
+                      <TableCell className="font-mono text-xs">{d.customer_id.slice(0, 8)}…</TableCell>
+                      <TableCell className="font-mono text-xs">{d.vehicle_id.slice(0, 8)}…</TableCell>
+                      <TableCell>{d.amount ? Number(d.amount).toLocaleString('ru') : '—'}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{STAGE_LABEL[d.stage] || d.stage}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="link" className="h-auto p-0" asChild>
+                          <Link to={`/deals/${d.id}`}>Открыть</Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <Pagination page={page} total={total} limit={limit} onPageChange={setPage} />
         </>
       )}
     </div>

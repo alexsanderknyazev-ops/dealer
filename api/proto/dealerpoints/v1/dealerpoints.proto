@@ -2,34 +2,77 @@ syntax = "proto3";
 
 package dealerpoints.v1;
 
+import "google/api/annotations.proto";
+
 option go_package = "github.com/dealer/dealer/pkg/pb/dealerpoints/v1;dealerpointsv1";
 
 service DealerPointsService {
   // Дилерские точки
-  rpc CreateDealerPoint(CreateDealerPointRequest) returns (CreateDealerPointResponse);
-  rpc GetDealerPoint(GetDealerPointRequest) returns (GetDealerPointResponse);
-  rpc ListDealerPoints(ListDealerPointsRequest) returns (ListDealerPointsResponse);
-  rpc UpdateDealerPoint(UpdateDealerPointRequest) returns (UpdateDealerPointResponse);
-  rpc DeleteDealerPoint(DeleteDealerPointRequest) returns (DeleteDealerPointResponse);
+  rpc CreateDealerPoint(CreateDealerPointRequest) returns (CreateDealerPointResponse) {
+    option (google.api.http) = { post: "/api/dealer-points" body: "*" response_body: "dealer_point" };
+  }
+  rpc GetDealerPoint(GetDealerPointRequest) returns (GetDealerPointResponse) {
+    option (google.api.http) = { get: "/api/dealer-points/{id}" response_body: "dealer_point" };
+  }
+  rpc ListDealerPoints(ListDealerPointsRequest) returns (ListDealerPointsResponse) {
+    option (google.api.http) = { get: "/api/dealer-points" };
+  }
+  rpc UpdateDealerPoint(UpdateDealerPointRequest) returns (UpdateDealerPointResponse) {
+    option (google.api.http) = { put: "/api/dealer-points/{id}" body: "*" response_body: "dealer_point" };
+  }
+  rpc DeleteDealerPoint(DeleteDealerPointRequest) returns (DeleteDealerPointResponse) {
+    option (google.api.http) = { delete: "/api/dealer-points/{id}" };
+  }
 
   // Юридические лица
-  rpc CreateLegalEntity(CreateLegalEntityRequest) returns (CreateLegalEntityResponse);
-  rpc GetLegalEntity(GetLegalEntityRequest) returns (GetLegalEntityResponse);
-  rpc ListLegalEntities(ListLegalEntitiesRequest) returns (ListLegalEntitiesResponse);
-  rpc UpdateLegalEntity(UpdateLegalEntityRequest) returns (UpdateLegalEntityResponse);
-  rpc DeleteLegalEntity(DeleteLegalEntityRequest) returns (DeleteLegalEntityResponse);
+  rpc CreateLegalEntity(CreateLegalEntityRequest) returns (CreateLegalEntityResponse) {
+    option (google.api.http) = { post: "/api/legal-entities" body: "*" response_body: "legal_entity" };
+  }
+  rpc GetLegalEntity(GetLegalEntityRequest) returns (GetLegalEntityResponse) {
+    option (google.api.http) = { get: "/api/legal-entities/{id}" response_body: "legal_entity" };
+  }
+  rpc ListLegalEntities(ListLegalEntitiesRequest) returns (ListLegalEntitiesResponse) {
+    option (google.api.http) = { get: "/api/legal-entities" };
+  }
+  rpc UpdateLegalEntity(UpdateLegalEntityRequest) returns (UpdateLegalEntityResponse) {
+    option (google.api.http) = { put: "/api/legal-entities/{id}" body: "*" response_body: "legal_entity" };
+  }
+  rpc DeleteLegalEntity(DeleteLegalEntityRequest) returns (DeleteLegalEntityResponse) {
+    option (google.api.http) = { delete: "/api/legal-entities/{id}" };
+  }
 
   // Привязка юр. лиц к точкам
-  rpc LinkLegalEntityToDealerPoint(LinkLegalEntityRequest) returns (LinkLegalEntityResponse);
-  rpc UnlinkLegalEntityFromDealerPoint(UnlinkLegalEntityRequest) returns (UnlinkLegalEntityResponse);
-  rpc ListLegalEntitiesByDealerPoint(ListLegalEntitiesByDealerPointRequest) returns (ListLegalEntitiesResponse);
+  rpc LinkLegalEntityToDealerPoint(LinkLegalEntityRequest) returns (LinkLegalEntityResponse) {
+    option (google.api.http) = {
+      post: "/api/dealer-points/{dealer_point_id}/legal-entities"
+      body: "legal_entity_id"
+    };
+  }
+  rpc UnlinkLegalEntityFromDealerPoint(UnlinkLegalEntityRequest) returns (UnlinkLegalEntityResponse) {
+    option (google.api.http) = {
+      delete: "/api/dealer-points/{dealer_point_id}/legal-entities/{legal_entity_id}"
+    };
+  }
+  rpc ListLegalEntitiesByDealerPoint(ListLegalEntitiesByDealerPointRequest) returns (ListLegalEntitiesResponse) {
+    option (google.api.http) = { get: "/api/dealer-points/{dealer_point_id}/legal-entities" };
+  }
 
   // Склады
-  rpc CreateWarehouse(CreateWarehouseRequest) returns (CreateWarehouseResponse);
-  rpc GetWarehouse(GetWarehouseRequest) returns (GetWarehouseResponse);
-  rpc ListWarehouses(ListWarehousesRequest) returns (ListWarehousesResponse);
-  rpc UpdateWarehouse(UpdateWarehouseRequest) returns (UpdateWarehouseResponse);
-  rpc DeleteWarehouse(DeleteWarehouseRequest) returns (DeleteWarehouseResponse);
+  rpc CreateWarehouse(CreateWarehouseRequest) returns (CreateWarehouseResponse) {
+    option (google.api.http) = { post: "/api/warehouses" body: "*" response_body: "warehouse" };
+  }
+  rpc GetWarehouse(GetWarehouseRequest) returns (GetWarehouseResponse) {
+    option (google.api.http) = { get: "/api/warehouses/{id}" response_body: "warehouse" };
+  }
+  rpc ListWarehouses(ListWarehousesRequest) returns (ListWarehousesResponse) {
+    option (google.api.http) = { get: "/api/warehouses" };
+  }
+  rpc UpdateWarehouse(UpdateWarehouseRequest) returns (UpdateWarehouseResponse) {
+    option (google.api.http) = { put: "/api/warehouses/{id}" body: "*" response_body: "warehouse" };
+  }
+  rpc DeleteWarehouse(DeleteWarehouseRequest) returns (DeleteWarehouseResponse) {
+    option (google.api.http) = { delete: "/api/warehouses/{id}" };
+  }
 }
 
 message DealerPoint {

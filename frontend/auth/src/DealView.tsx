@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { Deal } from './dealsApi'
 import * as api from './dealsApi'
-import './CustomerView.css'
+import { EntityViewPage } from '@/components/common/EntityViewPage'
 
 const STAGE_LABEL: Record<string, string> = {
   draft: 'Черновик',
@@ -21,9 +21,10 @@ export function DealView() {
 
   useEffect(() => {
     if (!id) return
-    api.getDeal(id)
+    api
+      .getDeal(id)
       .then(setDeal)
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка загрузки'))
       .finally(() => setLoading(false))
   }, [id])
 
@@ -37,37 +38,44 @@ export function DealView() {
     }
   }
 
-  if (loading) return <div className="main loading">Загрузка…</div>
-  if (error || !deal) return <div className="form-error">{error || 'Не найдено'}</div>
+  if (!deal && !loading && !error) {
+    return <EntityViewPage title="Сделка" backTo="/deals" backLabel="К списку сделок" fields={[]} error="Не найдено" />
+  }
 
   return (
-    <div className="customer-view">
-      <div className="customer-view-header">
-        <h1 className="customer-view-name">Сделка {deal.id.slice(0, 8)}…</h1>
-        <div className="customer-view-actions">
-          <Link to={`/deals/${id}/edit`} className="customer-view-btn customer-view-edit">Редактировать</Link>
-          <button type="button" onClick={handleDelete} className="customer-view-btn customer-view-delete">Удалить</button>
-        </div>
-      </div>
-      <dl className="customer-view-dl">
-        <dt>Клиент ID</dt>
-        <dd><Link to={`/customers/${deal.customer_id}`}>{deal.customer_id}</Link></dd>
-        <dt>Автомобиль ID</dt>
-        <dd><Link to={`/vehicles/${deal.vehicle_id}`}>{deal.vehicle_id}</Link></dd>
-        <dt>Сумма</dt>
-        <dd>{deal.amount ? Number(deal.amount).toLocaleString('ru') : '—'}</dd>
-        <dt>Этап</dt>
-        <dd>{STAGE_LABEL[deal.stage] || deal.stage}</dd>
-        {deal.notes && (
-          <>
-            <dt>Заметки</dt>
-            <dd>{deal.notes}</dd>
-          </>
-        )}
-      </dl>
-      <p className="customer-view-back">
-        <Link to="/deals">← К списку сделок</Link>
-      </p>
-    </div>
+    <EntityViewPage
+      title={deal ? `Сделка ${deal.id.slice(0, 8)}…` : 'Сделка'}
+      backTo="/deals"
+      backLabel="К списку сделок"
+      editTo={id ? `/deals/${id}/edit` : undefined}
+      onDelete={deal ? handleDelete : undefined}
+      loading={loading}
+      error={error}
+      fields={
+        deal
+          ? [
+              {
+                label: 'Клиент ID',
+                value: (
+                  <Link to={`/customers/${deal.customer_id}`} className="text-primary hover:underline">
+                    {deal.customer_id}
+                  </Link>
+                ),
+              },
+              {
+                label: 'Автомобиль ID',
+                value: (
+                  <Link to={`/vehicles/${deal.vehicle_id}`} className="text-primary hover:underline">
+                    {deal.vehicle_id}
+                  </Link>
+                ),
+              },
+              { label: 'Сумма', value: deal.amount ? Number(deal.amount).toLocaleString('ru') : '—' },
+              { label: 'Этап', value: STAGE_LABEL[deal.stage] || deal.stage },
+              ...(deal.notes ? [{ label: 'Заметки', value: deal.notes }] : []),
+            ]
+          : []
+      }
+    />
   )
 }

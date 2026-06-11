@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import type { Brand } from './brandsApi'
 import * as api from './brandsApi'
-import './Customers.css'
+import { PageHeader } from '@/components/common/PageHeader'
+import { ErrorAlert } from '@/components/common/ErrorAlert'
+import { LoadingState } from '@/components/common/LoadingState'
+import { EmptyState } from '@/components/common/EmptyState'
+import { Pagination } from '@/components/common/Pagination'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export function Brands() {
   const [list, setList] = useState<Brand[]>([])
@@ -18,7 +27,8 @@ export function Brands() {
     let cancelled = false
     setLoading(true)
     setError(null)
-    api.listBrands({ limit, offset: page * limit, search: search || undefined })
+    api
+      .listBrands({ limit, offset: page * limit, search: search || undefined })
       .then((r) => {
         if (!cancelled) {
           setList(r.brands)
@@ -31,71 +41,73 @@ export function Brands() {
           setError(err instanceof Error ? err.message : 'Ошибка загрузки')
         }
       })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [page, search, retry])
 
   function handleDelete(id: string, name: string) {
     if (!window.confirm(`Удалить бренд «${name}»?`)) return
-    api.deleteBrand(id)
+    api
+      .deleteBrand(id)
       .then(() => setRetry((r) => r + 1))
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка удаления'))
   }
 
   return (
-    <div className="customers">
-      <div className="customers-header">
-        <h1 className="customers-title">Бренды</h1>
-        <Link to="/brands/new" className="customers-add">+ Добавить</Link>
+    <div className="mx-auto w-full max-w-4xl">
+      <PageHeader
+        title="Бренды"
+        action={
+          <Button asChild>
+            <Link to="/brands/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Добавить
+            </Link>
+          </Button>
+        }
+      />
+      <div className="mb-4">
+        <Input type="search" placeholder="Поиск по названию..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(0) }} />
       </div>
-      <div className="customers-toolbar">
-        <input
-          type="search"
-          placeholder="Поиск по названию..."
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-          className="customers-search"
-        />
-      </div>
-      {error && (
-        <div className="customers-error">
-          <p style={{ margin: '0 0 8px 0' }}>{error}</p>
-          <button type="button" onClick={() => setRetry((r) => r + 1)} className="customers-retry">Повторить</button>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onRetry={() => setRetry((r) => r + 1)} />}
       {loading ? (
-        <p className="customers-loading">Загрузка…</p>
+        <LoadingState />
       ) : list.length === 0 && !error ? (
-        <p className="customers-empty">Нет брендов. Нажмите «+ Добавить».</p>
+        <EmptyState>Нет брендов. Нажмите «Добавить».</EmptyState>
       ) : (
         <>
-          <table className="customers-table">
-            <thead>
-              <tr>
-                <th>Название</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.map((b) => (
-                <tr key={b.id}>
-                  <td>{b.name}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    <Link to={`/brands/${b.id}/edit`} className="customers-link">Изменить</Link>
-                    {' · '}
-                    <button type="button" onClick={() => handleDelete(b.id, b.name)} className="customers-link" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Удалить</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {total > limit && (
-            <div className="customers-pagination">
-              <span>Всего: {total}</span>
-              <button type="button" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Назад</button>
-              <button type="button" disabled={(page + 1) * limit >= total} onClick={() => setPage((p) => p + 1)}>Вперёд</button>
-            </div>
-          )}
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Название</TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {list.map((b) => (
+                    <TableRow key={b.id}>
+                      <TableCell>{b.name}</TableCell>
+                      <TableCell className="space-x-2 whitespace-nowrap">
+                        <Button variant="link" className="h-auto p-0" asChild>
+                          <Link to={`/brands/${b.id}/edit`}>Изменить</Link>
+                        </Button>
+                        <Button variant="link" className="h-auto p-0 text-destructive" onClick={() => handleDelete(b.id, b.name)}>
+                          Удалить
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <Pagination page={page} total={total} limit={limit} onPageChange={setPage} showTotal />
         </>
       )}
     </div>

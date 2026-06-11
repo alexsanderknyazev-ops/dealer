@@ -2,17 +2,38 @@ syntax = "proto3";
 
 package auth.v1;
 
+import "google/api/annotations.proto";
+
 option go_package = "github.com/dealer/dealer/pkg/pb/auth/v1;authv1";
 
 service AuthService {
-  rpc Register(RegisterRequest) returns (RegisterResponse);
-  rpc Login(LoginRequest) returns (LoginResponse);
-  rpc Refresh(RefreshRequest) returns (RefreshResponse);
-  rpc Logout(LogoutRequest) returns (LogoutResponse);
-  rpc Validate(ValidateRequest) returns (ValidateResponse);
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = { post: "/api/register" body: "*" };
+  }
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = { post: "/api/login" body: "*" };
+  }
+  rpc Refresh(RefreshRequest) returns (RefreshResponse) {
+    option (google.api.http) = { post: "/api/refresh" body: "*" };
+  }
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+    option (google.api.http) = { post: "/api/logout" body: "*" };
+  }
+  rpc Validate(ValidateRequest) returns (ValidateResponse) {
+    option (google.api.http) = { get: "/api/me" };
+  }
+  // Внутренний RPC: регистрация владельца авто (role=client). Без HTTP — только service-to-service.
+  rpc RegisterClient(RegisterClientRequest) returns (RegisterResponse);
 }
 
 message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string name = 3;
+  string phone = 4;
+}
+
+message RegisterClientRequest {
   string email = 1;
   string password = 2;
   string name = 3;

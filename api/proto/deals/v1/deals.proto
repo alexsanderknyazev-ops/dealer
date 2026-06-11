@@ -2,14 +2,26 @@ syntax = "proto3";
 
 package deals.v1;
 
+import "google/api/annotations.proto";
+
 option go_package = "github.com/dealer/dealer/pkg/pb/deals/v1;dealsv1";
 
 service DealsService {
-  rpc CreateDeal(CreateDealRequest) returns (CreateDealResponse);
-  rpc GetDeal(GetDealRequest) returns (GetDealResponse);
-  rpc ListDeals(ListDealsRequest) returns (ListDealsResponse);
-  rpc UpdateDeal(UpdateDealRequest) returns (UpdateDealResponse);
-  rpc DeleteDeal(DeleteDealRequest) returns (DeleteDealResponse);
+  rpc CreateDeal(CreateDealRequest) returns (CreateDealResponse) {
+    option (google.api.http) = { post: "/api/deals" body: "*" response_body: "deal" };
+  }
+  rpc GetDeal(GetDealRequest) returns (GetDealResponse) {
+    option (google.api.http) = { get: "/api/deals/{id}" response_body: "deal" };
+  }
+  rpc ListDeals(ListDealsRequest) returns (ListDealsResponse) {
+    option (google.api.http) = { get: "/api/deals" };
+  }
+  rpc UpdateDeal(UpdateDealRequest) returns (UpdateDealResponse) {
+    option (google.api.http) = { put: "/api/deals/{id}" body: "*" response_body: "deal" };
+  }
+  rpc DeleteDeal(DeleteDealRequest) returns (DeleteDealResponse) {
+    option (google.api.http) = { delete: "/api/deals/{id}" };
+  }
 }
 
 message Deal {

@@ -5,8 +5,8 @@ FROM node:20-alpine AS frontend
 WORKDIR /app/frontend/auth 
 #копируем frontend/auth/ в рабочую директорию
 COPY frontend/auth/ ./
-#устанавливаем зависимости и строим проект
-RUN npm install && npm run build 
+ENV VITE_FRONTEND_MONITORING_URL=/api/telemetry/events
+RUN npm install && npm run build
 #берем golang 1.22 alpine
 FROM golang:1.22-alpine AS builder 
 #устанавливаем рабочую директорию
@@ -18,11 +18,11 @@ COPY pkg/ ./pkg/
 #копируем api/ в рабочую директорию
 COPY api/ ./api/ 
 #копируем services/auth/ в рабочую директорию
-COPY services/auth/ ./services/auth/ 
+COPY services/employee/auth/ ./services/employee/auth/
 #устанавливаем рабочую директорию
-WORKDIR /app/services/auth
+WORKDIR /app/services/employee/auth
 #строим проект
-RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o /auth-service . \
+RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-w -s" -o /auth-service . \
   && CGO_ENABLED=0 go build -ldflags="-w -s" -o /seed-admin ./cmd/seed-admin
 #берем alpine 3.19
 FROM alpine:3.19

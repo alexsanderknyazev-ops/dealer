@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-protected-gateway-service
+  namespace: dealer
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  selector:
+    matchLabels:
+      app: client-protected-gateway-service
+  template:
+    metadata:
+      labels:
+        app: client-protected-gateway-service
+    spec:
+      containers:
+        - name: client-protected-gateway-service
+          image: __IMG_CLIENT_PROTECTED_GATEWAY__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 8093
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8093
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8093
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: CLIENT_PROTECTED_GATEWAY_HTTP_PORT
+              value: "8093"
+            - name: CLIENT_AUTH_GRPC_ADDR
+              value: "client-auth-service:50059"
+            - name: CLIENT_REGISTRATION_GRPC_ADDR
+              value: "client-registration-service:50058"
+            - name: CLIENT_REVIEWS_GRPC_ADDR
+              value: "client-reviews-service:50060"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"

@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import type { LegalEntity } from './dealerPointsApi'
 import * as api from './dealerPointsApi'
-import './Customers.css'
+import { PageHeader } from '@/components/common/PageHeader'
+import { ErrorAlert } from '@/components/common/ErrorAlert'
+import { LoadingState } from '@/components/common/LoadingState'
+import { EmptyState } from '@/components/common/EmptyState'
+import { Pagination } from '@/components/common/Pagination'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export function LegalEntities() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -25,13 +35,15 @@ export function LegalEntities() {
     setLoading(true)
     setError(null)
     if (dealerPointId) {
-      api.listLegalEntitiesByDealerPoint(dealerPointId)
+      api
+        .listLegalEntitiesByDealerPoint(dealerPointId)
         .then((linked) => {
           if (!cancelled) {
             const filtered = search
-              ? linked.filter((e) =>
-                  e.name.toLowerCase().includes(search.toLowerCase()) ||
-                  (e.inn && e.inn.includes(search)))
+              ? linked.filter(
+                  (e) =>
+                    e.name.toLowerCase().includes(search.toLowerCase()) || (e.inn && e.inn.includes(search)),
+                )
               : linked
             setList(filtered.slice(page * limit, (page + 1) * limit))
             setTotal(filtered.length)
@@ -43,9 +55,12 @@ export function LegalEntities() {
             setError(err instanceof Error ? err.message : 'Ошибка загрузки')
           }
         })
-        .finally(() => { if (!cancelled) setLoading(false) })
+        .finally(() => {
+          if (!cancelled) setLoading(false)
+        })
     } else {
-      api.listLegalEntities({ limit, offset: page * limit, search: search || undefined })
+      api
+        .listLegalEntities({ limit, offset: page * limit, search: search || undefined })
         .then((r) => {
           if (!cancelled) {
             setList(r.legal_entities)
@@ -58,28 +73,44 @@ export function LegalEntities() {
             setError(err instanceof Error ? err.message : 'Ошибка загрузки')
           }
         })
-        .finally(() => { if (!cancelled) setLoading(false) })
+        .finally(() => {
+          if (!cancelled) setLoading(false)
+        })
     }
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [page, search, dealerPointId])
 
   const pointName = points.find((p) => p.id === dealerPointId)?.name
 
   return (
-    <div className="customers">
-      <div className="customers-header">
-        <h1 className="customers-title">
-          Юридические лица
-          {pointName && <span style={{ fontWeight: 'normal', fontSize: '0.9em' }}> — {pointName}</span>}
-        </h1>
-        <Link to="/legal-entities/new" className="customers-add">+ Добавить</Link>
-      </div>
-      <div className="customers-toolbar">
+    <div className="mx-auto w-full max-w-5xl">
+      <PageHeader
+        title={
+          <>
+            Юридические лица
+            {pointName && <span className="ml-2 text-base font-normal text-muted-foreground">— {pointName}</span>}
+          </>
+        }
+        action={
+          <Button asChild>
+            <Link to="/legal-entities/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Добавить
+            </Link>
+          </Button>
+        }
+      />
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         {dealerPointId && (
-          <Link to="/legal-entities" className="customers-link" style={{ marginRight: 12 }}>Все юр. лица</Link>
+          <Button variant="link" className="h-auto justify-start p-0" asChild>
+            <Link to="/legal-entities">Все юр. лица</Link>
+          </Button>
         )}
         {points.length > 0 && (
-          <select
+          <NativeSelect
+            className="sm:max-w-xs"
             value={dealerPointId}
             onChange={(e) => {
               const v = e.target.value
@@ -89,60 +120,61 @@ export function LegalEntities() {
               else next.delete('dealer_point_id')
               setSearchParams(next)
             }}
-            className="customers-search"
-            style={{ maxWidth: 280 }}
           >
             <option value="">Все дилерские точки</option>
             {points.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
             ))}
-          </select>
+          </NativeSelect>
         )}
-        <input
+        <Input
           type="search"
           placeholder="Поиск по названию, ИНН..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-          className="customers-search"
-          style={{ marginLeft: 8 }}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setPage(0)
+          }}
         />
       </div>
-      {error && <div className="customers-error">{error}</div>}
+      {error && <ErrorAlert message={error} />}
       {loading ? (
-        <p className="customers-loading">Загрузка…</p>
+        <LoadingState />
       ) : list.length === 0 && !error ? (
-        <p className="customers-empty">Нет юридических лиц.</p>
+        <EmptyState>Нет юридических лиц.</EmptyState>
       ) : (
         <>
-          <table className="customers-table">
-            <thead>
-              <tr>
-                <th>Название</th>
-                <th>ИНН</th>
-                <th>Адрес</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.map((e) => (
-                <tr key={e.id}>
-                  <td>{e.name}</td>
-                  <td>{e.inn || '—'}</td>
-                  <td>{e.address || '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    <Link to={`/legal-entities/${e.id}/edit`} className="customers-link">Изменить</Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {total > limit && (
-            <div className="customers-pagination">
-              <button type="button" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Назад</button>
-              <span>Стр. {page + 1} из {Math.ceil(total / limit) || 1}</span>
-              <button type="button" disabled={(page + 1) * limit >= total} onClick={() => setPage((p) => p + 1)}>Вперёд</button>
-            </div>
-          )}
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Название</TableHead>
+                    <TableHead>ИНН</TableHead>
+                    <TableHead>Адрес</TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {list.map((e) => (
+                    <TableRow key={e.id}>
+                      <TableCell>{e.name}</TableCell>
+                      <TableCell>{e.inn || '—'}</TableCell>
+                      <TableCell>{e.address || '—'}</TableCell>
+                      <TableCell>
+                        <Button variant="link" className="h-auto p-0" asChild>
+                          <Link to={`/legal-entities/${e.id}/edit`}>Изменить</Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <Pagination page={page} total={total} limit={limit} onPageChange={setPage} />
         </>
       )}
     </div>

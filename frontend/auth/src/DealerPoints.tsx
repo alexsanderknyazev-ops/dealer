@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import type { DealerPoint } from './dealerPointsApi'
 import * as api from './dealerPointsApi'
-import './Customers.css'
+import { PageHeader } from '@/components/common/PageHeader'
+import { ErrorAlert } from '@/components/common/ErrorAlert'
+import { LoadingState } from '@/components/common/LoadingState'
+import { EmptyState } from '@/components/common/EmptyState'
+import { Pagination } from '@/components/common/Pagination'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export function DealerPoints() {
   const [list, setList] = useState<DealerPoint[]>([])
@@ -17,7 +26,8 @@ export function DealerPoints() {
     let cancelled = false
     setLoading(true)
     setError(null)
-    api.listDealerPoints({ limit, offset: page * limit, search: search || undefined })
+    api
+      .listDealerPoints({ limit, offset: page * limit, search: search || undefined })
       .then((r) => {
         if (!cancelled) {
           setList(r.dealer_points)
@@ -30,67 +40,70 @@ export function DealerPoints() {
           setError(err instanceof Error ? err.message : 'Ошибка загрузки')
         }
       })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [page, search])
 
   return (
-    <div className="customers">
-      <div className="customers-header">
-        <h1 className="customers-title">Дилерские точки</h1>
-        <Link to="/dealer-points/new" className="customers-add">+ Добавить</Link>
+    <div className="mx-auto w-full max-w-5xl">
+      <PageHeader
+        title="Дилерские точки"
+        action={
+          <Button asChild>
+            <Link to="/dealer-points/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Добавить
+            </Link>
+          </Button>
+        }
+      />
+      <div className="mb-4">
+        <Input type="search" placeholder="Поиск по названию, адресу..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(0) }} />
       </div>
-      <div className="customers-toolbar">
-        <input
-          type="search"
-          placeholder="Поиск по названию, адресу..."
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-          className="customers-search"
-        />
-      </div>
-      {error && (
-        <div className="customers-error">
-          <p style={{ margin: '0 0 8px 0' }}>{error}</p>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} />}
       {loading ? (
-        <p className="customers-loading">Загрузка…</p>
+        <LoadingState />
       ) : list.length === 0 && !error ? (
-        <p className="customers-empty">Нет дилерских точек. Нажмите «+ Добавить».</p>
+        <EmptyState>Нет дилерских точек. Нажмите «Добавить».</EmptyState>
       ) : (
         <>
-          <table className="customers-table">
-            <thead>
-              <tr>
-                <th>Название</th>
-                <th>Адрес</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.map((d) => (
-                <tr key={d.id}>
-                  <td>{d.name}</td>
-                  <td>{d.address || '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    <Link to={`/dealer-points/${d.id}/edit`} className="customers-link">Изменить</Link>
-                    {' · '}
-                    <Link to={`/legal-entities?dealer_point_id=${d.id}`} className="customers-link">Юр. лица</Link>
-                    {' · '}
-                    <Link to={`/warehouses?dealer_point_id=${d.id}`} className="customers-link">Склады</Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {total > limit && (
-            <div className="customers-pagination">
-              <span>Стр. {page + 1} из {Math.ceil(total / limit) || 1}</span>
-              <button type="button" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Назад</button>
-              <button type="button" disabled={(page + 1) * limit >= total} onClick={() => setPage((p) => p + 1)}>Вперёд</button>
-            </div>
-          )}
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Название</TableHead>
+                    <TableHead>Адрес</TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {list.map((d) => (
+                    <TableRow key={d.id}>
+                      <TableCell>{d.name}</TableCell>
+                      <TableCell>{d.address || '—'}</TableCell>
+                      <TableCell className="space-x-2 whitespace-nowrap">
+                        <Button variant="link" className="h-auto p-0" asChild>
+                          <Link to={`/dealer-points/${d.id}/edit`}>Изменить</Link>
+                        </Button>
+                        <Button variant="link" className="h-auto p-0" asChild>
+                          <Link to={`/legal-entities?dealer_point_id=${d.id}`}>Юр. лица</Link>
+                        </Button>
+                        <Button variant="link" className="h-auto p-0" asChild>
+                          <Link to={`/warehouses?dealer_point_id=${d.id}`}>Склады</Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <Pagination page={page} total={total} limit={limit} onPageChange={setPage} />
         </>
       )}
     </div>

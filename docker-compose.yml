@@ -49,6 +49,245 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8-alpine
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:8123/ping | grep -q Ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  errors-ingest-service:
+    build:
+      context: .
+      dockerfile: build/errors-ingest-service.Dockerfile
+    ports:
+      - "8092:8092"
+    environment:
+      ERRORS_INGEST_HTTP_PORT: "8092"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+      KAFKA_CONSUMER_GROUP: "errors-ingest"
+      CLICKHOUSE_ADDR: "clickhouse:9000"
+      CLICKHOUSE_DATABASE: "analytics"
+      CLICKHOUSE_USER: "default"
+      CLICKHOUSE_PASSWORD: ""
+      ENVIRONMENT: "development"
+    depends_on:
+      kafka:
+        condition: service_started
+      clickhouse:
+        condition: service_healthy
+
+  client-public-gateway-service:
+    build:
+      context: .
+      dockerfile: build/client-public-gateway-service.Dockerfile
+    ports:
+      - "8091:8091"
+    environment:
+      CLIENT_PUBLIC_GATEWAY_HTTP_PORT: "8091"
+      CLIENT_AUTH_GRPC_ADDR: "client-auth-service:50059"
+      CLIENT_REGISTRATION_GRPC_ADDR: "client-registration-service:50058"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+    depends_on:
+      client-auth-service:
+        condition: service_started
+      client-registration-service:
+        condition: service_started
+      kafka:
+        condition: service_started
+
+  client-protected-gateway-service:
+    build:
+      context: .
+      dockerfile: build/client-protected-gateway-service.Dockerfile
+    ports:
+      - "8093:8093"
+    environment:
+      CLIENT_PROTECTED_GATEWAY_HTTP_PORT: "8093"
+      CLIENT_AUTH_GRPC_ADDR: "client-auth-service:50059"
+      CLIENT_REGISTRATION_GRPC_ADDR: "client-registration-service:50058"
+      CLIENT_REVIEWS_GRPC_ADDR: "client-reviews-service:50060"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+    depends_on:
+      client-auth-service:
+        condition: service_started
+      client-registration-service:
+        condition: service_started
+      client-reviews-service:
+        condition: service_started
+      kafka:
+        condition: service_started
+
+  client-reviews-service:
+    build:
+      context: .
+      dockerfile: build/client-reviews-service.Dockerfile
+    ports:
+      - "50060:50060"
+    environment:
+      CLIENT_REVIEWS_GRPC_PORT: "50060"
+      CLIENT_REVIEWS_HTTP_PORT: "8089"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
+      JWT_SECRET: "change-me-in-production"
+      VEHICLES_GRPC_ADDR: "vehicles-service:50053"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+      KAFKA_TOPIC_REVIEW_PUBLISHED: "review.published.v1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vehicles-service:
+        condition: service_started
+      kafka:
+        condition: service_started
+
+  client-auth-service:
+    build:
+      context: .
+      dockerfile: build/client-auth-service.Dockerfile
+    ports:
+      - "50059:50059"
+    environment:
+      CLIENT_AUTH_GRPC_PORT: "50059"
+      CLIENT_AUTH_HTTP_PORT: "8088"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
+      REDIS_ADDR: "redis:6379"
+      REDIS_PASSWORD: ""
+      REDIS_DB: "0"
+      JWT_SECRET: "change-me-in-production"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_CLIENT_REGISTRATION: "client.registration.v1"
+      KAFKA_CONSUMER_GROUP_CLIENT_AUTH: "client-auth"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  client-registration-service:
+    build:
+      context: .
+      dockerfile: build/client-registration-service.Dockerfile
+    ports:
+      - "50058:50058"
+    environment:
+      CLIENT_REGISTRATION_GRPC_PORT: "50058"
+      CLIENT_REGISTRATION_HTTP_PORT: "8087"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
+      JWT_SECRET: "change-me-in-production"
+      CLIENT_AUTH_GRPC_ADDR: "client-auth-service:50059"
+      VEHICLES_GRPC_ADDR: "vehicles-service:50053"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_CLIENT_REGISTRATION: "client.registration.v1"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      client-auth-service:
+        condition: service_started
+      vehicles-service:
+        condition: service_started
+      kafka:
+        condition: service_started
+
+  gateway-service:
+    build:
+      context: .
+      dockerfile: build/gateway-service.Dockerfile
+    ports:
+      - "8090:8090"
+    environment:
+      GATEWAY_HTTP_PORT: "8090"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+      AUTH_GRPC_ADDR: "auth-service:50051"
+      CUSTOMERS_GRPC_ADDR: "customers-service:50052"
+      VEHICLES_GRPC_ADDR: "vehicles-service:50053"
+      DEALS_GRPC_ADDR: "deals-service:50054"
+      PARTS_GRPC_ADDR: "parts-service:50055"
+      BRANDS_GRPC_ADDR: "brands-service:50056"
+      DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
+      EMPLOYEE_STATISTICS_GRPC_ADDR: "employee-statistics-service:50061"
+      CLIENT_STATISTICS_GRPC_ADDR: "client-statistics-service:50062"
+    depends_on:
+      auth-service:
+        condition: service_started
+      dealer-points-service:
+        condition: service_started
+      brands-service:
+        condition: service_started
+      customers-service:
+        condition: service_started
+      vehicles-service:
+        condition: service_started
+      deals-service:
+        condition: service_started
+      parts-service:
+        condition: service_started
+      employee-statistics-service:
+        condition: service_started
+      client-statistics-service:
+        condition: service_started
+      kafka:
+        condition: service_started
+
+  employee-statistics-service:
+    build:
+      context: .
+      dockerfile: build/employee-statistics-service.Dockerfile
+    ports:
+      - "50061:50061"
+    environment:
+      EMPLOYEE_STATISTICS_GRPC_PORT: "50061"
+      EMPLOYEE_STATISTICS_HTTP_PORT: "8094"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
+      JWT_SECRET: "change-me-in-production"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+      KAFKA_TOPIC_DEAL_COMPLETED: "deal.completed.v1"
+      KAFKA_CONSUMER_GROUP_EMPLOYEE_STATISTICS: "employee-statistics"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  client-statistics-service:
+    build:
+      context: .
+      dockerfile: build/client-statistics-service.Dockerfile
+    ports:
+      - "50062:50062"
+    environment:
+      CLIENT_STATISTICS_GRPC_PORT: "50062"
+      CLIENT_STATISTICS_HTTP_PORT: "8095"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
+      JWT_SECRET: "change-me-in-production"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+      KAFKA_TOPIC_REVIEW_PUBLISHED: "review.published.v1"
+      KAFKA_TOPIC_CLIENT_REGISTRATION: "client.registration.v1"
+      KAFKA_CONSUMER_GROUP_CLIENT_STATISTICS: "client-statistics"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
   auth-service:
     build:
       context: .
@@ -66,26 +305,11 @@ services:
       REDIS_DB: "0"
       KAFKA_BROKERS: "kafka:29092"
       KAFKA_TOPIC_AUTH_EVENTS: "auth.events"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+      ERRORS_INGEST_SERVICE_URL: "http://errors-ingest-service:8092"
       JWT_SECRET: "change-me-in-production"
-      CUSTOMERS_SERVICE_URL: "http://customers-service:8081"
-      VEHICLES_SERVICE_URL: "http://vehicles-service:8082"
-      DEALS_SERVICE_URL: "http://deals-service:8083"
-      PARTS_SERVICE_URL: "http://parts-service:8084"
-      BRANDS_SERVICE_URL: "http://brands-service:8085"
-      DEALER_POINTS_SERVICE_URL: "http://dealer-points-service:8086"
+      GATEWAY_SERVICE_URL: "http://gateway-service:8090"
     depends_on:
-      dealer-points-service:
-        condition: service_started
-      brands-service:
-        condition: service_started
-      customers-service:
-        condition: service_started
-      vehicles-service:
-        condition: service_started
-      deals-service:
-        condition: service_started
-      parts-service:
-        condition: service_started
       postgres:
         condition: service_healthy
       redis:
@@ -99,15 +323,18 @@ services:
       dockerfile: build/customers-service.Dockerfile
     ports:
       - "50052:50052"
-      - "8081:8081"
     environment:
       CUSTOMERS_GRPC_PORT: "50052"
       CUSTOMERS_HTTP_PORT: "8081"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
 
   vehicles-service:
     build:
@@ -115,15 +342,24 @@ services:
       dockerfile: build/vehicles-service.Dockerfile
     ports:
       - "50053:50053"
-      - "8082:8082"
     environment:
       VEHICLES_GRPC_PORT: "50053"
       VEHICLES_HTTP_PORT: "8082"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      BRANDS_GRPC_ADDR: "brands-service:50056"
+      DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
+      brands-service:
+        condition: service_started
+      dealer-points-service:
+        condition: service_started
 
   deals-service:
     build:
@@ -131,15 +367,25 @@ services:
       dockerfile: build/deals-service.Dockerfile
     ports:
       - "50054:50054"
-      - "8083:8083"
     environment:
       DEALS_GRPC_PORT: "50054"
       DEALS_HTTP_PORT: "8083"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      CUSTOMERS_GRPC_ADDR: "customers-service:50052"
+      VEHICLES_GRPC_ADDR: "vehicles-service:50053"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+      KAFKA_TOPIC_DEAL_COMPLETED: "deal.completed.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
+      customers-service:
+        condition: service_started
+      vehicles-service:
+        condition: service_started
 
   parts-service:
     build:
@@ -147,15 +393,24 @@ services:
       dockerfile: build/parts-service.Dockerfile
     ports:
       - "50055:50055"
-      - "8084:8084"
     environment:
       PARTS_GRPC_PORT: "50055"
       PARTS_HTTP_PORT: "8084"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      BRANDS_GRPC_ADDR: "brands-service:50056"
+      DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
+      brands-service:
+        condition: service_started
+      dealer-points-service:
+        condition: service_started
 
   brands-service:
     build:
@@ -163,15 +418,18 @@ services:
       dockerfile: build/brands-service.Dockerfile
     ports:
       - "50056:50056"
-      - "8085:8085"
     environment:
       BRANDS_GRPC_PORT: "50056"
       BRANDS_HTTP_PORT: "8085"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
 
   dealer-points-service:
     build:
@@ -179,15 +437,19 @@ services:
       dockerfile: build/dealer-points-service.Dockerfile
     ports:
       - "50057:50057"
-      - "8086:8086"
     environment:
       DEALER_POINTS_GRPC_PORT: "50057"
       DEALER_POINTS_HTTP_PORT: "8086"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
 
 volumes:
   postgres_data: {}
+  clickhouse_data: {}

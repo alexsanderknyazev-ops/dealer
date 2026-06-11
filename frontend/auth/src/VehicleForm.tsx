@@ -4,7 +4,13 @@ import type { VehicleForm as VehicleFormType } from './vehiclesApi'
 import * as api from './vehiclesApi'
 import * as brandsApi from './brandsApi'
 import * as dealerPointsApi from './dealerPointsApi'
-import './Form.css'
+import { FormPage } from '@/components/common/FormPage'
+import { FormField } from '@/components/common/FormField'
+import { FormActions } from '@/components/common/FormActions'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Textarea } from '@/components/ui/textarea'
 
 export function VehicleForm() {
   const { id } = useParams()
@@ -60,7 +66,8 @@ export function VehicleForm() {
 
   useEffect(() => {
     if (isNew) return
-    api.getVehicle(id!)
+    api
+      .getVehicle(id!)
       .then((v) => {
         setForm({
           vin: v.vin,
@@ -78,7 +85,7 @@ export function VehicleForm() {
           warehouse_id: v.warehouse_id || undefined,
         })
       })
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка загрузки'))
       .finally(() => setLoading(false))
   }, [id, isNew])
 
@@ -101,182 +108,94 @@ export function VehicleForm() {
       legal_entity_id: form.legal_entity_id ?? '',
       warehouse_id: form.warehouse_id ?? '',
     }
-    if (isNew) {
-      api.createVehicle(payload)
-        .then(() => navigate('/vehicles', { replace: true }))
-        .catch((err) => { setError(err.message); setSubmitting(false) })
-    } else {
-      api.updateVehicle(id!, payload)
-        .then(() => navigate('/vehicles', { replace: true }))
-        .catch((err) => { setError(err.message); setSubmitting(false) })
-    }
+    const save = isNew ? api.createVehicle(payload) : api.updateVehicle(id!, payload)
+    save
+      .then(() => navigate('/vehicles', { replace: true }))
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Ошибка сохранения')
+        setSubmitting(false)
+      })
   }
 
-  if (loading) return <div className="main loading">Загрузка…</div>
-
   return (
-    <div className="form-card">
-      <h1 className="form-title">{isNew ? 'Новый автомобиль' : 'Редактирование автомобиля'}</h1>
-      <form onSubmit={handleSubmit} className="form">
-        {error && <div className="form-error">{error}</div>}
-        <label className="form-label">
-          VIN *
-          <input
-            value={form.vin}
-            onChange={(e) => setForm((f) => ({ ...f, vin: e.target.value }))}
-            required
-            placeholder="WVWZZZ3CZWE123456"
-            className="form-input"
-          />
-        </label>
-        <label className="form-label">
-          Бренд
-          <select
-            value={form.brand_id ?? ''}
-            onChange={(e) => setForm((f) => ({ ...f, brand_id: e.target.value || undefined }))}
-            className="form-input"
-            style={{ maxWidth: '280px' }}
-          >
+    <FormPage title={isNew ? 'Новый автомобиль' : 'Редактирование автомобиля'} loading={loading}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        <FormField label="VIN" htmlFor="vin" required>
+          <Input id="vin" value={form.vin} onChange={(e) => setForm((f) => ({ ...f, vin: e.target.value }))} required placeholder="WVWZZZ3CZWE123456" />
+        </FormField>
+        <FormField label="Бренд" htmlFor="brand_id">
+          <NativeSelect id="brand_id" className="max-w-xs" value={form.brand_id ?? ''} onChange={(e) => setForm((f) => ({ ...f, brand_id: e.target.value || undefined }))}>
             <option value="">— не выбран —</option>
             {brands.map((b) => (
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
-          </select>
-        </label>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <label className="form-label" style={{ flex: '1 1 200px' }}>
-            Дилерская точка
-            <select
-              value={form.dealer_point_id ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, dealer_point_id: e.target.value || undefined, legal_entity_id: undefined, warehouse_id: undefined }))}
-              className="form-input"
-            >
+          </NativeSelect>
+        </FormField>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormField label="Дилерская точка" htmlFor="dealer_point_id">
+            <NativeSelect id="dealer_point_id" value={form.dealer_point_id ?? ''} onChange={(e) => setForm((f) => ({ ...f, dealer_point_id: e.target.value || undefined, legal_entity_id: undefined, warehouse_id: undefined }))}>
               <option value="">— не выбрана —</option>
               {points.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
-            </select>
-          </label>
-          <label className="form-label" style={{ flex: '1 1 200px' }}>
-            Юр. лицо
-            <select
-              value={form.legal_entity_id ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, legal_entity_id: e.target.value || undefined, warehouse_id: undefined }))}
-              className="form-input"
-              disabled={!form.dealer_point_id}
-            >
+            </NativeSelect>
+          </FormField>
+          <FormField label="Юр. лицо" htmlFor="legal_entity_id">
+            <NativeSelect id="legal_entity_id" value={form.legal_entity_id ?? ''} disabled={!form.dealer_point_id} onChange={(e) => setForm((f) => ({ ...f, legal_entity_id: e.target.value || undefined, warehouse_id: undefined }))}>
               <option value="">— не выбрано —</option>
-              {legalEntities.map((e) => (
-                <option key={e.id} value={e.id}>{e.name}</option>
+              {legalEntities.map((ent) => (
+                <option key={ent.id} value={ent.id}>{ent.name}</option>
               ))}
-            </select>
-          </label>
-          <label className="form-label" style={{ flex: '1 1 200px' }}>
-            Склад автомобилей
-            <select
-              value={form.warehouse_id ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, warehouse_id: e.target.value || undefined }))}
-              className="form-input"
-              disabled={!form.legal_entity_id}
-            >
+            </NativeSelect>
+          </FormField>
+          <FormField label="Склад автомобилей" htmlFor="warehouse_id">
+            <NativeSelect id="warehouse_id" value={form.warehouse_id ?? ''} disabled={!form.legal_entity_id} onChange={(e) => setForm((f) => ({ ...f, warehouse_id: e.target.value || undefined }))}>
               <option value="">— не выбран —</option>
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>{w.name}</option>
               ))}
-            </select>
-          </label>
+            </NativeSelect>
+          </FormField>
         </div>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <label className="form-label" style={{ flex: '1 1 200px' }}>
-            Марка
-            <input
-              value={form.make}
-              onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))}
-              className="form-input"
-            />
-          </label>
-          <label className="form-label" style={{ flex: '1 1 200px' }}>
-            Модель
-            <input
-              value={form.model}
-              onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
-              className="form-input"
-            />
-          </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField label="Марка" htmlFor="make">
+            <Input id="make" value={form.make} onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))} />
+          </FormField>
+          <FormField label="Модель" htmlFor="model">
+            <Input id="model" value={form.model} onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))} />
+          </FormField>
         </div>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <label className="form-label">
-            Год
-            <input
-              type="number"
-              min={1900}
-              max={2100}
-              value={form.year ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, year: e.target.value ? parseInt(e.target.value, 10) : undefined }))}
-              className="form-input"
-              style={{ width: '100px' }}
-            />
-          </label>
-          <label className="form-label">
-            Пробег (км)
-            <input
-              type="number"
-              min={0}
-              value={form.mileage_km ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, mileage_km: e.target.value ? parseInt(e.target.value, 10) : 0 }))}
-              className="form-input"
-              style={{ width: '120px' }}
-            />
-          </label>
-          <label className="form-label">
-            Цена
-            <input
-              value={form.price}
-              onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-              className="form-input"
-              style={{ width: '140px' }}
-            />
-          </label>
-          <label className="form-label">
-            Статус
-            <select
-              value={form.status}
-              onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-              className="form-input"
-              style={{ width: '160px' }}
-            >
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <FormField label="Год" htmlFor="year">
+            <Input id="year" type="number" min={1900} max={2100} value={form.year ?? ''} onChange={(e) => setForm((f) => ({ ...f, year: e.target.value ? parseInt(e.target.value, 10) : undefined }))} />
+          </FormField>
+          <FormField label="Пробег (км)" htmlFor="mileage_km">
+            <Input id="mileage_km" type="number" min={0} value={form.mileage_km ?? ''} onChange={(e) => setForm((f) => ({ ...f, mileage_km: e.target.value ? parseInt(e.target.value, 10) : 0 }))} />
+          </FormField>
+          <FormField label="Цена" htmlFor="price">
+            <Input id="price" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} />
+          </FormField>
+          <FormField label="Статус" htmlFor="status">
+            <NativeSelect id="status" value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}>
               <option value="available">В наличии</option>
               <option value="reserved">Зарезервирован</option>
               <option value="sold">Продан</option>
-            </select>
-          </label>
+            </NativeSelect>
+          </FormField>
         </div>
-        <label className="form-label">
-          Цвет
-          <input
-            value={form.color}
-            onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
-            className="form-input"
-          />
-        </label>
-        <label className="form-label">
-          Заметки
-          <textarea
-            value={form.notes}
-            onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-            className="form-input"
-            rows={3}
-          />
-        </label>
-        <div className="form-actions">
-          <button type="submit" disabled={submitting} className="form-submit">
-            {submitting ? 'Сохранение…' : (isNew ? 'Создать' : 'Сохранить')}
-          </button>
-          <button type="button" onClick={() => navigate('/vehicles')} className="form-cancel">
-            Отмена
-          </button>
-        </div>
+        <FormField label="Цвет" htmlFor="color">
+          <Input id="color" value={form.color} onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} />
+        </FormField>
+        <FormField label="Заметки" htmlFor="notes">
+          <Textarea id="notes" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows={3} />
+        </FormField>
+        <FormActions submitting={submitting} submitLabel={isNew ? 'Создать' : 'Сохранить'} onCancel={() => navigate('/vehicles')} />
       </form>
-    </div>
+    </FormPage>
   )
 }

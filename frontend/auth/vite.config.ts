@@ -1,16 +1,20 @@
-import { defineConfig } from 'vite'
+import path from 'node:path'
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   server: {
     port: 3000,
     host: true,
     proxy: {
-      '/api/customers': { target: 'http://127.0.0.1:8081', changeOrigin: true },
-      '/api/vehicles': { target: 'http://127.0.0.1:8082', changeOrigin: true },
-      '/api/deals': { target: 'http://127.0.0.1:8083', changeOrigin: true },
-      '/api/parts': { target: 'http://127.0.0.1:8084', changeOrigin: true },
+      '/api/telemetry': { target: 'http://127.0.0.1:8092', changeOrigin: true },
       '/api': { target: 'http://127.0.0.1:8080', changeOrigin: true },
     },
   },

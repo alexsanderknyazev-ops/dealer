@@ -2,14 +2,26 @@ syntax = "proto3";
 
 package customers.v1;
 
+import "google/api/annotations.proto";
+
 option go_package = "github.com/dealer/dealer/pkg/pb/customers/v1;customersv1";
 
 service CustomersService {
-  rpc CreateCustomer(CreateCustomerRequest) returns (CreateCustomerResponse);
-  rpc GetCustomer(GetCustomerRequest) returns (GetCustomerResponse);
-  rpc ListCustomers(ListCustomersRequest) returns (ListCustomersResponse);
-  rpc UpdateCustomer(UpdateCustomerRequest) returns (UpdateCustomerResponse);
-  rpc DeleteCustomer(DeleteCustomerRequest) returns (DeleteCustomerResponse);
+  rpc CreateCustomer(CreateCustomerRequest) returns (CreateCustomerResponse) {
+    option (google.api.http) = { post: "/api/customers" body: "*" response_body: "customer" };
+  }
+  rpc GetCustomer(GetCustomerRequest) returns (GetCustomerResponse) {
+    option (google.api.http) = { get: "/api/customers/{id}" response_body: "customer" };
+  }
+  rpc ListCustomers(ListCustomersRequest) returns (ListCustomersResponse) {
+    option (google.api.http) = { get: "/api/customers" };
+  }
+  rpc UpdateCustomer(UpdateCustomerRequest) returns (UpdateCustomerResponse) {
+    option (google.api.http) = { put: "/api/customers/{id}" body: "*" response_body: "customer" };
+  }
+  rpc DeleteCustomer(DeleteCustomerRequest) returns (DeleteCustomerResponse) {
+    option (google.api.http) = { delete: "/api/customers/{id}" };
+  }
 }
 
 message Customer {

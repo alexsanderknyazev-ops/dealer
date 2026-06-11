@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee-statistics-service
+  namespace: dealer
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  selector:
+    matchLabels:
+      app: employee-statistics-service
+  template:
+    metadata:
+      labels:
+        app: employee-statistics-service
+    spec:
+      containers:
+        - name: employee-statistics-service
+          image: __IMG_EMPLOYEE_STATISTICS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50061
+            - containerPort: 8094
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8094
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8094
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: EMPLOYEE_STATISTICS_GRPC_PORT
+              value: "50061"
+            - name: EMPLOYEE_STATISTICS_HTTP_PORT
+              value: "8094"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-app-secrets
+                  key: JWT_SECRET
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"
+            - name: KAFKA_TOPIC_DEAL_COMPLETED
+              value: "deal.completed.v1"
+            - name: KAFKA_CONSUMER_GROUP_EMPLOYEE_STATISTICS
+              value: "employee-statistics"

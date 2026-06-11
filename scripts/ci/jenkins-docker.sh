@@ -167,13 +167,21 @@ registry_has_tag() {
 
 version_file_for_service() {
 	case "$1" in
-	auth-service) echo services/auth/VERSION ;;
-	customers-service) echo services/customers/VERSION ;;
-	vehicles-service) echo services/vehicles/VERSION ;;
-	deals-service) echo services/deals/VERSION ;;
-	parts-service) echo services/parts/VERSION ;;
-	brands-service) echo services/brands/VERSION ;;
-	dealer-points-service) echo services/dealerpoints/VERSION ;;
+	auth-service) echo services/employee/auth/VERSION ;;
+	customers-service) echo services/employee/customers/VERSION ;;
+	vehicles-service) echo services/employee/vehicles/VERSION ;;
+	deals-service) echo services/employee/deals/VERSION ;;
+	parts-service) echo services/employee/parts/VERSION ;;
+	brands-service) echo services/employee/brands/VERSION ;;
+	dealer-points-service) echo services/employee/dealerpoints/VERSION ;;
+	gateway-service) echo services/gateway/employee/VERSION ;;
+	client-registration-service) echo services/client/registration/VERSION ;;
+	client-auth-service) echo services/client/auth/VERSION ;;
+	client-reviews-service) echo services/client/reviews/VERSION ;;
+	client-public-gateway-service) echo services/gateway/client-public/VERSION ;;
+	client-protected-gateway-service) echo services/gateway/client-protected/VERSION ;;
+	employee-statistics-service) echo services/statistics/employee/VERSION ;;
+	client-statistics-service) echo services/statistics/client/VERSION ;;
 	*) echo ""; return 1 ;;
 	esac
 }
@@ -187,6 +195,14 @@ append_version_export() {
 	parts-service) echo "export VER_PARTS_SERVICE=$2" ;;
 	brands-service) echo "export VER_BRANDS_SERVICE=$2" ;;
 	dealer-points-service) echo "export VER_DEALER_POINTS_SERVICE=$2" ;;
+	gateway-service) echo "export VER_GATEWAY_SERVICE=$2" ;;
+	client-auth-service) echo "export VER_CLIENT_AUTH_SERVICE=$2" ;;
+	client-registration-service) echo "export VER_CLIENT_REGISTRATION_SERVICE=$2" ;;
+	client-reviews-service) echo "export VER_CLIENT_REVIEWS_SERVICE=$2" ;;
+	client-public-gateway-service) echo "export VER_CLIENT_PUBLIC_GATEWAY_SERVICE=$2" ;;
+	client-protected-gateway-service) echo "export VER_CLIENT_PROTECTED_GATEWAY_SERVICE=$2" ;;
+	employee-statistics-service) echo "export VER_EMPLOYEE_STATISTICS_SERVICE=$2" ;;
+	client-statistics-service) echo "export VER_CLIENT_STATISTICS_SERVICE=$2" ;;
 	*) return 1 ;;
 	esac
 }
@@ -207,7 +223,15 @@ cmd_prepare() {
 		'deals-service:build/deals-service.Dockerfile' \
 		'parts-service:build/parts-service.Dockerfile' \
 		'brands-service:build/brands-service.Dockerfile' \
-		'dealer-points-service:build/dealer-points-service.Dockerfile'; do
+		'dealer-points-service:build/dealer-points-service.Dockerfile' \
+		'gateway-service:build/gateway-service.Dockerfile' \
+		'client-auth-service:build/client-auth-service.Dockerfile' \
+		'client-registration-service:build/client-registration-service.Dockerfile' \
+		'client-reviews-service:build/client-reviews-service.Dockerfile' \
+		'client-public-gateway-service:build/client-public-gateway-service.Dockerfile' \
+		'client-protected-gateway-service:build/client-protected-gateway-service.Dockerfile' \
+		'employee-statistics-service:build/employee-statistics-service.Dockerfile' \
+		'client-statistics-service:build/client-statistics-service.Dockerfile'; do
 		name="${entry%%:*}"
 		vf="$(version_file_for_service "$name")"
 		test -n "$vf" && test -f "$vf" || {

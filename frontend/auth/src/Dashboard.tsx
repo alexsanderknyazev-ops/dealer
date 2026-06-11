@@ -1,39 +1,41 @@
 import { useNavigate } from 'react-router-dom'
+import { Car, Handshake, Package, Users } from 'lucide-react'
 import { useAuth } from './auth'
-import './Dashboard.css'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+const quickLinks = [
+  { to: '/customers', label: 'Клиенты', icon: Users },
+  { to: '/vehicles', label: 'Автомобили', icon: Car },
+  { to: '/deals', label: 'Сделки', icon: Handshake },
+  { to: '/parts', label: 'Запчасти', icon: Package },
+]
 
 export function Dashboard() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
 
-  async function handleLogout() {
-    await logout()
-    navigate('/login', { replace: true })
-  }
-
   return (
-    <div className="dashboard">
-      <div className="dashboard-card">
-        <p className="dashboard-welcome">Вы вошли как</p>
-        <p className="dashboard-email">{user?.email}</p>
-        <div className="dashboard-actions">
-          <button type="button" onClick={() => navigate('/customers')} className="dashboard-primary">
-            Клиенты
-          </button>
-          <button type="button" onClick={() => navigate('/vehicles')} className="dashboard-primary">
-            Автомобили
-          </button>
-          <button type="button" onClick={() => navigate('/deals')} className="dashboard-primary">
-            Сделки
-          </button>
-          <button type="button" onClick={() => navigate('/parts')} className="dashboard-primary">
-            Запчасти
-          </button>
-          <button type="button" onClick={handleLogout} className="dashboard-logout">
-            Выйти
-          </button>
-        </div>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Главная</h1>
+        <p className="text-muted-foreground">Добро пожаловать в панель управления</p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Вы вошли как</CardTitle>
+          <CardDescription className="text-base text-foreground">{user?.email}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2 sm:grid-cols-2">
+          {quickLinks.map(({ to, label, icon: Icon }) => (
+            <Button key={to} variant="outline" className="justify-start" onClick={() => navigate(to)}>
+              <Icon className="mr-2 h-4 w-4" />
+              {label}
+            </Button>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   )
 }

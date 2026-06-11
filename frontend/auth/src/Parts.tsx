@@ -1,8 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { ChevronDown, ChevronRight, Folder, Plus, X } from 'lucide-react'
 import type { Part, PartFolder } from './partsApi'
 import * as api from './partsApi'
-import './Parts.css'
+import { PageHeader } from '@/components/common/PageHeader'
+import { ErrorAlert } from '@/components/common/ErrorAlert'
+import { LoadingState } from '@/components/common/LoadingState'
+import { EmptyState } from '@/components/common/EmptyState'
+import { Pagination } from '@/components/common/Pagination'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 
 type BreadcrumbItem = { id: string | null; name: string }
 
@@ -26,13 +37,15 @@ export function Parts() {
   const limit = 20
 
   const loadRootFolders = useCallback(() => {
-    api.listFolders(undefined)
+    api
+      .listFolders(undefined)
       .then((r) => setFoldersByParent((prev) => ({ ...prev, root: r.folders })))
       .catch(() => setFoldersByParent((prev) => ({ ...prev, root: [] })))
   }, [])
 
   const loadChildFolders = useCallback((parentId: string) => {
-    api.listFolders(parentId)
+    api
+      .listFolders(parentId)
       .then((r) => setFoldersByParent((prev) => ({ ...prev, [parentId]: r.folders })))
       .catch(() => setFoldersByParent((prev) => ({ ...prev, [parentId]: [] })))
   }, [])
@@ -40,13 +53,14 @@ export function Parts() {
   const loadParts = useCallback(() => {
     setLoading(true)
     setError(null)
-    api.listParts({
-      limit,
-      offset: page * limit,
-      search: search || undefined,
-      category: categoryFilter || undefined,
-      folder_id: currentFolderId ?? undefined,
-    })
+    api
+      .listParts({
+        limit,
+        offset: page * limit,
+        search: search || undefined,
+        category: categoryFilter || undefined,
+        folder_id: currentFolderId ?? undefined,
+      })
       .then((r) => {
         setList(r.parts)
         setTotal(r.total)
@@ -72,7 +86,8 @@ export function Parts() {
       return
     }
     if (!folderIdFromQuery || folderIdFromQuery === currentFolderId) return
-    api.getFolder(folderIdFromQuery)
+    api
+      .getFolder(folderIdFromQuery)
       .then((f) => setFolderStack([{ id: null, name: 'Корень' }, { id: f.id, name: f.name }]))
       .catch(() => {})
   }, [folderIdFromQuery, currentFolderId])
@@ -122,13 +137,14 @@ export function Parts() {
     if (!name) return
     setCreatingFolder(true)
     setError(null)
-    api.createFolder({ name, parent_id: currentFolderId ?? undefined })
+    api
+      .createFolder({ name, parent_id: currentFolderId ?? undefined })
       .then(() => {
         setNewFolderName('')
         loadRootFolders()
         const parentKey = currentFolderId ?? 'root'
         api.listFolders(currentFolderId ?? undefined).then((r) =>
-          setFoldersByParent((prev) => ({ ...prev, [parentKey]: r.folders }))
+          setFoldersByParent((prev) => ({ ...prev, [parentKey]: r.folders })),
         )
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Ошибка создания папки'))
@@ -139,7 +155,8 @@ export function Parts() {
     e.preventDefault()
     e.stopPropagation()
     if (!confirm(`Удалить папку «${folderName}»? Запчасти в ней останутся без папки.`)) return
-    api.deleteFolder(folderId)
+    api
+      .deleteFolder(folderId)
       .then(() => {
         setExpandedIds((prev) => {
           const next = new Set(prev)
@@ -151,10 +168,10 @@ export function Parts() {
           delete next[folderId]
           return next
         })
-        const refreshParent = () => api.listFolders(parentKey === 'root' ? undefined : parentKey).then((r) =>
-          setFoldersByParent((prev) => ({ ...prev, [parentKey]: r.folders }))
-        ).catch(() => {})
-        refreshParent()
+        api
+          .listFolders(parentKey === 'root' ? undefined : parentKey)
+          .then((r) => setFoldersByParent((prev) => ({ ...prev, [parentKey]: r.folders })))
+          .catch(() => {})
         if (parentKey === 'root') loadRootFolders()
         if (currentFolderId === folderId) goToBreadcrumb(0)
       })
@@ -170,154 +187,156 @@ export function Parts() {
       const childrenLoaded = f.id in foldersByParent
       const isSelected = currentFolderId === f.id
       return (
-        <div key={f.id} className="parts-tree-folder" style={{ paddingLeft: level * 12 }}>
-          <span className="parts-tree-row">
+        <div key={f.id} style={{ paddingLeft: level * 12 }}>
+          <div className="flex items-center gap-1">
+            <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => toggleExpand(f.id)} aria-label={isExpanded ? 'Свернуть' : 'Развернуть'}>
+              {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            </Button>
             <button
               type="button"
-              className="parts-tree-expand"
-              onClick={() => toggleExpand(f.id)}
-              aria-label={isExpanded ? 'Свернуть' : 'Развернуть'}
-            >
-              {isExpanded ? '▼' : '▶'}
-            </button>
-            <button
-              type="button"
-              className={`parts-folder-item ${isSelected ? 'parts-folder-item--selected' : ''}`}
+              className={cn(
+                'flex min-w-0 flex-1 items-center gap-1 rounded-md px-2 py-1 text-left text-sm',
+                isSelected ? 'bg-accent font-medium text-accent-foreground' : 'hover:bg-muted',
+              )}
               onClick={() => goToFolder(f)}
             >
-              📁 {f.name}
+              <Folder className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{f.name}</span>
             </button>
-            <button
-              type="button"
-              className="parts-folder-delete"
-              onClick={(e) => handleDeleteFolder(e, f.id, f.name, parentKey)}
-              title="Удалить папку"
-              aria-label="Удалить папку"
-            >
-              ×
-            </button>
-          </span>
-          {isExpanded && (childrenLoaded ? renderFolderTree(f.id, level + 1) : <div className="parts-tree-loading">…</div>)}
+            <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive" onClick={(e) => handleDeleteFolder(e, f.id, f.name, parentKey)} aria-label="Удалить папку">
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+          {isExpanded && (childrenLoaded ? renderFolderTree(f.id, level + 1) : <p className="py-1 pl-8 text-xs text-muted-foreground">…</p>)}
         </div>
       )
     })
   }
 
   return (
-    <div className="parts">
-      <div className="parts-header">
-        <h1 className="parts-title">Запасные части</h1>
-        <Link to={addPartLink} className="parts-add">+ Добавить запчасть</Link>
-      </div>
+    <div className="mx-auto w-full max-w-6xl">
+      <PageHeader
+        title="Запасные части"
+        action={
+          <Button asChild>
+            <Link to={addPartLink}>
+              <Plus className="mr-2 h-4 w-4" />
+              Добавить запчасть
+            </Link>
+          </Button>
+        }
+      />
 
-      <div className="parts-layout">
-        <aside className="parts-sidebar">
-          <div className="parts-breadcrumb">
-            {folderStack.map((item, i) => (
-              <span key={item.id ?? 'root'}>
-                {i > 0 && <span className="parts-breadcrumb-sep"> / </span>}
-                <button
-                  type="button"
-                  className="parts-breadcrumb-link"
-                  onClick={() => goToBreadcrumb(i)}
-                >
-                  {item.name}
-                </button>
-              </span>
-            ))}
-          </div>
-          <div className="parts-tree">
-            <button
-              type="button"
-              className={`parts-folder-item ${currentFolderId === null ? 'parts-folder-item--selected' : ''}`}
-              onClick={() => goToBreadcrumb(0)}
-            >
-              📁 Корень
-            </button>
-            {renderFolderTree('root', 0)}
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); handleCreateFolder(e); }} className="parts-new-folder">
-            <input
-              type="text"
-              placeholder="Новая папка..."
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
-              className="parts-new-folder-input"
-              disabled={creatingFolder}
-            />
-            <button type="button" className="parts-new-folder-btn" disabled={creatingFolder || !newFolderName.trim()} onClick={() => handleCreateFolder()}>
-              + Папка
-            </button>
-          </form>
-        </aside>
+      <div className="flex flex-col gap-4 lg:flex-row">
+        <Card className="w-full shrink-0 lg:w-64">
+          <CardContent className="space-y-3 p-4">
+            <div className="flex flex-wrap gap-1 text-sm">
+              {folderStack.map((item, i) => (
+                <span key={item.id ?? 'root'} className="flex items-center">
+                  {i > 0 && <span className="mx-1 text-muted-foreground">/</span>}
+                  <button type="button" className="text-primary hover:underline" onClick={() => goToBreadcrumb(i)}>
+                    {item.name}
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="space-y-0.5">
+              <button
+                type="button"
+                className={cn(
+                  'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm',
+                  currentFolderId === null ? 'bg-accent font-medium text-accent-foreground' : 'hover:bg-muted',
+                )}
+                onClick={() => goToBreadcrumb(0)}
+              >
+                <Folder className="h-3.5 w-3.5" />
+                Корень
+              </button>
+              {renderFolderTree('root', 0)}
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); handleCreateFolder(e) }} className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="Новая папка..."
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                disabled={creatingFolder}
+              />
+              <Button type="button" size="sm" disabled={creatingFolder || !newFolderName.trim()} onClick={() => handleCreateFolder()}>
+                +
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
-        <div className="parts-main">
-          <div className="parts-toolbar">
-            <input
+        <div className="min-w-0 flex-1">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+            <Input
               type="search"
               placeholder="Поиск по артикулу, названию..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-              className="parts-search"
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(0)
+              }}
             />
-            <select
+            <NativeSelect
+              className="sm:max-w-[200px]"
               value={categoryFilter}
-              onChange={(e) => { setCategoryFilter(e.target.value); setPage(0) }}
-              className="parts-category-filter"
+              onChange={(e) => {
+                setCategoryFilter(e.target.value)
+                setPage(0)
+              }}
             >
               <option value="">Все категории</option>
               <option value="Фильтры">Фильтры</option>
               <option value="Тормоза">Тормоза</option>
               <option value="Масла">Масла</option>
               <option value="Расходники">Расходники</option>
-            </select>
+            </NativeSelect>
           </div>
-          {error && <div className="parts-error">{error}</div>}
-          {loading && <div className="parts-loading">Загрузка…</div>}
-          {!loading && !error && list.length === 0 && (
-            <div className="parts-empty">
-              В этой папке нет запчастей. Добавьте запчасть или выберите другую папку.
-            </div>
-          )}
-          {!loading && list.length > 0 && (
+          {error && <ErrorAlert message={error} />}
+          {loading ? (
+            <LoadingState />
+          ) : list.length === 0 && !error ? (
+            <EmptyState>В этой папке нет запчастей. Добавьте запчасть или выберите другую папку.</EmptyState>
+          ) : (
             <>
-              <div className="parts-table-wrap">
-                <table className="parts-table">
-                  <thead>
-                    <tr>
-                      <th>Артикул</th>
-                      <th>Название</th>
-                      <th>Категория</th>
-                      <th>Кол-во</th>
-                      <th>Ед.</th>
-                      <th>Цена</th>
-                      <th>Расположение</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {list.map((p) => (
-                      <tr key={p.id}>
-                        <td className="parts-sku">{p.sku}</td>
-                        <td>
-                          <Link to={`/parts/${p.id}`} className="parts-link">{p.name || '—'}</Link>
-                        </td>
-                        <td>{p.category || '—'}</td>
-                        <td>{p.quantity}</td>
-                        <td>{p.unit || 'шт'}</td>
-                        <td>{p.price ? Number(p.price).toLocaleString('ru') : '—'}</td>
-                        <td>{p.location || '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="parts-pagination">
-                <span>Всего: {total}</span>
-                <button type="button" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Назад</button>
-                <span>Стр. {page + 1}</span>
-                <button type="button" disabled={(page + 1) * limit >= total} onClick={() => setPage((p) => p + 1)}>Вперёд</button>
-              </div>
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Артикул</TableHead>
+                        <TableHead>Название</TableHead>
+                        <TableHead>Категория</TableHead>
+                        <TableHead>Кол-во</TableHead>
+                        <TableHead>Ед.</TableHead>
+                        <TableHead>Цена</TableHead>
+                        <TableHead>Расположение</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {list.map((p) => (
+                        <TableRow key={p.id}>
+                          <TableCell className="font-mono text-xs">{p.sku}</TableCell>
+                          <TableCell>
+                            <Button variant="link" className="h-auto p-0" asChild>
+                              <Link to={`/parts/${p.id}`}>{p.name || '—'}</Link>
+                            </Button>
+                          </TableCell>
+                          <TableCell>{p.category || '—'}</TableCell>
+                          <TableCell>{p.quantity}</TableCell>
+                          <TableCell>{p.unit || 'шт'}</TableCell>
+                          <TableCell>{p.price ? Number(p.price).toLocaleString('ru') : '—'}</TableCell>
+                          <TableCell>{p.location || '—'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+              <Pagination page={page} total={total} limit={limit} onPageChange={setPage} showTotal />
             </>
           )}
         </div>

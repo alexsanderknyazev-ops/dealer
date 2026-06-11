@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { WarehouseForm as FormType } from './dealerPointsApi'
 import * as api from './dealerPointsApi'
-import './Form.css'
+import { FormPage } from '@/components/common/FormPage'
+import { FormField } from '@/components/common/FormField'
+import { FormActions } from '@/components/common/FormActions'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
 
 export function WarehouseForm() {
   const { id } = useParams()
@@ -29,10 +34,7 @@ export function WarehouseForm() {
       setLegalEntities([])
       return
     }
-    api
-      .listLegalEntitiesByDealerPoint(form.dealer_point_id)
-      .then(setLegalEntities)
-      .catch(() => setLegalEntities([]))
+    api.listLegalEntitiesByDealerPoint(form.dealer_point_id).then(setLegalEntities).catch(() => setLegalEntities([]))
   }, [form.dealer_point_id])
 
   useEffect(() => {
@@ -45,19 +47,11 @@ export function WarehouseForm() {
           legal_entity_id: w.legal_entity_id,
           type: w.type,
           name: w.name,
-        })
+        }),
       )
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка загрузки'))
       .finally(() => setLoading(false))
   }, [id, isNew])
-
-  useEffect(() => {
-    if (!isNew || !form.dealer_point_id) return
-    api
-      .listLegalEntitiesByDealerPoint(form.dealer_point_id)
-      .then(setLegalEntities)
-      .catch(() => setLegalEntities([]))
-  }, [isNew, form.dealer_point_id])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -73,46 +67,30 @@ export function WarehouseForm() {
       type: form.type,
       name: form.name.trim(),
     }
-    if (isNew) {
-      api
-        .createWarehouse(payload)
-        .then(() => navigate('/warehouses', { replace: true }))
-        .catch((err) => {
-          setError(err.message)
-          setSubmitting(false)
-        })
-    } else {
-      api
-        .updateWarehouse(id!, { name: form.name.trim() })
-        .then(() => navigate('/warehouses', { replace: true }))
-        .catch((err) => {
-          setError(err.message)
-          setSubmitting(false)
-        })
-    }
+    const save = isNew ? api.createWarehouse(payload) : api.updateWarehouse(id!, { name: form.name.trim() })
+    save
+      .then(() => navigate('/warehouses', { replace: true }))
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Ошибка сохранения')
+        setSubmitting(false)
+      })
   }
 
-  if (loading) return <div className="main loading">Загрузка…</div>
-
   return (
-    <div className="form-card">
-      <h1 className="form-title">{isNew ? 'Новый склад' : 'Редактирование склада'}</h1>
-      <form onSubmit={handleSubmit} className="form">
-        {error && <div className="form-error">{error}</div>}
-        <label className="form-label">
-          Дилерская точка *
-          <select
+    <FormPage title={isNew ? 'Новый склад' : 'Редактирование склада'} loading={loading}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        <FormField label="Дилерская точка" htmlFor="dealer_point_id" required>
+          <NativeSelect
+            id="dealer_point_id"
             value={form.dealer_point_id}
-            onChange={(e) =>
-              setForm((f) => ({
-                ...f,
-                dealer_point_id: e.target.value,
-                legal_entity_id: '',
-              }))
-            }
-            required
-            className="form-input"
             disabled={!isNew}
+            required
+            onChange={(e) => setForm((f) => ({ ...f, dealer_point_id: e.target.value, legal_entity_id: '' }))}
           >
             <option value="">— выберите —</option>
             {points.map((p) => (
@@ -120,16 +98,15 @@ export function WarehouseForm() {
                 {p.name}
               </option>
             ))}
-          </select>
-        </label>
-        <label className="form-label">
-          Юридическое лицо *
-          <select
+          </NativeSelect>
+        </FormField>
+        <FormField label="Юридическое лицо" htmlFor="legal_entity_id" required>
+          <NativeSelect
+            id="legal_entity_id"
             value={form.legal_entity_id}
-            onChange={(e) => setForm((f) => ({ ...f, legal_entity_id: e.target.value }))}
-            required
-            className="form-input"
             disabled={!isNew}
+            required
+            onChange={(e) => setForm((f) => ({ ...f, legal_entity_id: e.target.value }))}
           >
             <option value="">— выберите —</option>
             {legalEntities.map((e) => (
@@ -137,39 +114,30 @@ export function WarehouseForm() {
                 {e.name} {e.inn ? `(ИНН ${e.inn})` : ''}
               </option>
             ))}
-          </select>
-        </label>
-        <label className="form-label">
-          Тип склада *
-          <select
+          </NativeSelect>
+        </FormField>
+        <FormField label="Тип склада" htmlFor="type" required>
+          <NativeSelect
+            id="type"
             value={form.type}
-            onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as 'cars' | 'parts' }))}
-            className="form-input"
             disabled={!isNew}
+            onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as 'cars' | 'parts' }))}
           >
             <option value="cars">Автомобили</option>
             <option value="parts">Запчасти</option>
-          </select>
-        </label>
-        <label className="form-label">
-          Название склада *
-          <input
+          </NativeSelect>
+        </FormField>
+        <FormField label="Название склада" htmlFor="name" required>
+          <Input
+            id="name"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             required
-            className="form-input"
             placeholder="Например: Склад автомобилей — Москва"
           />
-        </label>
-        <div className="form-actions">
-          <button type="submit" disabled={submitting} className="form-submit">
-            {submitting ? 'Сохранение…' : isNew ? 'Создать' : 'Сохранить'}
-          </button>
-          <button type="button" onClick={() => navigate('/warehouses')} className="form-cancel">
-            Отмена
-          </button>
-        </div>
+        </FormField>
+        <FormActions submitting={submitting} submitLabel={isNew ? 'Создать' : 'Сохранить'} onCancel={() => navigate('/warehouses')} />
       </form>
-    </div>
+    </FormPage>
   )
 }

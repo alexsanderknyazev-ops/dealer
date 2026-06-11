@@ -2,14 +2,28 @@ syntax = "proto3";
 
 package vehicles.v1;
 
+import "google/api/annotations.proto";
+
 option go_package = "github.com/dealer/dealer/pkg/pb/vehicles/v1;vehiclesv1";
 
 service VehiclesService {
-  rpc CreateVehicle(CreateVehicleRequest) returns (CreateVehicleResponse);
-  rpc GetVehicle(GetVehicleRequest) returns (GetVehicleResponse);
-  rpc ListVehicles(ListVehiclesRequest) returns (ListVehiclesResponse);
-  rpc UpdateVehicle(UpdateVehicleRequest) returns (UpdateVehicleResponse);
-  rpc DeleteVehicle(DeleteVehicleRequest) returns (DeleteVehicleResponse);
+  rpc CreateVehicle(CreateVehicleRequest) returns (CreateVehicleResponse) {
+    option (google.api.http) = { post: "/api/vehicles" body: "*" response_body: "vehicle" };
+  }
+  rpc GetVehicle(GetVehicleRequest) returns (GetVehicleResponse) {
+    option (google.api.http) = { get: "/api/vehicles/{id}" response_body: "vehicle" };
+  }
+  rpc ListVehicles(ListVehiclesRequest) returns (ListVehiclesResponse) {
+    option (google.api.http) = { get: "/api/vehicles" };
+  }
+  rpc UpdateVehicle(UpdateVehicleRequest) returns (UpdateVehicleResponse) {
+    option (google.api.http) = { put: "/api/vehicles/{id}" body: "*" response_body: "vehicle" };
+  }
+  rpc DeleteVehicle(DeleteVehicleRequest) returns (DeleteVehicleResponse) {
+    option (google.api.http) = { delete: "/api/vehicles/{id}" };
+  }
+  // Внутренний RPC: точный поиск по VIN (для client-registration-service).
+  rpc GetVehicleByVIN(GetVehicleByVINRequest) returns (GetVehicleResponse);
 }
 
 message Vehicle {
@@ -53,6 +67,10 @@ message CreateVehicleResponse {
 
 message GetVehicleRequest {
   string id = 1;
+}
+
+message GetVehicleByVINRequest {
+  string vin = 1;
 }
 
 message GetVehicleResponse {

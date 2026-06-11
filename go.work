@@ -1,10 +1,35 @@
 go 1.22
 
 use .
-use ./services/auth
-use ./services/customers
-use ./services/vehicles
-use ./services/deals
-use ./services/parts
-use ./services/brands
-use ./services/dealerpoints
+
+use ./services/employee/auth
+
+use ./services/employee/customers
+
+use ./services/employee/vehicles
+
+use ./services/employee/deals
+
+use ./services/employee/parts
+
+use ./services/employee/brands
+
+use ./services/employee/dealerpoints
+
+use ./services/gateway/employee
+
+use ./services/gateway/client-public
+
+use ./services/gateway/client-protected
+
+use ./services/client/registration
+
+use ./services/client/auth
+
+use ./services/client/reviews
+
+use ./services/statistics/employee
+
+use ./services/statistics/client
+
+use ./services/errors-ingest

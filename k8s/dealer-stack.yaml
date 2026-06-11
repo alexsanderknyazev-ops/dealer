@@ -1,4 +1,4 @@
-# Лабораторный стек dealer: инфраструктура (Postgres, Redis, Zookeeper, Kafka) + 7 микросервисов.
+# Лабораторный стек dealer: инфраструктура (Postgres, Redis, Zookeeper, Kafka) + gateways + микросервисы.
 # Плейсхолдеры подставляет Jenkins: __K8S_DB_HOST__, __K8S_DB_PORT__, __IMG_*__, __PULL_POLICY__
 # Секреты БД создаются при деплое в Secret dealer-db (keys: POSTGRES_PASSWORD, POSTGRES_DSN).
 # По умолчанию K8S_DB_HOST=postgres — совпадает с Service ниже.
@@ -341,18 +341,8 @@ spec:
               value: "auth.events"
             - name: JWT_SECRET
               value: "change-me-in-production"
-            - name: CUSTOMERS_SERVICE_URL
-              value: "http://customers-service.dealer.svc.cluster.local:8081"
-            - name: VEHICLES_SERVICE_URL
-              value: "http://vehicles-service.dealer.svc.cluster.local:8082"
-            - name: DEALS_SERVICE_URL
-              value: "http://deals-service.dealer.svc.cluster.local:8083"
-            - name: PARTS_SERVICE_URL
-              value: "http://parts-service.dealer.svc.cluster.local:8084"
-            - name: BRANDS_SERVICE_URL
-              value: "http://brands-service.dealer.svc.cluster.local:8085"
-            - name: DEALER_POINTS_SERVICE_URL
-              value: "http://dealer-points-service.dealer.svc.cluster.local:8086"
+            - name: GATEWAY_SERVICE_URL
+              value: "http://gateway-service.dealer.svc.cluster.local:8090"
 ---
 #Service
 apiVersion: v1
@@ -520,6 +510,10 @@ spec:
                   key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
+            - name: BRANDS_GRPC_ADDR
+              value: "brands-service.dealer.svc.cluster.local:50056"
+            - name: DEALER_POINTS_GRPC_ADDR
+              value: "dealer-points-service.dealer.svc.cluster.local:50057"
 ---
 #Service
 apiVersion: v1
@@ -592,6 +586,16 @@ spec:
                   key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
+            - name: CUSTOMERS_GRPC_ADDR
+              value: "customers-service.dealer.svc.cluster.local:50052"
+            - name: VEHICLES_GRPC_ADDR
+              value: "vehicles-service.dealer.svc.cluster.local:50053"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"
+            - name: KAFKA_TOPIC_DEAL_COMPLETED
+              value: "deal.completed.v1"
 ---
 #Service
 apiVersion: v1
@@ -664,6 +668,10 @@ spec:
                   key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
+            - name: BRANDS_GRPC_ADDR
+              value: "brands-service.dealer.svc.cluster.local:50056"
+            - name: DEALER_POINTS_GRPC_ADDR
+              value: "dealer-points-service.dealer.svc.cluster.local:50057"
 ---
 #Service
 apiVersion: v1
@@ -808,3 +816,639 @@ spec:
                   key: POSTGRES_DSN
             - name: JWT_SECRET
               value: "change-me-in-production"
+---
+#Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: dealer
+spec:
+  selector:
+    app: gateway-service
+  ports:
+    - name: http
+      port: 8090
+      targetPort: 8090
+---
+#Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-service
+  template:
+    metadata:
+      labels:
+        app: gateway-service
+    spec:
+      containers:
+        - name: gateway-service
+          image: __IMG_GATEWAY__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 8090
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: GATEWAY_HTTP_PORT
+              value: "8090"
+            - name: AUTH_GRPC_ADDR
+              value: "auth-service:50051"
+            - name: CUSTOMERS_GRPC_ADDR
+              value: "customers-service:50052"
+            - name: VEHICLES_GRPC_ADDR
+              value: "vehicles-service:50053"
+            - name: DEALS_GRPC_ADDR
+              value: "deals-service:50054"
+            - name: PARTS_GRPC_ADDR
+              value: "parts-service:50055"
+            - name: BRANDS_GRPC_ADDR
+              value: "brands-service:50056"
+            - name: DEALER_POINTS_GRPC_ADDR
+              value: "dealer-points-service:50057"
+            - name: EMPLOYEE_STATISTICS_GRPC_ADDR
+              value: "employee-statistics-service:50061"
+            - name: CLIENT_STATISTICS_GRPC_ADDR
+              value: "client-statistics-service:50062"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-auth-service
+  namespace: dealer
+spec:
+  selector:
+    app: client-auth-service
+  ports:
+    - name: grpc
+      port: 50059
+      targetPort: 50059
+    - name: http
+      port: 8088
+      targetPort: 8088
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-auth-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client-auth-service
+  template:
+    metadata:
+      labels:
+        app: client-auth-service
+    spec:
+      containers:
+        - name: client-auth-service
+          image: __IMG_CLIENT_AUTH__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50059
+            - containerPort: 8088
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8088
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8088
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: CLIENT_AUTH_GRPC_PORT
+              value: "50059"
+            - name: CLIENT_AUTH_HTTP_PORT
+              value: "8088"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: REDIS_ADDR
+              value: "redis:6379"
+            - name: REDIS_PASSWORD
+              value: ""
+            - name: REDIS_DB
+              value: "0"
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_CLIENT_REGISTRATION
+              value: "client.registration.v1"
+            - name: KAFKA_CONSUMER_GROUP_CLIENT_AUTH
+              value: "client-auth"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-registration-service
+  namespace: dealer
+spec:
+  selector:
+    app: client-registration-service
+  ports:
+    - name: grpc
+      port: 50058
+      targetPort: 50058
+    - name: http
+      port: 8087
+      targetPort: 8087
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-registration-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client-registration-service
+  template:
+    metadata:
+      labels:
+        app: client-registration-service
+    spec:
+      containers:
+        - name: client-registration-service
+          image: __IMG_CLIENT_REGISTRATION__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50058
+            - containerPort: 8087
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8087
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8087
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: CLIENT_REGISTRATION_GRPC_PORT
+              value: "50058"
+            - name: CLIENT_REGISTRATION_HTTP_PORT
+              value: "8087"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+            - name: CLIENT_AUTH_GRPC_ADDR
+              value: "client-auth-service:50059"
+            - name: VEHICLES_GRPC_ADDR
+              value: "vehicles-service:50053"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_CLIENT_REGISTRATION
+              value: "client.registration.v1"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-reviews-service
+  namespace: dealer
+spec:
+  selector:
+    app: client-reviews-service
+  ports:
+    - name: grpc
+      port: 50060
+      targetPort: 50060
+    - name: http
+      port: 8089
+      targetPort: 8089
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-reviews-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client-reviews-service
+  template:
+    metadata:
+      labels:
+        app: client-reviews-service
+    spec:
+      containers:
+        - name: client-reviews-service
+          image: __IMG_CLIENT_REVIEWS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50060
+            - containerPort: 8089
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8089
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8089
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: CLIENT_REVIEWS_GRPC_PORT
+              value: "50060"
+            - name: CLIENT_REVIEWS_HTTP_PORT
+              value: "8089"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+            - name: VEHICLES_GRPC_ADDR
+              value: "vehicles-service:50053"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"
+            - name: KAFKA_TOPIC_REVIEW_PUBLISHED
+              value: "review.published.v1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-public-gateway-service
+  namespace: dealer
+spec:
+  type: NodePort
+  selector:
+    app: client-public-gateway-service
+  ports:
+    - name: http
+      port: 8091
+      targetPort: 8091
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-public-gateway-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client-public-gateway-service
+  template:
+    metadata:
+      labels:
+        app: client-public-gateway-service
+    spec:
+      containers:
+        - name: client-public-gateway-service
+          image: __IMG_CLIENT_PUBLIC_GATEWAY__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 8091
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8091
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8091
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: CLIENT_PUBLIC_GATEWAY_HTTP_PORT
+              value: "8091"
+            - name: CLIENT_AUTH_GRPC_ADDR
+              value: "client-auth-service:50059"
+            - name: CLIENT_REGISTRATION_GRPC_ADDR
+              value: "client-registration-service:50058"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-protected-gateway-service
+  namespace: dealer
+spec:
+  type: NodePort
+  selector:
+    app: client-protected-gateway-service
+  ports:
+    - name: http
+      port: 8093
+      targetPort: 8093
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-protected-gateway-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client-protected-gateway-service
+  template:
+    metadata:
+      labels:
+        app: client-protected-gateway-service
+    spec:
+      containers:
+        - name: client-protected-gateway-service
+          image: __IMG_CLIENT_PROTECTED_GATEWAY__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 8093
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8093
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8093
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: CLIENT_PROTECTED_GATEWAY_HTTP_PORT
+              value: "8093"
+            - name: CLIENT_AUTH_GRPC_ADDR
+              value: "client-auth-service:50059"
+            - name: CLIENT_REGISTRATION_GRPC_ADDR
+              value: "client-registration-service:50058"
+            - name: CLIENT_REVIEWS_GRPC_ADDR
+              value: "client-reviews-service:50060"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: employee-statistics-service
+  namespace: dealer
+spec:
+  selector:
+    app: employee-statistics-service
+  ports:
+    - name: grpc
+      port: 50061
+      targetPort: 50061
+    - name: http
+      port: 8094
+      targetPort: 8094
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee-statistics-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employee-statistics-service
+  template:
+    metadata:
+      labels:
+        app: employee-statistics-service
+    spec:
+      containers:
+        - name: employee-statistics-service
+          image: __IMG_EMPLOYEE_STATISTICS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50061
+            - containerPort: 8094
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8094
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8094
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: EMPLOYEE_STATISTICS_GRPC_PORT
+              value: "50061"
+            - name: EMPLOYEE_STATISTICS_HTTP_PORT
+              value: "8094"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"
+            - name: KAFKA_TOPIC_DEAL_COMPLETED
+              value: "deal.completed.v1"
+            - name: KAFKA_CONSUMER_GROUP_EMPLOYEE_STATISTICS
+              value: "employee-statistics"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-statistics-service
+  namespace: dealer
+spec:
+  selector:
+    app: client-statistics-service
+  ports:
+    - name: grpc
+      port: 50062
+      targetPort: 50062
+    - name: http
+      port: 8095
+      targetPort: 8095
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-statistics-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client-statistics-service
+  template:
+    metadata:
+      labels:
+        app: client-statistics-service
+    spec:
+      containers:
+        - name: client-statistics-service
+          image: __IMG_CLIENT_STATISTICS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50062
+            - containerPort: 8095
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8095
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8095
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: CLIENT_STATISTICS_GRPC_PORT
+              value: "50062"
+            - name: CLIENT_STATISTICS_HTTP_PORT
+              value: "8095"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+            - name: KAFKA_BROKERS
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC_ERRORS
+              value: "platform.errors.v1"
+            - name: KAFKA_TOPIC_REVIEW_PUBLISHED
+              value: "review.published.v1"
+            - name: KAFKA_TOPIC_CLIENT_REGISTRATION
+              value: "client.registration.v1"
+            - name: KAFKA_CONSUMER_GROUP_CLIENT_STATISTICS
+              value: "client-statistics"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: client-http
+  namespace: dealer
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "32m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: client.dealer.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: client-public-gateway-service
+                port:
+                  number: 8091

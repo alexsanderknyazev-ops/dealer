@@ -1,0 +1,267 @@
+package service
+
+import (
+	"context"
+	"errors"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+
+	"github.com/dealer/dealer/pkg/obslog"
+	"github.com/dealer/dealer/services/deals/internal/domain"
+)
+
+var ErrNotFound = errors.New("deal not found")
+var (
+	ErrCustomerNotFound = errors.New("customer not found")
+	ErrVehicleNotFound  = errors.New("vehicle not found")
+)
+
+// CreateDealInput is the payload for Create (keeps DealAPI arity within Sonar limits).
+type CreateDealInput struct {
+	CustomerID, VehicleID, Amount, Stage, AssignedTo, Notes string
+}
+
+// UpdateDealInput carries optional fields for Update (keeps DealAPI parameter count within limits).
+type UpdateDealInput struct {
+	CustomerID *string
+	VehicleID  *string
+	Amount     *string
+	Stage      *string
+	AssignedTo *string
+	Notes      *string
+}
+
+type dealRepository interface {
+	Create(ctx context.Context, d *domain.Deal) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Deal, error)
+	List(ctx context.Context, limit, offset int32, stageFilter, customerID string) ([]*domain.Deal, int32, error)
+	Update(ctx context.Context, d *domain.Deal) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+// ReferenceChecker validates customer_id and vehicle_id via other services (gRPC).
+type ReferenceChecker interface {
+	CustomerExists(ctx context.Context, id uuid.UUID) (bool, error)
+	VehicleExists(ctx context.Context, id uuid.UUID) (bool, error)
+}
+
+type noopReferenceChecker struct{}
+
+func (noopReferenceChecker) CustomerExists(context.Context, uuid.UUID) (bool, error) { return true, nil }
+func (noopReferenceChecker) VehicleExists(context.Context, uuid.UUID) (bool, error)  { return true, nil }
+
+// DealAPI — HTTP/gRPC и тесты.
+type DealAPI interface {
+	Create(ctx context.Context, in CreateDealInput) (*domain.Deal, error)
+	Get(ctx context.Context, id string) (*domain.Deal, error)
+	List(ctx context.Context, limit, offset int32, stageFilter, customerID string) ([]*domain.Deal, int32, error)
+	Update(ctx context.Context, id string, in UpdateDealInput) (*domain.Deal, error)
+	Delete(ctx context.Context, id string) error
+}
+
+type completedPublisher interface {
+	Publish(ctx context.Context, deal *domain.Deal) error
+}
+
+type DealService struct {
+	repo      dealRepository
+	refs      ReferenceChecker
+	publisher completedPublisher
+}
+
+func NewDealService(repo dealRepository, refs ReferenceChecker, publisher completedPublisher) *DealService {
+	if refs == nil {
+		refs = noopReferenceChecker{}
+	}
+	return &DealService{repo: repo, refs: refs, publisher: publisher}
+}
+
+func isSuccessfulStage(stage string) bool {
+	return stage == "completed" || stage == "paid"
+}
+
+func (s *DealService) maybePublishCompleted(ctx context.Context, previousStage string, deal *domain.Deal) {
+	if s.publisher == nil || deal == nil || !isSuccessfulStage(deal.Stage) {
+		return
+	}
+	if previousStage != "" && isSuccessfulStage(previousStage) {
+		return
+	}
+	if err := s.publisher.Publish(ctx, deal); err != nil {
+		obslog.Default.Warn("kafka publish failed", "event", "deal.completed", "deal_id", deal.ID.String(), "err", err)
+	}
+}
+
+func (s *DealService) validateReferences(ctx context.Context, customerID, vehicleID uuid.UUID) error {
+	customerExists, err := s.refs.CustomerExists(ctx, customerID)
+	if err != nil {
+		return err
+	}
+	if !customerExists {
+		return ErrCustomerNotFound
+	}
+	vehicleExists, err := s.refs.VehicleExists(ctx, vehicleID)
+	if err != nil {
+		return err
+	}
+	if !vehicleExists {
+		return ErrVehicleNotFound
+	}
+	return nil
+}
+
+func (s *DealService) Create(ctx context.Context, in CreateDealInput) (*domain.Deal, error) {
+	stage := in.Stage
+	if stage == "" {
+		stage = "draft"
+	}
+	cid, err := uuid.Parse(in.CustomerID)
+	if err != nil {
+		return nil, errors.New("invalid customer_id")
+	}
+	vid, err := uuid.Parse(in.VehicleID)
+	if err != nil {
+		return nil, errors.New("invalid vehicle_id")
+	}
+	if err := s.validateReferences(ctx, cid, vid); err != nil {
+		return nil, err
+	}
+	amount := strings.TrimSpace(in.Amount)
+	if amount == "" {
+		amount = "0"
+	}
+	var assigned *uuid.UUID
+	if in.AssignedTo != "" {
+		if a, err := uuid.Parse(in.AssignedTo); err == nil {
+			assigned = &a
+		}
+	}
+	now := time.Now().UTC()
+	d := &domain.Deal{
+		ID:         uuid.New(),
+		CustomerID: cid,
+		VehicleID:  vid,
+		Amount:     amount,
+		Stage:      stage,
+		AssignedTo: assigned,
+		Notes:      in.Notes,
+		CreatedAt:  now,
+		UpdatedAt:  now,
+	}
+	if err := s.repo.Create(ctx, d); err != nil {
+		return nil, err
+	}
+	s.maybePublishCompleted(ctx, "", d)
+	return d, nil
+}
+
+func (s *DealService) Get(ctx context.Context, id string) (*domain.Deal, error) {
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	d, err := s.repo.GetByID(ctx, uid)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return d, nil
+}
+
+func (s *DealService) List(ctx context.Context, limit, offset int32, stageFilter, customerID string) ([]*domain.Deal, int32, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 20
+	}
+	return s.repo.List(ctx, limit, offset, stageFilter, customerID)
+}
+
+func applyDealCustomerIDIfValid(d *domain.Deal, s *string) {
+	if s == nil {
+		return
+	}
+	cid, err := uuid.Parse(*s)
+	if err != nil {
+		return
+	}
+	d.CustomerID = cid
+}
+
+func applyDealVehicleIDIfValid(d *domain.Deal, s *string) {
+	if s == nil {
+		return
+	}
+	vid, err := uuid.Parse(*s)
+	if err != nil {
+		return
+	}
+	d.VehicleID = vid
+}
+
+func applyDealAssignedTo(d *domain.Deal, s *string) {
+	if s == nil {
+		return
+	}
+	if *s == "" {
+		d.AssignedTo = nil
+		return
+	}
+	a, err := uuid.Parse(*s)
+	if err != nil {
+		return
+	}
+	d.AssignedTo = &a
+}
+
+func mergeDealUpdateInput(d *domain.Deal, in UpdateDealInput) {
+	applyDealCustomerIDIfValid(d, in.CustomerID)
+	applyDealVehicleIDIfValid(d, in.VehicleID)
+	if in.Amount != nil {
+		amount := strings.TrimSpace(*in.Amount)
+		if amount == "" {
+			amount = "0"
+		}
+		d.Amount = amount
+	}
+	if in.Stage != nil {
+		d.Stage = *in.Stage
+	}
+	applyDealAssignedTo(d, in.AssignedTo)
+	if in.Notes != nil {
+		d.Notes = *in.Notes
+	}
+}
+
+func (s *DealService) Update(ctx context.Context, id string, in UpdateDealInput) (*domain.Deal, error) {
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	existing, err := s.repo.GetByID(ctx, uid)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	previousStage := existing.Stage
+	mergeDealUpdateInput(existing, in)
+	if err := s.validateReferences(ctx, existing.CustomerID, existing.VehicleID); err != nil {
+		return nil, err
+	}
+	existing.UpdatedAt = time.Now().UTC()
+	if err := s.repo.Update(ctx, existing); err != nil {
+		return nil, err
+	}
+	s.maybePublishCompleted(ctx, previousStage, existing)
+	return existing, nil
+}
+
+func (s *DealService) Delete(ctx context.Context, id string) error {
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return ErrNotFound
+	}
+	return s.repo.Delete(ctx, uid)
+}

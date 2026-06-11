@@ -9,11 +9,11 @@ COPY pkg/ ./pkg/
 #копируем api/ в рабочую директорию
 COPY api/ ./api/
 #копируем services/dealerpoints/ в рабочую директорию
-COPY services/dealerpoints/ ./services/dealerpoints/
+COPY services/employee/dealerpoints/ ./services/employee/dealerpoints/
 #устанавливаем рабочую директорию
-WORKDIR /app/services/dealerpoints
+WORKDIR /app/services/employee/dealerpoints
 #строим проект
-RUN go build -o /dealer-points-service .
+RUN go mod tidy && go build -o /dealer-points-service .
 
 #берем alpine 3.19
 FROM alpine:3.19

@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package statistics.employee.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/dealer/dealer/pkg/pb/statistics/employee/v1;employeestatsv1";
+
+// Сводная статистика для сотрудников (employee gateway).
+service EmployeeStatisticsService {
+  rpc GetOverview(GetOverviewRequest) returns (GetOverviewResponse) {
+    option (google.api.http) = { get: "/api/stats/employee/overview" response_body: "overview" };
+  }
+}
+
+message DealStageCount {
+  string stage = 1;
+  int64 count = 2;
+}
+
+message EmployeeOverview {
+  int64 customers_count = 1;
+  int64 vehicles_count = 2;
+  int64 deals_count = 3;
+  repeated DealStageCount deals_by_stage = 4;
+  double total_revenue = 5;
+  int64 parts_count = 6;
+  int64 dealer_points_count = 7;
+}
+
+message GetOverviewRequest {}
+
+message GetOverviewResponse {
+  EmployeeOverview overview = 1;
+}

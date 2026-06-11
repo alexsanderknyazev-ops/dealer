@@ -1,0 +1,20 @@
+.git
+.github
+.ci
+.idea
+.vscode
+.env
+**/.env
+
+# Frontend: source is copied, heavy artifacts are rebuilt in Docker
+frontend/**/node_modules
+frontend/**/dist
+frontend/**/test-results
+frontend/**/*.tsbuildinfo
+frontend/**/coverage
+
+# Local / lab artifacts
+**/vendor
+qa/
+resurse/
+k8s/grafana-ingress.yaml

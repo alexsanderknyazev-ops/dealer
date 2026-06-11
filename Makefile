@@ -1,11 +1,19 @@
-.PHONY: proto docker-up docker-down run-auth seed-admin frontend-dev frontend-build
+.PHONY: proto docker-up docker-down run-auth seed-admin frontend-dev frontend-build frontend-client-dev frontend-client-build
 
 proto:
-	@which protoc >/dev/null || (echo "install: go install google.golang.org/protobuf/cmd/protoc-gen-go@latest; go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest" && exit 1)
-	mkdir -p pkg/pb/auth/v1 pkg/pb/customers/v1 pkg/pb/vehicles/v1 pkg/pb/deals/v1 pkg/pb/parts/v1 pkg/pb/brands/v1 pkg/pb/dealerpoints/v1
+	@which protoc >/dev/null || (echo "install protoc (brew install protobuf)" && exit 1)
+	@which protoc-gen-go >/dev/null || (echo "go install google.golang.org/protobuf/cmd/protoc-gen-go@latest" && exit 1)
+	@which protoc-gen-go-grpc >/dev/null || (echo "go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest" && exit 1)
+	@which protoc-gen-grpc-gateway >/dev/null || (echo "go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest" && exit 1)
+	mkdir -p pkg/pb/auth/v1 pkg/pb/customers/v1 pkg/pb/vehicles/v1 pkg/pb/deals/v1 pkg/pb/parts/v1 pkg/pb/brands/v1 pkg/pb/dealerpoints/v1 pkg/pb/clients/v1 pkg/pb/clientauth/v1 pkg/pb/reviews/v1 pkg/pb/statistics/employee/v1 pkg/pb/statistics/client/v1
 	protoc -I api/proto --go_out=module=github.com/dealer/dealer:. \
 		--go-grpc_out=module=github.com/dealer/dealer:. \
-		api/proto/auth/v1/auth.proto api/proto/customers/v1/customers.proto api/proto/vehicles/v1/vehicles.proto api/proto/deals/v1/deals.proto api/proto/parts/v1/parts.proto api/proto/brands/v1/brands.proto api/proto/dealerpoints/v1/dealerpoints.proto
+		--grpc-gateway_out=module=github.com/dealer/dealer:. \
+		api/proto/auth/v1/auth.proto api/proto/customers/v1/customers.proto api/proto/vehicles/v1/vehicles.proto api/proto/deals/v1/deals.proto api/proto/parts/v1/parts.proto api/proto/brands/v1/brands.proto api/proto/dealerpoints/v1/dealerpoints.proto \
+		api/proto/clients/v1/common.proto api/proto/clients/v1/registration_public.proto api/proto/clients/v1/account.proto \
+		api/proto/clientauth/v1/clientauth.proto api/proto/clientauth/v1/clientauth_public.proto api/proto/clientauth/v1/clientauth_session.proto \
+		api/proto/reviews/v1/reviews.proto \
+		api/proto/statistics/employee/v1/employee_stats.proto api/proto/statistics/client/v1/client_stats.proto
 
 docker-up:
 	docker compose up -d
@@ -16,31 +24,55 @@ docker-down:
 # Применить миграции к БД (нужен запущенный Postgres, порт 5433 при Docker)
 migrate:
 	@: $${POSTGRES_DSN:?Set POSTGRES_DSN (see .env.example; copy .env from .env.example)}
-	@for f in migrations/000_schemas.up.sql migrations/001_users.up.sql migrations/002_roles.up.sql migrations/003_customers.up.sql migrations/004_vehicles.up.sql migrations/005_deals.up.sql migrations/006_parts.up.sql migrations/007_part_folders.up.sql migrations/008_brands.up.sql migrations/009_dealer_points.up.sql migrations/010_part_stock.up.sql; do \
+	@for f in migrations/000_schemas.up.sql migrations/001_users.up.sql migrations/002_roles.up.sql migrations/003_customers.up.sql migrations/004_vehicles.up.sql migrations/005_deals.up.sql migrations/006_parts.up.sql migrations/007_part_folders.up.sql migrations/008_brands.up.sql migrations/009_dealer_points.up.sql migrations/010_part_stock.up.sql migrations/011_clients.up.sql migrations/012_client_role.up.sql migrations/013_clientauth.up.sql migrations/014_reviews.up.sql migrations/015_employee_statistics.up.sql migrations/016_client_statistics.up.sql; do \
 		echo "Applying $$f..."; psql "$$POSTGRES_DSN" -f "$$f" || exit 1; \
 	done
 	@echo "Migrations done."
 
 run-auth:
-	go run ./services/auth
+	go run ./services/employee/auth
 
 run-customers:
-	go run ./services/customers
+	go run ./services/employee/customers
 
 run-vehicles:
-	go run ./services/vehicles
+	go run ./services/employee/vehicles
 
 run-deals:
-	go run ./services/deals
+	go run ./services/employee/deals
 
 run-parts:
-	go run ./services/parts
+	go run ./services/employee/parts
 
 run-brands:
-	go run ./services/brands
+	go run ./services/employee/brands
 
 run-dealer-points:
-	go run ./services/dealerpoints
+	go run ./services/employee/dealerpoints
+
+run-gateway:
+	go run ./services/gateway/employee
+
+run-client-registration:
+	go run ./services/client/registration
+
+run-client-public-gateway:
+	go run ./services/gateway/client-public
+
+run-client-protected-gateway:
+	go run ./services/gateway/client-protected
+
+run-client-reviews:
+	go run ./services/client/reviews
+
+run-client-auth:
+	go run ./services/client/auth
+
+run-employee-statistics:
+	go run ./services/statistics/employee
+
+run-client-statistics:
+	go run ./services/statistics/client
 
 # Тестовые клиенты, автомобили, запчасти (нужны миграции 001–006 и POSTGRES_DSN)
 seed-data:
@@ -66,10 +98,16 @@ deploy:
 
 # Создаёт пользователя admin (email и пароль из ADMIN_EMAIL, ADMIN_PASSWORD; по умолчанию admin@dealer.local / admin123)
 seed-admin:
-	cd services/auth && go run ./cmd/seed-admin
+	cd services/employee/auth && go run ./cmd/seed-admin
 
 frontend-dev:
 	cd frontend/auth && npm install && npm run dev
 
 frontend-build:
 	cd frontend/auth && npm install && npm run build
+
+frontend-client-dev:
+	cd frontend/client && npm install && npm run dev
+
+frontend-client-build:
+	cd frontend/client && npm install && npm run build

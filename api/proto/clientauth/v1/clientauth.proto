@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package clientauth.v1;
+
+option go_package = "github.com/dealer/dealer/pkg/pb/clientauth/v1;clientauthv1";
+
+// Внутренний gRPC (без HTTP): выдача токенов после регистрации.
+service ClientAuthService {
+  rpc IssueTokens(IssueTokensRequest) returns (IssueTokensResponse);
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string user_id = 1;
+  string email = 2;
+  string access_token = 3;
+  string refresh_token = 4;
+  int64 expires_at = 5;
+}
+
+message RefreshRequest {
+  string refresh_token = 1;
+}
+
+message RefreshResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_at = 3;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+message LogoutResponse {}
+
+message ValidateRequest {
+  string access_token = 1;
+}
+
+message ValidateResponse {
+  string user_id = 1;
+  string email = 2;
+  bool valid = 3;
+}
+
+message IssueTokensRequest {
+  string user_id = 1;
+}
+
+message IssueTokensResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_at = 3;
+}

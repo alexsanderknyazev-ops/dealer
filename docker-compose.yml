@@ -49,29 +49,42 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
-  ydb:
-    image: ydbplatform/local-ydb:latest
-    platform: linux/amd64
-    hostname: localhost
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8-alpine
     ports:
-      - "2135:2135"   # gRPC TLS
-      - "2136:2136"   # gRPC
-      - "8765:8765"   # Web UI / monitoring
-    environment:
-      GRPC_TLS_PORT: "2135"
-      GRPC_PORT: "2136"
-      MON_PORT: "8765"
-      YDB_USE_IN_MEMORY_PDISKS: "true"
-      YDB_DEFAULT_LOG_LEVEL: NOTICE
+      - "8123:8123"
+      - "9000:9000"
     volumes:
-      - ydb_data:/ydb_data
-      - ydb_certs:/ydb_certs
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "ydb -e grpc://localhost:2136 -d /local scheme ls >/dev/null 2>&1 || exit 1"]
-      interval: 10s
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:8123/ping | grep -q Ok"]
+      interval: 5s
       timeout: 5s
-      retries: 12
-      start_period: 30s
+      retries: 10
+      start_period: 10s
+
+  errors-ingest-service:
+    build:
+      context: .
+      dockerfile: build/errors-ingest-service.Dockerfile
+    ports:
+      - "8092:8092"
+    environment:
+      ERRORS_INGEST_HTTP_PORT: "8092"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+      KAFKA_CONSUMER_GROUP: "errors-ingest"
+      CLICKHOUSE_ADDR: "clickhouse:9000"
+      CLICKHOUSE_DATABASE: "analytics"
+      CLICKHOUSE_USER: "default"
+      CLICKHOUSE_PASSWORD: ""
+      ENVIRONMENT: "development"
+    depends_on:
+      kafka:
+        condition: service_started
+      clickhouse:
+        condition: service_healthy
 
   gateway-service:
     build:
@@ -81,6 +94,8 @@ services:
       - "8090:8090"
     environment:
       GATEWAY_HTTP_PORT: "8090"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
       AUTH_GRPC_ADDR: "auth-service:50051"
       CUSTOMERS_GRPC_ADDR: "customers-service:50052"
       VEHICLES_GRPC_ADDR: "vehicles-service:50053"
@@ -103,6 +118,8 @@ services:
         condition: service_started
       parts-service:
         condition: service_started
+      kafka:
+        condition: service_started
 
   auth-service:
     build:
@@ -121,6 +138,8 @@ services:
       REDIS_DB: "0"
       KAFKA_BROKERS: "kafka:29092"
       KAFKA_TOPIC_AUTH_EVENTS: "auth.events"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+      ERRORS_INGEST_SERVICE_URL: "http://errors-ingest-service:8092"
       JWT_SECRET: "change-me-in-production"
       GATEWAY_SERVICE_URL: "http://gateway-service:8090"
     depends_on:
@@ -142,9 +161,13 @@ services:
       CUSTOMERS_HTTP_PORT: "8081"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
 
   vehicles-service:
     build:
@@ -159,9 +182,13 @@ services:
       JWT_SECRET: "change-me-in-production"
       BRANDS_GRPC_ADDR: "brands-service:50056"
       DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
       brands-service:
         condition: service_started
       dealer-points-service:
@@ -180,9 +207,13 @@ services:
       JWT_SECRET: "change-me-in-production"
       CUSTOMERS_GRPC_ADDR: "customers-service:50052"
       VEHICLES_GRPC_ADDR: "vehicles-service:50053"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
       customers-service:
         condition: service_started
       vehicles-service:
@@ -201,9 +232,13 @@ services:
       JWT_SECRET: "change-me-in-production"
       BRANDS_GRPC_ADDR: "brands-service:50056"
       DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
       brands-service:
         condition: service_started
       dealer-points-service:
@@ -220,9 +255,13 @@ services:
       BRANDS_HTTP_PORT: "8085"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
 
   dealer-points-service:
     build:
@@ -235,11 +274,14 @@ services:
       DEALER_POINTS_HTTP_PORT: "8086"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       JWT_SECRET: "change-me-in-production"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_started
 
 volumes:
   postgres_data: {}
-  ydb_data: {}
-  ydb_certs: {}
+  clickhouse_data: {}

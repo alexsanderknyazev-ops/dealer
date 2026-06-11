@@ -1,73 +1,59 @@
 package config
 
 import (
-	"os"
-	"strconv"
 	"time"
+
+	"github.com/dealer/dealer/pkg/configenv"
 )
 
 // Config — конфигурация auth-микросервиса.
 type Config struct {
-	GRPCPort     int
-	HTTPPort     int    // HTTP API + фронт для браузера
-	StaticDir         string // каталог статики (SPA); пусто = не раздавать
-	GatewayServiceURL   string // URL grpc-gateway (REST→gRPC); если задан — проксирует все domain API
-	CustomersServiceURL string // URL customers-service для прокси /api/customers (пусто = не проксировать)
-	VehiclesServiceURL  string // URL vehicles-service для прокси /api/vehicles (пусто = не проксировать)
-	DealsServiceURL    string // URL deals-service для прокси /api/deals (пусто = не проксировать)
-	PartsServiceURL    string // URL parts-service для прокси /api/parts (пусто = не проксировать)
-	BrandsServiceURL   string // URL brands-service для прокси /api/brands (пусто = не проксировать)
-	DealerPointsServiceURL string // URL dealer-points-service для прокси /api/dealer-points, /api/legal-entities, /api/warehouses
-	PostgresDSN  string
-	RedisAddr    string
-	RedisPass    string
-	RedisDB      int
-	KafkaBrokers []string
-	KafkaTopic   string
-	JWTSecret    string
-	AccessTTL    time.Duration
-	RefreshTTL   time.Duration
+	GRPCPort               int
+	HTTPPort               int
+	StaticDir              string
+	GatewayServiceURL      string
+	ErrorsIngestServiceURL string
+	CustomersServiceURL    string
+	VehiclesServiceURL     string
+	DealsServiceURL        string
+	PartsServiceURL        string
+	BrandsServiceURL       string
+	DealerPointsServiceURL string
+	PostgresDSN            string
+	RedisAddr              string
+	RedisPass              string
+	RedisDB                int
+	KafkaBrokers           []string
+	KafkaTopic             string
+	JWTSecret              string
+	AccessTTL              time.Duration
+	RefreshTTL             time.Duration
 }
 
 // Load читает конфиг из переменных окружения.
 func Load() *Config {
-	accessTTL, _ := time.ParseDuration(getEnv("JWT_ACCESS_TTL", "15m"))
-	refreshTTL, _ := time.ParseDuration(getEnv("JWT_REFRESH_TTL", "168h"))
+	ports := configenv.LoadServicePorts("AUTH_GRPC_PORT", 50051, "AUTH_HTTP_PORT", 8080)
+	pj := configenv.LoadPostgresJWT()
 	return &Config{
-		GRPCPort:     getEnvInt("AUTH_GRPC_PORT", 50051),
-		HTTPPort:     getEnvInt("AUTH_HTTP_PORT", 8080),
-		StaticDir:         getEnv("STATIC_DIR", ""),
-		GatewayServiceURL:   getEnv("GATEWAY_SERVICE_URL", ""),
-		CustomersServiceURL: getEnv("CUSTOMERS_SERVICE_URL", ""),
-		VehiclesServiceURL:  getEnv("VEHICLES_SERVICE_URL", ""),
-		DealsServiceURL:    getEnv("DEALS_SERVICE_URL", ""),
-		PartsServiceURL:    getEnv("PARTS_SERVICE_URL", ""),
-		BrandsServiceURL:   getEnv("BRANDS_SERVICE_URL", ""),
-		DealerPointsServiceURL: getEnv("DEALER_POINTS_SERVICE_URL", ""),
-		PostgresDSN:  getEnv("POSTGRES_DSN", ""),
-		RedisAddr:    getEnv("REDIS_ADDR", "127.0.0.1:6379"),
-		RedisPass:    getEnv("REDIS_PASSWORD", ""),
-		RedisDB:      getEnvInt("REDIS_DB", 0),
-		KafkaBrokers: []string{getEnv("KAFKA_BROKERS", "127.0.0.1:9092")},
-		KafkaTopic:   getEnv("KAFKA_TOPIC_AUTH_EVENTS", "auth.events"),
-		JWTSecret:    getEnv("JWT_SECRET", "change-me-in-production"),
-		AccessTTL:    accessTTL,
-		RefreshTTL:   refreshTTL,
+		GRPCPort:               ports.GRPCPort,
+		HTTPPort:               ports.HTTPPort,
+		StaticDir:              configenv.String("STATIC_DIR", ""),
+		GatewayServiceURL:      configenv.String("GATEWAY_SERVICE_URL", ""),
+		ErrorsIngestServiceURL: configenv.String("ERRORS_INGEST_SERVICE_URL", ""),
+		CustomersServiceURL:    configenv.String("CUSTOMERS_SERVICE_URL", ""),
+		VehiclesServiceURL:     configenv.String("VEHICLES_SERVICE_URL", ""),
+		DealsServiceURL:        configenv.String("DEALS_SERVICE_URL", ""),
+		PartsServiceURL:        configenv.String("PARTS_SERVICE_URL", ""),
+		BrandsServiceURL:       configenv.String("BRANDS_SERVICE_URL", ""),
+		DealerPointsServiceURL: configenv.String("DEALER_POINTS_SERVICE_URL", ""),
+		PostgresDSN:            pj.PostgresDSN,
+		RedisAddr:              configenv.String("REDIS_ADDR", "127.0.0.1:6379"),
+		RedisPass:              configenv.String("REDIS_PASSWORD", ""),
+		RedisDB:                configenv.Int("REDIS_DB", 0),
+		KafkaBrokers:           configenv.Brokers("KAFKA_BROKERS", "127.0.0.1:9092"),
+		KafkaTopic:             configenv.String("KAFKA_TOPIC_AUTH_EVENTS", "auth.events"),
+		JWTSecret:              pj.JWTSecret,
+		AccessTTL:              configenv.Duration("JWT_ACCESS_TTL", 15*time.Minute),
+		RefreshTTL:             configenv.Duration("JWT_REFRESH_TTL", 168*time.Hour),
 	}
-}
-
-func getEnv(key, def string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return def
-}
-
-func getEnvInt(key string, def int) int {
-	if v := os.Getenv(key); v != "" {
-		if n, err := strconv.Atoi(v); err == nil {
-			return n
-		}
-	}
-	return def
 }

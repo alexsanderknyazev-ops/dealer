@@ -16,3 +16,4 @@ use ./services/brands
 
 use ./services/dealerpoints
 use ./services/gateway
+use ./services/errors-ingest

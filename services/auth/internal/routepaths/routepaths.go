@@ -24,6 +24,8 @@ const (
 	APILegalEntitiesPre = "/api/legal-entities/"
 	APIWarehouses       = "/api/warehouses"
 	APIWarehousesPrefix = "/api/warehouses/"
+	APITelemetry        = "/api/telemetry"
+	APITelemetryPrefix  = "/api/telemetry/"
 )
 
 // GatewayProxyPrefixes — REST paths served by grpc-gateway (Variant A).

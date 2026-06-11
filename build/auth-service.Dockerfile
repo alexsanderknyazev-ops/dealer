@@ -5,8 +5,8 @@ FROM node:20-alpine AS frontend
 WORKDIR /app/frontend/auth 
 #копируем frontend/auth/ в рабочую директорию
 COPY frontend/auth/ ./
-#устанавливаем зависимости и строим проект
-RUN npm install && npm run build 
+ENV VITE_FRONTEND_MONITORING_URL=/api/telemetry/events
+RUN npm install && npm run build
 #берем golang 1.22 alpine
 FROM golang:1.22-alpine AS builder 
 #устанавливаем рабочую директорию

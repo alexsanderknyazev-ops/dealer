@@ -35,7 +35,7 @@ func wrapWithStatus(t *testing.T, status int, logger *slog.Logger) (*captureHand
 	}
 	h := Wrap(obstest.ServiceName, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(status)
-	}), logger)
+	}), logger, nil)
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, obstest.APITestPath, nil))
 	return capture, rec
@@ -61,7 +61,7 @@ func TestWrap(t *testing.T) {
 		capture := &captureHandler{}
 		h := Wrap(obstest.ServiceName, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
-		}), slog.New(capture))
+		}), slog.New(capture), nil)
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, obspath.Healthz, nil))
 		if rec.Code != http.StatusOK || len(capture.records) != 0 {
@@ -74,7 +74,7 @@ func TestWrap(t *testing.T) {
 		rec := httptest.NewRecorder()
 		Wrap(obstest.ServiceName, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
-		}), nil).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, obstest.OKPath, nil))
+		}), nil, nil).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, obstest.OKPath, nil))
 		if rec.Code != http.StatusOK {
 			t.Fatalf("status=%d", rec.Code)
 		}
@@ -86,7 +86,7 @@ func TestWrap(t *testing.T) {
 		logger := slog.New(slog.NewJSONHandler(&buf, &slog.HandlerOptions{Level: slog.LevelInfo}))
 		Wrap(obstest.ServiceName, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
-		}), logger).ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, obstest.APIItemsPath, nil))
+		}), logger, nil).ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, obstest.APIItemsPath, nil))
 		if !strings.Contains(buf.String(), obstest.APIItemsPath) {
 			t.Fatalf("log: %s", buf.String())
 		}

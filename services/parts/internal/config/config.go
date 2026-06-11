@@ -1,8 +1,7 @@
 package config
 
 import (
-	"os"
-	"strconv"
+	"github.com/dealer/dealer/pkg/configenv"
 )
 
 type Config struct {
@@ -15,28 +14,14 @@ type Config struct {
 }
 
 func Load() *Config {
+	ports := configenv.LoadServicePorts("PARTS_GRPC_PORT", 50055, "PARTS_HTTP_PORT", 8084)
+	pj := configenv.LoadPostgresJWT()
 	return &Config{
-		GRPCPort:             getEnvInt("PARTS_GRPC_PORT", 50055),
-		HTTPPort:             getEnvInt("PARTS_HTTP_PORT", 8084),
-		PostgresDSN:          getEnv("POSTGRES_DSN", ""),
-		JWTSecret:            getEnv("JWT_SECRET", "change-me-in-production"),
-		BrandsGRPCAddr:       getEnv("BRANDS_GRPC_ADDR", ""),
-		DealerPointsGRPCAddr: getEnv("DEALER_POINTS_GRPC_ADDR", ""),
+		GRPCPort:             ports.GRPCPort,
+		HTTPPort:             ports.HTTPPort,
+		PostgresDSN:          pj.PostgresDSN,
+		JWTSecret:            pj.JWTSecret,
+		BrandsGRPCAddr:       configenv.String("BRANDS_GRPC_ADDR", ""),
+		DealerPointsGRPCAddr: configenv.String("DEALER_POINTS_GRPC_ADDR", ""),
 	}
-}
-
-func getEnv(key, def string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return def
-}
-
-func getEnvInt(key string, def int) int {
-	if v := os.Getenv(key); v != "" {
-		if n, err := strconv.Atoi(v); err == nil {
-			return n
-		}
-	}
-	return def
 }

@@ -12,6 +12,8 @@ import (
 )
 
 func registerDomainAPIProxy(mux *http.ServeMux, cfg *config.Config, logger *slog.Logger) {
+	registerTelemetryProxy(mux, cfg, logger)
+
 	if cfg.GatewayServiceURL != "" {
 		targetURL, err := url.Parse(cfg.GatewayServiceURL)
 		if err != nil {
@@ -63,4 +65,19 @@ func registerDomainAPIProxy(mux *http.ServeMux, cfg *config.Config, logger *slog
 		}
 		logger.Info("proxying API", "service", r.label, "target", r.baseURL)
 	}
+}
+
+func registerTelemetryProxy(mux *http.ServeMux, cfg *config.Config, logger *slog.Logger) {
+	if strings.TrimSpace(cfg.ErrorsIngestServiceURL) == "" {
+		return
+	}
+	targetURL, err := url.Parse(cfg.ErrorsIngestServiceURL)
+	if err != nil {
+		logger.Error("invalid ERRORS_INGEST_SERVICE_URL", "url", cfg.ErrorsIngestServiceURL, "err", err)
+		return
+	}
+	proxy := httputil.NewSingleHostReverseProxy(targetURL)
+	mux.Handle(routepaths.APITelemetry, proxy)
+	mux.Handle(routepaths.APITelemetryPrefix, proxy)
+	logger.Info("proxying telemetry to errors-ingest", "target", cfg.ErrorsIngestServiceURL)
 }

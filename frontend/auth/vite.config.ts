@@ -7,7 +7,7 @@ export default defineConfig({
     port: 3000,
     host: true,
     proxy: {
-      // auth-service proxies /api/* to grpc-gateway (8090)
+      '/api/telemetry': { target: 'http://127.0.0.1:8092', changeOrigin: true },
       '/api': { target: 'http://127.0.0.1:8080', changeOrigin: true },
     },
   },

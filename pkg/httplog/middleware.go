@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/dealer/dealer/pkg/errorreport"
 	"github.com/dealer/dealer/pkg/metrics"
 	"github.com/dealer/dealer/pkg/obspath"
 )
 
-// Wrap — логирование запросов + метрики (если включены).
-func Wrap(service string, next http.Handler, logger *slog.Logger) http.Handler {
+// Wrap — логирование запросов, метрики и опциональная отправка HTTP 5xx в Kafka.
+func Wrap(service string, next http.Handler, logger *slog.Logger, reporter *errorreport.Reporter) http.Handler {
 	if logger == nil {
 		logger = slog.Default()
 	}
@@ -36,6 +37,7 @@ func Wrap(service string, next http.Handler, logger *slog.Logger) http.Handler {
 				"path", r.URL.Path,
 				"status", rw.status,
 			)
+			reportHTTP(reporter, service, r.Method, r.URL.Path, rw.status)
 		}
 	})
 }

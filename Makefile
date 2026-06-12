@@ -140,3 +140,10 @@ frontend-client-build:
 # Полный деплой в minikube: образы, k8s, миграции, seed, LAN port-forward
 kube-up:
 	./scripts/kube-up.sh
+
+# Нагрузочное тестирование (нужен seed_volume и expose-lan)
+load-test:
+	./scripts/load-test.sh
+
+load-test-smoke:
+	./scripts/load-test.sh --smoke --yes

@@ -17,7 +17,7 @@ metadata:
   name: client-frontend
   namespace: dealer
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: client-frontend
@@ -34,13 +34,8 @@ spec:
             - containerPort: 3001
           resources:
             requests:
-              cpu: "50m"
+              cpu: "100m"
               memory: "128Mi"
             limits:
-              cpu: "500m"
-              memory: "512Mi"
-          env:
-            - name: VITE_CLIENT_PUBLIC_GATEWAY
-              value: "http://client-public-gateway-service:8091"
-            - name: VITE_CLIENT_PROTECTED_GATEWAY
-              value: "http://client-protected-gateway-service:8093"
+              cpu: "400m"
+              memory: "256Mi"

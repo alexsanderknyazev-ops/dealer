@@ -34,6 +34,12 @@ async function readError(res: Response): Promise<string> {
   return body.message || body.error || res.statusText || 'Ошибка запроса'
 }
 
+export type ReviewStats = {
+  total_count: number
+  average_rating: number
+  by_status: { status: string; count: number }[]
+}
+
 export async function listReviews(params: {
   limit?: number
   offset?: number
@@ -53,5 +59,28 @@ export async function listReviews(params: {
   return {
     reviews: data.reviews ?? [],
     total: Number(data.total ?? 0),
+  }
+}
+
+export async function getReview(id: string): Promise<EmployeeReview> {
+  const res = await fetch(`${API}/api/reviews/${id}`, { headers: getAuthHeaders() })
+  if (!res.ok) throw new Error(await readError(res))
+  return res.json()
+}
+
+export async function getReviewStats(params: {
+  client_id?: string
+  dealer_point_id?: string
+}): Promise<ReviewStats> {
+  const sp = new URLSearchParams()
+  if (params.client_id) sp.set('client_id', params.client_id)
+  if (params.dealer_point_id) sp.set('dealer_point_id', params.dealer_point_id)
+  const res = await fetch(`${API}/api/reviews/stats?${sp}`, { headers: getAuthHeaders() })
+  if (!res.ok) throw new Error(await readError(res))
+  const data = await res.json()
+  return {
+    total_count: Number(data.total_count ?? 0),
+    average_rating: Number(data.average_rating ?? 0),
+    by_status: data.by_status ?? [],
   }
 }

@@ -434,6 +434,94 @@ func (x *ListReviewsResponse) GetTotal() int64 {
 	return 0
 }
 
+type GetEmployeeReviewRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEmployeeReviewRequest) Reset() {
+	*x = GetEmployeeReviewRequest{}
+	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEmployeeReviewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEmployeeReviewRequest) ProtoMessage() {}
+
+func (x *GetEmployeeReviewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEmployeeReviewRequest.ProtoReflect.Descriptor instead.
+func (*GetEmployeeReviewRequest) Descriptor() ([]byte, []int) {
+	return file_reviews_v1_employee_reviews_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetEmployeeReviewRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetEmployeeReviewResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Review        *EmployeeReview        `protobuf:"bytes,1,opt,name=review,proto3" json:"review,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEmployeeReviewResponse) Reset() {
+	*x = GetEmployeeReviewResponse{}
+	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEmployeeReviewResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEmployeeReviewResponse) ProtoMessage() {}
+
+func (x *GetEmployeeReviewResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEmployeeReviewResponse.ProtoReflect.Descriptor instead.
+func (*GetEmployeeReviewResponse) Descriptor() ([]byte, []int) {
+	return file_reviews_v1_employee_reviews_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetEmployeeReviewResponse) GetReview() *EmployeeReview {
+	if x != nil {
+		return x.Review
+	}
+	return nil
+}
+
 type ReviewStatusCount struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
@@ -444,7 +532,7 @@ type ReviewStatusCount struct {
 
 func (x *ReviewStatusCount) Reset() {
 	*x = ReviewStatusCount{}
-	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[5]
+	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -456,7 +544,7 @@ func (x *ReviewStatusCount) String() string {
 func (*ReviewStatusCount) ProtoMessage() {}
 
 func (x *ReviewStatusCount) ProtoReflect() protoreflect.Message {
-	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[5]
+	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -469,7 +557,7 @@ func (x *ReviewStatusCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReviewStatusCount.ProtoReflect.Descriptor instead.
 func (*ReviewStatusCount) Descriptor() ([]byte, []int) {
-	return file_reviews_v1_employee_reviews_proto_rawDescGZIP(), []int{5}
+	return file_reviews_v1_employee_reviews_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ReviewStatusCount) GetStatus() string {
@@ -496,7 +584,7 @@ type GetReviewStatsRequest struct {
 
 func (x *GetReviewStatsRequest) Reset() {
 	*x = GetReviewStatsRequest{}
-	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[6]
+	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -508,7 +596,7 @@ func (x *GetReviewStatsRequest) String() string {
 func (*GetReviewStatsRequest) ProtoMessage() {}
 
 func (x *GetReviewStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[6]
+	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -521,7 +609,7 @@ func (x *GetReviewStatsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetReviewStatsRequest.ProtoReflect.Descriptor instead.
 func (*GetReviewStatsRequest) Descriptor() ([]byte, []int) {
-	return file_reviews_v1_employee_reviews_proto_rawDescGZIP(), []int{6}
+	return file_reviews_v1_employee_reviews_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetReviewStatsRequest) GetClientId() string {
@@ -549,7 +637,7 @@ type GetReviewStatsResponse struct {
 
 func (x *GetReviewStatsResponse) Reset() {
 	*x = GetReviewStatsResponse{}
-	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[7]
+	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -561,7 +649,7 @@ func (x *GetReviewStatsResponse) String() string {
 func (*GetReviewStatsResponse) ProtoMessage() {}
 
 func (x *GetReviewStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[7]
+	mi := &file_reviews_v1_employee_reviews_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -574,7 +662,7 @@ func (x *GetReviewStatsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetReviewStatsResponse.ProtoReflect.Descriptor instead.
 func (*GetReviewStatsResponse) Descriptor() ([]byte, []int) {
-	return file_reviews_v1_employee_reviews_proto_rawDescGZIP(), []int{7}
+	return file_reviews_v1_employee_reviews_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetReviewStatsResponse) GetTotalCount() int64 {
@@ -642,7 +730,11 @@ const file_reviews_v1_employee_reviews_proto_rawDesc = "" +
 	"\x06status\x18\x05 \x01(\tR\x06status\"a\n" +
 	"\x13ListReviewsResponse\x124\n" +
 	"\areviews\x18\x01 \x03(\v2\x1a.reviews.v1.EmployeeReviewR\areviews\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"A\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"*\n" +
+	"\x18GetEmployeeReviewRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"O\n" +
+	"\x19GetEmployeeReviewResponse\x122\n" +
+	"\x06review\x18\x01 \x01(\v2\x1a.reviews.v1.EmployeeReviewR\x06review\"A\n" +
 	"\x11ReviewStatusCount\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x14\n" +
 	"\x05count\x18\x02 \x01(\x03R\x05count\"\\\n" +
@@ -653,10 +745,11 @@ const file_reviews_v1_employee_reviews_proto_rawDesc = "" +
 	"\vtotal_count\x18\x01 \x01(\x03R\n" +
 	"totalCount\x12%\n" +
 	"\x0eaverage_rating\x18\x02 \x01(\x01R\raverageRating\x12:\n" +
-	"\tby_status\x18\x03 \x03(\v2\x1d.reviews.v1.ReviewStatusCountR\bbyStatus2\x86\x03\n" +
+	"\tby_status\x18\x03 \x03(\v2\x1d.reviews.v1.ReviewStatusCountR\bbyStatus2\x8c\x04\n" +
 	"\x16EmployeeReviewsService\x12\x90\x01\n" +
 	"\x13ListReviewsByClient\x12&.reviews.v1.ListReviewsByClientRequest\x1a'.reviews.v1.ListReviewsByClientResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /api/clients/{client_id}/reviews\x12d\n" +
-	"\vListReviews\x12\x1e.reviews.v1.ListReviewsRequest\x1a\x1f.reviews.v1.ListReviewsResponse\"\x14\x82\xd3\xe4\x93\x02\x0e\x12\f/api/reviews\x12s\n" +
+	"\vListReviews\x12\x1e.reviews.v1.ListReviewsRequest\x1a\x1f.reviews.v1.ListReviewsResponse\"\x14\x82\xd3\xe4\x93\x02\x0e\x12\f/api/reviews\x12\x83\x01\n" +
+	"\x11GetEmployeeReview\x12$.reviews.v1.GetEmployeeReviewRequest\x1a%.reviews.v1.GetEmployeeReviewResponse\"!\x82\xd3\xe4\x93\x02\x1bb\x06review\x12\x11/api/reviews/{id}\x12s\n" +
 	"\x0eGetReviewStats\x12!.reviews.v1.GetReviewStatsRequest\x1a\".reviews.v1.GetReviewStatsResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/reviews/statsB6Z4github.com/dealer/dealer/pkg/pb/reviews/v1;reviewsv1b\x06proto3"
 
 var (
@@ -671,32 +764,37 @@ func file_reviews_v1_employee_reviews_proto_rawDescGZIP() []byte {
 	return file_reviews_v1_employee_reviews_proto_rawDescData
 }
 
-var file_reviews_v1_employee_reviews_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_reviews_v1_employee_reviews_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_reviews_v1_employee_reviews_proto_goTypes = []any{
 	(*EmployeeReview)(nil),              // 0: reviews.v1.EmployeeReview
 	(*ListReviewsByClientRequest)(nil),  // 1: reviews.v1.ListReviewsByClientRequest
 	(*ListReviewsByClientResponse)(nil), // 2: reviews.v1.ListReviewsByClientResponse
 	(*ListReviewsRequest)(nil),          // 3: reviews.v1.ListReviewsRequest
 	(*ListReviewsResponse)(nil),         // 4: reviews.v1.ListReviewsResponse
-	(*ReviewStatusCount)(nil),           // 5: reviews.v1.ReviewStatusCount
-	(*GetReviewStatsRequest)(nil),       // 6: reviews.v1.GetReviewStatsRequest
-	(*GetReviewStatsResponse)(nil),      // 7: reviews.v1.GetReviewStatsResponse
+	(*GetEmployeeReviewRequest)(nil),    // 5: reviews.v1.GetEmployeeReviewRequest
+	(*GetEmployeeReviewResponse)(nil),   // 6: reviews.v1.GetEmployeeReviewResponse
+	(*ReviewStatusCount)(nil),           // 7: reviews.v1.ReviewStatusCount
+	(*GetReviewStatsRequest)(nil),       // 8: reviews.v1.GetReviewStatsRequest
+	(*GetReviewStatsResponse)(nil),      // 9: reviews.v1.GetReviewStatsResponse
 }
 var file_reviews_v1_employee_reviews_proto_depIdxs = []int32{
 	0, // 0: reviews.v1.ListReviewsByClientResponse.reviews:type_name -> reviews.v1.EmployeeReview
 	0, // 1: reviews.v1.ListReviewsResponse.reviews:type_name -> reviews.v1.EmployeeReview
-	5, // 2: reviews.v1.GetReviewStatsResponse.by_status:type_name -> reviews.v1.ReviewStatusCount
-	1, // 3: reviews.v1.EmployeeReviewsService.ListReviewsByClient:input_type -> reviews.v1.ListReviewsByClientRequest
-	3, // 4: reviews.v1.EmployeeReviewsService.ListReviews:input_type -> reviews.v1.ListReviewsRequest
-	6, // 5: reviews.v1.EmployeeReviewsService.GetReviewStats:input_type -> reviews.v1.GetReviewStatsRequest
-	2, // 6: reviews.v1.EmployeeReviewsService.ListReviewsByClient:output_type -> reviews.v1.ListReviewsByClientResponse
-	4, // 7: reviews.v1.EmployeeReviewsService.ListReviews:output_type -> reviews.v1.ListReviewsResponse
-	7, // 8: reviews.v1.EmployeeReviewsService.GetReviewStats:output_type -> reviews.v1.GetReviewStatsResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0, // 2: reviews.v1.GetEmployeeReviewResponse.review:type_name -> reviews.v1.EmployeeReview
+	7, // 3: reviews.v1.GetReviewStatsResponse.by_status:type_name -> reviews.v1.ReviewStatusCount
+	1, // 4: reviews.v1.EmployeeReviewsService.ListReviewsByClient:input_type -> reviews.v1.ListReviewsByClientRequest
+	3, // 5: reviews.v1.EmployeeReviewsService.ListReviews:input_type -> reviews.v1.ListReviewsRequest
+	5, // 6: reviews.v1.EmployeeReviewsService.GetEmployeeReview:input_type -> reviews.v1.GetEmployeeReviewRequest
+	8, // 7: reviews.v1.EmployeeReviewsService.GetReviewStats:input_type -> reviews.v1.GetReviewStatsRequest
+	2, // 8: reviews.v1.EmployeeReviewsService.ListReviewsByClient:output_type -> reviews.v1.ListReviewsByClientResponse
+	4, // 9: reviews.v1.EmployeeReviewsService.ListReviews:output_type -> reviews.v1.ListReviewsResponse
+	6, // 10: reviews.v1.EmployeeReviewsService.GetEmployeeReview:output_type -> reviews.v1.GetEmployeeReviewResponse
+	9, // 11: reviews.v1.EmployeeReviewsService.GetReviewStats:output_type -> reviews.v1.GetReviewStatsResponse
+	8, // [8:12] is the sub-list for method output_type
+	4, // [4:8] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_reviews_v1_employee_reviews_proto_init() }
@@ -710,7 +808,7 @@ func file_reviews_v1_employee_reviews_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_reviews_v1_employee_reviews_proto_rawDesc), len(file_reviews_v1_employee_reviews_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -35,6 +35,7 @@ run "$DIR/08_works_employees.sql"
 run "$DIR/05_work_orders.sql"
 run "$DIR/06_client.sql"
 run "$DIR/07_reviews_stats.sql"
+run "$DIR/08_client_review_invitation.sql"
 
 echo ""
 echo "Done. Credentials: qa/api-testing/fixtures/README.md"

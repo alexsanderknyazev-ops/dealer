@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	EmployeeReviewsService_ListReviewsByClient_FullMethodName = "/reviews.v1.EmployeeReviewsService/ListReviewsByClient"
 	EmployeeReviewsService_ListReviews_FullMethodName         = "/reviews.v1.EmployeeReviewsService/ListReviews"
+	EmployeeReviewsService_GetEmployeeReview_FullMethodName   = "/reviews.v1.EmployeeReviewsService/GetEmployeeReview"
 	EmployeeReviewsService_GetReviewStats_FullMethodName      = "/reviews.v1.EmployeeReviewsService/GetReviewStats"
 )
 
@@ -32,6 +33,7 @@ const (
 type EmployeeReviewsServiceClient interface {
 	ListReviewsByClient(ctx context.Context, in *ListReviewsByClientRequest, opts ...grpc.CallOption) (*ListReviewsByClientResponse, error)
 	ListReviews(ctx context.Context, in *ListReviewsRequest, opts ...grpc.CallOption) (*ListReviewsResponse, error)
+	GetEmployeeReview(ctx context.Context, in *GetEmployeeReviewRequest, opts ...grpc.CallOption) (*GetEmployeeReviewResponse, error)
 	GetReviewStats(ctx context.Context, in *GetReviewStatsRequest, opts ...grpc.CallOption) (*GetReviewStatsResponse, error)
 }
 
@@ -63,6 +65,16 @@ func (c *employeeReviewsServiceClient) ListReviews(ctx context.Context, in *List
 	return out, nil
 }
 
+func (c *employeeReviewsServiceClient) GetEmployeeReview(ctx context.Context, in *GetEmployeeReviewRequest, opts ...grpc.CallOption) (*GetEmployeeReviewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetEmployeeReviewResponse)
+	err := c.cc.Invoke(ctx, EmployeeReviewsService_GetEmployeeReview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *employeeReviewsServiceClient) GetReviewStats(ctx context.Context, in *GetReviewStatsRequest, opts ...grpc.CallOption) (*GetReviewStatsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetReviewStatsResponse)
@@ -81,6 +93,7 @@ func (c *employeeReviewsServiceClient) GetReviewStats(ctx context.Context, in *G
 type EmployeeReviewsServiceServer interface {
 	ListReviewsByClient(context.Context, *ListReviewsByClientRequest) (*ListReviewsByClientResponse, error)
 	ListReviews(context.Context, *ListReviewsRequest) (*ListReviewsResponse, error)
+	GetEmployeeReview(context.Context, *GetEmployeeReviewRequest) (*GetEmployeeReviewResponse, error)
 	GetReviewStats(context.Context, *GetReviewStatsRequest) (*GetReviewStatsResponse, error)
 	mustEmbedUnimplementedEmployeeReviewsServiceServer()
 }
@@ -97,6 +110,9 @@ func (UnimplementedEmployeeReviewsServiceServer) ListReviewsByClient(context.Con
 }
 func (UnimplementedEmployeeReviewsServiceServer) ListReviews(context.Context, *ListReviewsRequest) (*ListReviewsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListReviews not implemented")
+}
+func (UnimplementedEmployeeReviewsServiceServer) GetEmployeeReview(context.Context, *GetEmployeeReviewRequest) (*GetEmployeeReviewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetEmployeeReview not implemented")
 }
 func (UnimplementedEmployeeReviewsServiceServer) GetReviewStats(context.Context, *GetReviewStatsRequest) (*GetReviewStatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetReviewStats not implemented")
@@ -159,6 +175,24 @@ func _EmployeeReviewsService_ListReviews_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EmployeeReviewsService_GetEmployeeReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEmployeeReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EmployeeReviewsServiceServer).GetEmployeeReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EmployeeReviewsService_GetEmployeeReview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EmployeeReviewsServiceServer).GetEmployeeReview(ctx, req.(*GetEmployeeReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _EmployeeReviewsService_GetReviewStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetReviewStatsRequest)
 	if err := dec(in); err != nil {
@@ -191,6 +225,10 @@ var EmployeeReviewsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListReviews",
 			Handler:    _EmployeeReviewsService_ListReviews_Handler,
+		},
+		{
+			MethodName: "GetEmployeeReview",
+			Handler:    _EmployeeReviewsService_GetEmployeeReview_Handler,
 		},
 		{
 			MethodName: "GetReviewStats",

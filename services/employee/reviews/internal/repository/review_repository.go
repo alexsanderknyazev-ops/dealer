@@ -44,6 +44,20 @@ func (r *ReviewRepository) Insert(ctx context.Context, review *domain.Review) er
 	return err
 }
 
+func (r *ReviewRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Review, error) {
+	query := reviewSelect + ` WHERE id = $1`
+	var review domain.Review
+	err := r.pool.QueryRow(ctx, query, id).Scan(
+		&review.ID, &review.ReviewID, &review.ClientID, &review.UserID, &review.ClientEmail, &review.ClientFullName,
+		&review.DealerPointID, &review.VehicleID, &review.VehicleVIN, &review.VehicleMake, &review.VehicleModel, &review.VehicleYear,
+		&review.Rating, &review.Text, &review.Status, &review.OccurredAt, &review.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &review, nil
+}
+
 func (r *ReviewRepository) List(ctx context.Context, p domain.ReviewListParams) ([]*domain.Review, int64, error) {
 	where, args := buildReviewFilters(p)
 	limit := normalizeLimit(p.Limit)
@@ -82,7 +96,13 @@ func (r *ReviewRepository) Stats(ctx context.Context, clientID, dealerPointID *u
 		return nil, err
 	}
 
-	avgQuery := `SELECT COALESCE(AVG(rating), 0) FROM reviews` + where + ` AND status = 'published'`
+	avgWhere := where
+	if avgWhere == "" {
+		avgWhere = ` WHERE status = 'published'`
+	} else {
+		avgWhere += ` AND status = 'published'`
+	}
+	avgQuery := `SELECT COALESCE(AVG(rating), 0) FROM reviews` + avgWhere
 	if err := r.pool.QueryRow(ctx, avgQuery, args...).Scan(&out.AverageRating); err != nil {
 		return nil, err
 	}

@@ -36,6 +36,11 @@ import { MovementDocumentForm } from './MovementDocumentForm'
 import { Works } from './Works'
 import { WorkForm } from './WorkForm'
 import { WorkView } from './WorkView'
+import { Employees } from './Employees'
+import { EmployeeForm } from './EmployeeForm'
+import { EmployeeView } from './EmployeeView'
+import { Reviews } from './Reviews'
+import { ReviewView } from './ReviewView'
 
 function RequireAuth(props: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -84,6 +89,10 @@ export default function App() {
         <Route path="works/new" element={<RequireAuth><WorkForm /></RequireAuth>} />
         <Route path="works/:id/edit" element={<RequireAuth><WorkForm /></RequireAuth>} />
         <Route path="works/:id" element={<RequireAuth><WorkView /></RequireAuth>} />
+        <Route path="employees" element={<RequireAuth><Employees /></RequireAuth>} />
+        <Route path="employees/new" element={<RequireAuth><EmployeeForm /></RequireAuth>} />
+        <Route path="employees/:id" element={<RequireAuth><EmployeeView /></RequireAuth>} />
+        <Route path="employees/:id/edit" element={<RequireAuth><EmployeeForm /></RequireAuth>} />
         <Route path="brands" element={<RequireAuth><Brands /></RequireAuth>} />
         <Route path="brands/new" element={<RequireAuth><BrandForm /></RequireAuth>} />
         <Route path="brands/:id/edit" element={<RequireAuth><BrandForm /></RequireAuth>} />
@@ -98,6 +107,8 @@ export default function App() {
         <Route path="warehouses/new" element={<RequireAuth><WarehouseForm /></RequireAuth>} />
         <Route path="warehouses/:id/edit" element={<RequireAuth><WarehouseForm /></RequireAuth>} />
         <Route path="statistics" element={<RequireAuth><Statistics /></RequireAuth>} />
+        <Route path="reviews" element={<RequireAuth><Reviews /></RequireAuth>} />
+        <Route path="reviews/:id" element={<RequireAuth><ReviewView /></RequireAuth>} />
         <Route path="work-orders" element={<RequireAuth><WorkOrders /></RequireAuth>} />
         <Route path="work-orders/new" element={<RequireAuth><WorkOrderForm /></RequireAuth>} />
         <Route path="work-orders/:id/edit" element={<RequireAuth><WorkOrderForm /></RequireAuth>} />

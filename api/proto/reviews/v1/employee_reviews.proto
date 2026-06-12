@@ -14,6 +14,9 @@ service EmployeeReviewsService {
   rpc ListReviews(ListReviewsRequest) returns (ListReviewsResponse) {
     option (google.api.http) = { get: "/api/reviews" };
   }
+  rpc GetEmployeeReview(GetEmployeeReviewRequest) returns (GetEmployeeReviewResponse) {
+    option (google.api.http) = { get: "/api/reviews/{id}" response_body: "review" };
+  }
   rpc GetReviewStats(GetReviewStatsRequest) returns (GetReviewStatsResponse) {
     option (google.api.http) = { get: "/api/reviews/stats" };
   }
@@ -61,6 +64,14 @@ message ListReviewsRequest {
 message ListReviewsResponse {
   repeated EmployeeReview reviews = 1;
   int64 total = 2;
+}
+
+message GetEmployeeReviewRequest {
+  string id = 1;
+}
+
+message GetEmployeeReviewResponse {
+  EmployeeReview review = 1;
 }
 
 message ReviewStatusCount {

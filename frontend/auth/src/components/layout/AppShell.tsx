@@ -11,9 +11,11 @@ import {
   Home,
   LogOut,
   MapPin,
+  MessageSquare,
   Package,
   Scale,
   Tag,
+  UserCog,
   Users,
   Warehouse,
 } from 'lucide-react'
@@ -32,11 +34,13 @@ const navItems = [
   { to: '/movement-documents', label: 'Перемещение товаров', icon: ArrowLeftRight },
   { to: '/parts', label: 'Запчасти', icon: Package },
   { to: '/works', label: 'Работы', icon: Wrench },
+  { to: '/employees', label: 'Сотрудники', icon: UserCog },
   { to: '/brands', label: 'Бренды', icon: Tag },
   { to: '/brand-labor-rates', label: 'Нормо-часы', icon: Clock },
   { to: '/dealer-points', label: 'Дилерские точки', icon: MapPin },
   { to: '/legal-entities', label: 'Юр. лица', icon: Scale },
   { to: '/warehouses', label: 'Склады', icon: Warehouse },
+  { to: '/reviews', label: 'Отзывы', icon: MessageSquare },
   { to: '/statistics', label: 'Статистика', icon: BarChart3 },
 ]
 

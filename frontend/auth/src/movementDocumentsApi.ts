@@ -13,6 +13,9 @@ export type MovementDocumentLine = {
   id: string
   part_id: string
   warehouse_id: string
+  destination_warehouse_id: string
+  destination_warehouse_name: string
+  source_stock_quantity: number
   quantity: number
   reference_line_id: string
   notes: string
@@ -25,6 +28,7 @@ export type MovementDocumentLine = {
 export type MovementDocumentLineInput = {
   part_id: string
   warehouse_id: string
+  destination_warehouse_id?: string
   quantity: number
   notes?: string
   sort_order?: number
@@ -41,6 +45,8 @@ export type MovementDocument = {
   customer_name: string
   vehicle_vin: string
   vehicle_label: string
+  parent_document_id: string
+  parent_document_number: string
   notes: string
   created_by: string
   confirmed_by: string
@@ -138,6 +144,7 @@ export async function createMovementDocument(
       lines: payload.lines.map((l, i) => ({
         part_id: l.part_id,
         warehouse_id: l.warehouse_id,
+        destination_warehouse_id: l.destination_warehouse_id || '',
         quantity: l.quantity,
         notes: l.notes || '',
         sort_order: l.sort_order ?? i,
@@ -163,6 +170,7 @@ export async function updateMovementDocument(
       lines: payload.lines.map((l, i) => ({
         part_id: l.part_id,
         warehouse_id: l.warehouse_id,
+        destination_warehouse_id: l.destination_warehouse_id || '',
         quantity: l.quantity,
         notes: l.notes || '',
         sort_order: l.sort_order ?? i,
@@ -178,6 +186,19 @@ export async function cancelMovementDocument(id: string): Promise<MovementDocume
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({}),
+  })
+  if (!res.ok) throw toApiError(res.status, await readErrorMessage(res))
+  return res.json()
+}
+
+export async function createProductionExtraction(
+  parentId: string,
+  createdBy?: string,
+): Promise<MovementDocument> {
+  const res = await fetch(`${API}/api/movement-documents/${parentId}/create-production-extraction`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ created_by: createdBy || '' }),
   })
   if (!res.ok) throw toApiError(res.status, await readErrorMessage(res))
   return res.json()

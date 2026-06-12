@@ -19,24 +19,26 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PartsService_CreatePart_FullMethodName              = "/parts.v1.PartsService/CreatePart"
-	PartsService_GetPart_FullMethodName                 = "/parts.v1.PartsService/GetPart"
-	PartsService_ListParts_FullMethodName               = "/parts.v1.PartsService/ListParts"
-	PartsService_UpdatePart_FullMethodName              = "/parts.v1.PartsService/UpdatePart"
-	PartsService_DeletePart_FullMethodName              = "/parts.v1.PartsService/DeletePart"
-	PartsService_CreateFolder_FullMethodName            = "/parts.v1.PartsService/CreateFolder"
-	PartsService_GetFolder_FullMethodName               = "/parts.v1.PartsService/GetFolder"
-	PartsService_ListFolders_FullMethodName             = "/parts.v1.PartsService/ListFolders"
-	PartsService_UpdateFolder_FullMethodName            = "/parts.v1.PartsService/UpdateFolder"
-	PartsService_DeleteFolder_FullMethodName            = "/parts.v1.PartsService/DeleteFolder"
-	PartsService_CreateMovementDocument_FullMethodName  = "/parts.v1.PartsService/CreateMovementDocument"
-	PartsService_GetMovementDocument_FullMethodName     = "/parts.v1.PartsService/GetMovementDocument"
-	PartsService_UpdateMovementDocument_FullMethodName  = "/parts.v1.PartsService/UpdateMovementDocument"
-	PartsService_ListMovementDocuments_FullMethodName   = "/parts.v1.PartsService/ListMovementDocuments"
-	PartsService_StartMovementDocument_FullMethodName   = "/parts.v1.PartsService/StartMovementDocument"
-	PartsService_CloseMovementDocument_FullMethodName   = "/parts.v1.PartsService/CloseMovementDocument"
-	PartsService_ConfirmMovementDocument_FullMethodName = "/parts.v1.PartsService/ConfirmMovementDocument"
-	PartsService_CancelMovementDocument_FullMethodName  = "/parts.v1.PartsService/CancelMovementDocument"
+	PartsService_CreatePart_FullMethodName                 = "/parts.v1.PartsService/CreatePart"
+	PartsService_GetPart_FullMethodName                    = "/parts.v1.PartsService/GetPart"
+	PartsService_ListPartStock_FullMethodName              = "/parts.v1.PartsService/ListPartStock"
+	PartsService_ListParts_FullMethodName                  = "/parts.v1.PartsService/ListParts"
+	PartsService_UpdatePart_FullMethodName                 = "/parts.v1.PartsService/UpdatePart"
+	PartsService_DeletePart_FullMethodName                 = "/parts.v1.PartsService/DeletePart"
+	PartsService_CreateFolder_FullMethodName               = "/parts.v1.PartsService/CreateFolder"
+	PartsService_GetFolder_FullMethodName                  = "/parts.v1.PartsService/GetFolder"
+	PartsService_ListFolders_FullMethodName                = "/parts.v1.PartsService/ListFolders"
+	PartsService_UpdateFolder_FullMethodName               = "/parts.v1.PartsService/UpdateFolder"
+	PartsService_DeleteFolder_FullMethodName               = "/parts.v1.PartsService/DeleteFolder"
+	PartsService_CreateMovementDocument_FullMethodName     = "/parts.v1.PartsService/CreateMovementDocument"
+	PartsService_GetMovementDocument_FullMethodName        = "/parts.v1.PartsService/GetMovementDocument"
+	PartsService_UpdateMovementDocument_FullMethodName     = "/parts.v1.PartsService/UpdateMovementDocument"
+	PartsService_ListMovementDocuments_FullMethodName      = "/parts.v1.PartsService/ListMovementDocuments"
+	PartsService_StartMovementDocument_FullMethodName      = "/parts.v1.PartsService/StartMovementDocument"
+	PartsService_CloseMovementDocument_FullMethodName      = "/parts.v1.PartsService/CloseMovementDocument"
+	PartsService_ConfirmMovementDocument_FullMethodName    = "/parts.v1.PartsService/ConfirmMovementDocument"
+	PartsService_CancelMovementDocument_FullMethodName     = "/parts.v1.PartsService/CancelMovementDocument"
+	PartsService_CreateProductionExtraction_FullMethodName = "/parts.v1.PartsService/CreateProductionExtraction"
 )
 
 // PartsServiceClient is the client API for PartsService service.
@@ -45,6 +47,7 @@ const (
 type PartsServiceClient interface {
 	CreatePart(ctx context.Context, in *CreatePartRequest, opts ...grpc.CallOption) (*CreatePartResponse, error)
 	GetPart(ctx context.Context, in *GetPartRequest, opts ...grpc.CallOption) (*GetPartResponse, error)
+	ListPartStock(ctx context.Context, in *ListPartStockRequest, opts ...grpc.CallOption) (*ListPartStockResponse, error)
 	ListParts(ctx context.Context, in *ListPartsRequest, opts ...grpc.CallOption) (*ListPartsResponse, error)
 	UpdatePart(ctx context.Context, in *UpdatePartRequest, opts ...grpc.CallOption) (*UpdatePartResponse, error)
 	DeletePart(ctx context.Context, in *DeletePartRequest, opts ...grpc.CallOption) (*DeletePartResponse, error)
@@ -62,6 +65,7 @@ type PartsServiceClient interface {
 	// Устаревший alias: закрывает документ (списание со склада).
 	ConfirmMovementDocument(ctx context.Context, in *ConfirmMovementDocumentRequest, opts ...grpc.CallOption) (*ConfirmMovementDocumentResponse, error)
 	CancelMovementDocument(ctx context.Context, in *CancelMovementDocumentRequest, opts ...grpc.CallOption) (*CancelMovementDocumentResponse, error)
+	CreateProductionExtraction(ctx context.Context, in *CreateProductionExtractionRequest, opts ...grpc.CallOption) (*CreateProductionExtractionResponse, error)
 }
 
 type partsServiceClient struct {
@@ -86,6 +90,16 @@ func (c *partsServiceClient) GetPart(ctx context.Context, in *GetPartRequest, op
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetPartResponse)
 	err := c.cc.Invoke(ctx, PartsService_GetPart_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) ListPartStock(ctx context.Context, in *ListPartStockRequest, opts ...grpc.CallOption) (*ListPartStockResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPartStockResponse)
+	err := c.cc.Invoke(ctx, PartsService_ListPartStock_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -252,12 +266,23 @@ func (c *partsServiceClient) CancelMovementDocument(ctx context.Context, in *Can
 	return out, nil
 }
 
+func (c *partsServiceClient) CreateProductionExtraction(ctx context.Context, in *CreateProductionExtractionRequest, opts ...grpc.CallOption) (*CreateProductionExtractionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateProductionExtractionResponse)
+	err := c.cc.Invoke(ctx, PartsService_CreateProductionExtraction_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PartsServiceServer is the server API for PartsService service.
 // All implementations must embed UnimplementedPartsServiceServer
 // for forward compatibility.
 type PartsServiceServer interface {
 	CreatePart(context.Context, *CreatePartRequest) (*CreatePartResponse, error)
 	GetPart(context.Context, *GetPartRequest) (*GetPartResponse, error)
+	ListPartStock(context.Context, *ListPartStockRequest) (*ListPartStockResponse, error)
 	ListParts(context.Context, *ListPartsRequest) (*ListPartsResponse, error)
 	UpdatePart(context.Context, *UpdatePartRequest) (*UpdatePartResponse, error)
 	DeletePart(context.Context, *DeletePartRequest) (*DeletePartResponse, error)
@@ -275,6 +300,7 @@ type PartsServiceServer interface {
 	// Устаревший alias: закрывает документ (списание со склада).
 	ConfirmMovementDocument(context.Context, *ConfirmMovementDocumentRequest) (*ConfirmMovementDocumentResponse, error)
 	CancelMovementDocument(context.Context, *CancelMovementDocumentRequest) (*CancelMovementDocumentResponse, error)
+	CreateProductionExtraction(context.Context, *CreateProductionExtractionRequest) (*CreateProductionExtractionResponse, error)
 	mustEmbedUnimplementedPartsServiceServer()
 }
 
@@ -290,6 +316,9 @@ func (UnimplementedPartsServiceServer) CreatePart(context.Context, *CreatePartRe
 }
 func (UnimplementedPartsServiceServer) GetPart(context.Context, *GetPartRequest) (*GetPartResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPart not implemented")
+}
+func (UnimplementedPartsServiceServer) ListPartStock(context.Context, *ListPartStockRequest) (*ListPartStockResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPartStock not implemented")
 }
 func (UnimplementedPartsServiceServer) ListParts(context.Context, *ListPartsRequest) (*ListPartsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListParts not implemented")
@@ -338,6 +367,9 @@ func (UnimplementedPartsServiceServer) ConfirmMovementDocument(context.Context, 
 }
 func (UnimplementedPartsServiceServer) CancelMovementDocument(context.Context, *CancelMovementDocumentRequest) (*CancelMovementDocumentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelMovementDocument not implemented")
+}
+func (UnimplementedPartsServiceServer) CreateProductionExtraction(context.Context, *CreateProductionExtractionRequest) (*CreateProductionExtractionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateProductionExtraction not implemented")
 }
 func (UnimplementedPartsServiceServer) mustEmbedUnimplementedPartsServiceServer() {}
 func (UnimplementedPartsServiceServer) testEmbeddedByValue()                      {}
@@ -392,6 +424,24 @@ func _PartsService_GetPart_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PartsServiceServer).GetPart(ctx, req.(*GetPartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_ListPartStock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPartStockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).ListPartStock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_ListPartStock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).ListPartStock(ctx, req.(*ListPartStockRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -684,6 +734,24 @@ func _PartsService_CancelMovementDocument_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartsService_CreateProductionExtraction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProductionExtractionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CreateProductionExtraction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CreateProductionExtraction_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CreateProductionExtraction(ctx, req.(*CreateProductionExtractionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PartsService_ServiceDesc is the grpc.ServiceDesc for PartsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -698,6 +766,10 @@ var PartsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPart",
 			Handler:    _PartsService_GetPart_Handler,
+		},
+		{
+			MethodName: "ListPartStock",
+			Handler:    _PartsService_ListPartStock_Handler,
 		},
 		{
 			MethodName: "ListParts",
@@ -762,6 +834,10 @@ var PartsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelMovementDocument",
 			Handler:    _PartsService_CancelMovementDocument_Handler,
+		},
+		{
+			MethodName: "CreateProductionExtraction",
+			Handler:    _PartsService_CreateProductionExtraction_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

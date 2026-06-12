@@ -23,7 +23,10 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const MOVEMENT_TYPE_LABEL: Record<string, string> = {
-  work_order_issue: 'Выдача в работу',
+  work_order_issue: 'В работу',
+  transfer: 'Между складами',
+  to_production: 'В производство',
+  from_production: 'Извлечение (возврат)',
 }
 
 export function MovementDocuments() {

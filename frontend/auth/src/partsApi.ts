@@ -140,6 +140,13 @@ export async function listParts(params: {
   return res.json()
 }
 
+export async function listPartStock(partId: string): Promise<{ stock: PartStockRow[] }> {
+  const res = await fetch(`${API}/api/parts/${partId}/stock`, { headers: getAuthHeaders() })
+  if (!res.ok) throw new Error(await res.json().then((b: { error?: string }) => b.error).catch(() => res.statusText))
+  const data = await res.json()
+  return { stock: data.stock ?? [] }
+}
+
 export async function getPart(id: string): Promise<Part> {
   const res = await fetch(`${API}/api/parts/${id}`, { headers: getAuthHeaders() })
   if (!res.ok) throw new Error(await res.json().then((b: { error?: string }) => b.error).catch(() => res.statusText))

@@ -60,6 +60,7 @@ type partStockRepository interface {
 	ListByPart(ctx context.Context, partID uuid.UUID) ([]*domain.PartStock, error)
 	Upsert(ctx context.Context, partID, warehouseID uuid.UUID, quantity int32) error
 	ReplaceForPart(ctx context.Context, partID uuid.UUID, rows []domain.PartWarehouseQty) error
+	Add(ctx context.Context, partID, warehouseID uuid.UUID, quantity int32) error
 	Deduct(ctx context.Context, partID, warehouseID uuid.UUID, quantity int32) (int32, error)
 	GetQuantity(ctx context.Context, partID, warehouseID uuid.UUID) (int32, error)
 }

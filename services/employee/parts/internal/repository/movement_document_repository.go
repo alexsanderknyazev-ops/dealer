@@ -37,19 +37,21 @@ func (r *MovementDocumentRepository) Create(ctx context.Context, doc *domain.Mov
 	_, err = tx.Exec(ctx, `
 		INSERT INTO movement_documents (
 			id, document_number, status, movement_type, reference_type, reference_id,
-			notes, created_by, created_at, updated_at
-		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+			parent_document_id, notes, created_by, created_at, updated_at
+		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
 	`, doc.ID, doc.DocumentNumber, doc.Status, doc.MovementType, doc.ReferenceType, doc.ReferenceID,
-		doc.Notes, doc.CreatedBy, doc.CreatedAt, doc.UpdatedAt)
+		doc.ParentDocumentID, doc.Notes, doc.CreatedBy, doc.CreatedAt, doc.UpdatedAt)
 	if err != nil {
 		return err
 	}
 	for _, line := range doc.Lines {
 		_, err = tx.Exec(ctx, `
 			INSERT INTO movement_document_lines (
-				id, document_id, part_id, warehouse_id, quantity, reference_line_id, notes, sort_order, created_at
-			) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-		`, line.ID, doc.ID, line.PartID, line.WarehouseID, line.Quantity, line.ReferenceLineID, line.Notes, line.SortOrder, line.CreatedAt)
+				id, document_id, part_id, warehouse_id, destination_warehouse_id,
+				quantity, reference_line_id, notes, sort_order, created_at
+			) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+		`, line.ID, doc.ID, line.PartID, line.WarehouseID, line.DestinationWarehouseID,
+			line.Quantity, line.ReferenceLineID, line.Notes, line.SortOrder, line.CreatedAt)
 		if err != nil {
 			return err
 		}
@@ -59,7 +61,7 @@ func (r *MovementDocumentRepository) Create(ctx context.Context, doc *domain.Mov
 
 const documentSelect = `
 	SELECT id, document_number, status, movement_type, reference_type, reference_id,
-		notes, created_by, confirmed_by, created_at, confirmed_at, updated_at
+		parent_document_id, notes, created_by, confirmed_by, created_at, confirmed_at, updated_at
 	FROM movement_documents
 `
 
@@ -67,7 +69,7 @@ func (r *MovementDocumentRepository) scanHeader(row pgx.Row) (*domain.MovementDo
 	var d domain.MovementDocument
 	err := row.Scan(
 		&d.ID, &d.DocumentNumber, &d.Status, &d.MovementType, &d.ReferenceType, &d.ReferenceID,
-		&d.Notes, &d.CreatedBy, &d.ConfirmedBy, &d.CreatedAt, &d.ConfirmedAt, &d.UpdatedAt,
+		&d.ParentDocumentID, &d.Notes, &d.CreatedBy, &d.ConfirmedBy, &d.CreatedAt, &d.ConfirmedAt, &d.UpdatedAt,
 	)
 	return &d, err
 }
@@ -83,7 +85,8 @@ func (r *MovementDocumentRepository) GetByID(ctx context.Context, id uuid.UUID) 
 
 func (r *MovementDocumentRepository) listLines(ctx context.Context, documentID uuid.UUID) ([]domain.MovementDocumentLine, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT id, document_id, part_id, warehouse_id, quantity, reference_line_id, notes, sort_order, created_at
+		SELECT id, document_id, part_id, warehouse_id, destination_warehouse_id,
+		       quantity, reference_line_id, notes, sort_order, created_at
 		FROM movement_document_lines WHERE document_id = $1 ORDER BY sort_order, created_at
 	`, documentID)
 	if err != nil {
@@ -93,7 +96,10 @@ func (r *MovementDocumentRepository) listLines(ctx context.Context, documentID u
 	var out []domain.MovementDocumentLine
 	for rows.Next() {
 		var l domain.MovementDocumentLine
-		if err := rows.Scan(&l.ID, &l.DocumentID, &l.PartID, &l.WarehouseID, &l.Quantity, &l.ReferenceLineID, &l.Notes, &l.SortOrder, &l.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&l.ID, &l.DocumentID, &l.PartID, &l.WarehouseID, &l.DestinationWarehouseID,
+			&l.Quantity, &l.ReferenceLineID, &l.Notes, &l.SortOrder, &l.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		out = append(out, l)
@@ -187,4 +193,32 @@ func (r *MovementDocumentRepository) Update(ctx context.Context, doc *domain.Mov
 		}
 	}
 	return tx.Commit(ctx)
+}
+
+// ExtractedQuantityByParentLine — сколько уже извлечено по закрытым документам from_production.
+func (r *MovementDocumentRepository) ExtractedQuantityByParentLine(ctx context.Context, parentDocumentID, parentLineID uuid.UUID) (int32, error) {
+	var qty int32
+	err := r.pool.QueryRow(ctx, `
+		SELECT COALESCE(SUM(l.quantity), 0)::int
+		FROM movement_documents d
+		JOIN movement_document_lines l ON l.document_id = d.id
+		WHERE d.parent_document_id = $1
+		  AND d.movement_type = 'from_production'
+		  AND d.status = 'closed'
+		  AND l.reference_line_id = $2
+	`, parentDocumentID, parentLineID).Scan(&qty)
+	return qty, err
+}
+
+func (r *MovementDocumentRepository) HasOpenExtractionForParent(ctx context.Context, parentDocumentID uuid.UUID) (bool, error) {
+	var exists bool
+	err := r.pool.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1 FROM movement_documents
+			WHERE parent_document_id = $1
+			  AND movement_type = 'from_production'
+			  AND status IN ('draft', 'in_progress')
+		)
+	`, parentDocumentID).Scan(&exists)
+	return exists, err
 }

@@ -19,6 +19,13 @@ var (
 	ErrMovementDocumentNotEditable   = errors.New("movement document cannot be edited")
 	ErrMovementDocumentNoLines       = errors.New("movement document has no lines")
 	ErrInsufficientStock             = errors.New("insufficient stock")
+	ErrParentNotClosed               = errors.New("parent movement document is not closed")
+	ErrParentNotExtractable          = errors.New("parent movement document does not support extraction")
+	ErrOpenExtractionExists          = errors.New("open production extraction already exists")
+	ErrNothingToExtract              = errors.New("nothing left to extract from production")
+	ErrExtractionExceedsBalance      = errors.New("extraction quantity exceeds remaining balance")
+	ErrDestinationRequired           = errors.New("destination warehouse required")
+	ErrSameSourceDestination         = errors.New("source and destination warehouse must differ")
 )
 
 type stockMovementRepository interface {
@@ -32,6 +39,8 @@ type movementDocumentRepository interface {
 	List(ctx context.Context, limit, offset int32, status, referenceType, referenceID string) ([]*domain.MovementDocument, int32, error)
 	UpdateStatus(ctx context.Context, doc *domain.MovementDocument) error
 	Update(ctx context.Context, doc *domain.MovementDocument, replaceLines bool) error
+	ExtractedQuantityByParentLine(ctx context.Context, parentDocumentID, parentLineID uuid.UUID) (int32, error)
+	HasOpenExtractionForParent(ctx context.Context, parentDocumentID uuid.UUID) (bool, error)
 }
 
 type WorkOrdersNotifier interface {
@@ -44,7 +53,13 @@ func (noopWorkOrdersNotifier) ApplyMovementDocument(context.Context, string, str
 	return nil
 }
 
-func (s *PartService) buildMovementLines(ctx context.Context, docID uuid.UUID, inputs []domain.MovementDocumentLineInput, now time.Time) ([]domain.MovementDocumentLine, error) {
+func (s *PartService) buildMovementLines(
+	ctx context.Context,
+	docID uuid.UUID,
+	movementType string,
+	inputs []domain.MovementDocumentLineInput,
+	now time.Time,
+) ([]domain.MovementDocumentLine, error) {
 	lines := make([]domain.MovementDocumentLine, 0, len(inputs))
 	for _, lineIn := range inputs {
 		if lineIn.Quantity <= 0 {
@@ -59,22 +74,39 @@ func (s *PartService) buildMovementLines(ctx context.Context, docID uuid.UUID, i
 		if err := s.checkRef(ctx, &lineIn.WarehouseID, s.dealerPoints.WarehouseExists, ErrWarehouseNotFound); err != nil {
 			return nil, err
 		}
+		var destID *uuid.UUID
+		if movementType == domain.MovementTypeTransfer {
+			if lineIn.DestinationWarehouseID == nil {
+				return nil, ErrDestinationRequired
+			}
+			if *lineIn.DestinationWarehouseID == lineIn.WarehouseID {
+				return nil, ErrSameSourceDestination
+			}
+			if err := s.checkRef(ctx, lineIn.DestinationWarehouseID, s.dealerPoints.WarehouseExists, ErrWarehouseNotFound); err != nil {
+				return nil, err
+			}
+			destID = lineIn.DestinationWarehouseID
+		}
 		lines = append(lines, domain.MovementDocumentLine{
-			ID:              uuid.New(),
-			DocumentID:      docID,
-			PartID:          lineIn.PartID,
-			WarehouseID:     lineIn.WarehouseID,
-			Quantity:        lineIn.Quantity,
-			ReferenceLineID: lineIn.ReferenceLineID,
-			Notes:           lineIn.Notes,
-			SortOrder:       lineIn.SortOrder,
-			CreatedAt:       now,
+			ID:                     uuid.New(),
+			DocumentID:             docID,
+			PartID:                 lineIn.PartID,
+			WarehouseID:            lineIn.WarehouseID,
+			DestinationWarehouseID: destID,
+			Quantity:               lineIn.Quantity,
+			ReferenceLineID:        lineIn.ReferenceLineID,
+			Notes:                  lineIn.Notes,
+			SortOrder:                lineIn.SortOrder,
+			CreatedAt:                now,
 		})
 	}
 	return lines, nil
 }
 
 func (s *PartService) CreateMovementDocument(ctx context.Context, in domain.CreateMovementDocumentInput) (*domain.MovementDocument, error) {
+	if in.MovementType == domain.MovementTypeFromProduction {
+		return nil, fmt.Errorf("use CreateProductionExtraction for from_production documents")
+	}
 	number, err := s.movementDocRepo.NextDocumentNumber(ctx)
 	if err != nil {
 		return nil, err
@@ -83,7 +115,7 @@ func (s *PartService) CreateMovementDocument(ctx context.Context, in domain.Crea
 	docID := uuid.New()
 	var lines []domain.MovementDocumentLine
 	if len(in.Lines) > 0 {
-		lines, err = s.buildMovementLines(ctx, docID, in.Lines, now)
+		lines, err = s.buildMovementLines(ctx, docID, in.MovementType, in.Lines, now)
 		if err != nil {
 			return nil, err
 		}
@@ -145,7 +177,7 @@ func (s *PartService) UpdateMovementDocument(ctx context.Context, id string, in 
 		doc.Notes = *in.Notes
 	}
 	if in.ReplaceLines {
-		doc.Lines, err = s.buildMovementLines(ctx, doc.ID, in.Lines, now)
+		doc.Lines, err = s.buildMovementLines(ctx, doc.ID, doc.MovementType, in.Lines, now)
 		if err != nil {
 			return nil, err
 		}
@@ -179,6 +211,33 @@ func (s *PartService) StartMovementDocument(ctx context.Context, id string) (*do
 	return s.GetMovementDocument(ctx, id)
 }
 
+func (s *PartService) recordStockMovement(
+	ctx context.Context,
+	doc *domain.MovementDocument,
+	line domain.MovementDocumentLine,
+	warehouseID uuid.UUID,
+	quantity int32,
+	refLine *uuid.UUID,
+	closedBy *uuid.UUID,
+	now time.Time,
+) error {
+	movement := domain.StockMovement{
+		ID:                 uuid.New(),
+		PartID:             line.PartID,
+		WarehouseID:        warehouseID,
+		Quantity:           quantity,
+		MovementType:       doc.MovementType,
+		ReferenceType:      doc.ReferenceType,
+		ReferenceID:        doc.ReferenceID,
+		ReferenceLineID:    refLine,
+		MovementDocumentID: &doc.ID,
+		Notes:              line.Notes,
+		CreatedBy:          closedBy,
+		CreatedAt:          now,
+	}
+	return s.movementRepo.Create(ctx, &movement)
+}
+
 func (s *PartService) CloseMovementDocument(ctx context.Context, id string, closedBy *uuid.UUID) (*domain.MovementDocument, error) {
 	doc, err := s.GetMovementDocument(ctx, id)
 	if err != nil {
@@ -190,33 +249,52 @@ func (s *PartService) CloseMovementDocument(ctx context.Context, id string, clos
 	if len(doc.Lines) == 0 {
 		return nil, ErrMovementDocumentNoLines
 	}
+	if doc.MovementType == domain.MovementTypeFromProduction {
+		if err := s.validateExtractionClose(ctx, doc); err != nil {
+			return nil, err
+		}
+	}
 	now := time.Now().UTC()
 	for _, line := range doc.Lines {
-		if _, err := s.stockRepo.Deduct(ctx, line.PartID, line.WarehouseID, line.Quantity); err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				qty, _ := s.stockRepo.GetQuantity(ctx, line.PartID, line.WarehouseID)
-				return nil, fmt.Errorf("%w: part %s on warehouse %s (have %d, need %d)",
-					ErrInsufficientStock, line.PartID, line.WarehouseID, qty, line.Quantity)
-			}
-			return nil, err
-		}
 		refLine := line.ReferenceLineID
-		movement := domain.StockMovement{
-			ID:                 uuid.New(),
-			PartID:             line.PartID,
-			WarehouseID:        line.WarehouseID,
-			Quantity:           -line.Quantity,
-			MovementType:       doc.MovementType,
-			ReferenceType:      doc.ReferenceType,
-			ReferenceID:        doc.ReferenceID,
-			ReferenceLineID:    refLine,
-			MovementDocumentID: &doc.ID,
-			Notes:              line.Notes,
-			CreatedBy:          closedBy,
-			CreatedAt:          now,
-		}
-		if err := s.movementRepo.Create(ctx, &movement); err != nil {
-			return nil, err
+		switch doc.MovementType {
+		case domain.MovementTypeFromProduction:
+			if err := s.closeExtractionLine(ctx, doc, line, refLine, closedBy, now); err != nil {
+				return nil, err
+			}
+		case domain.MovementTypeTransfer:
+			if _, err := s.stockRepo.Deduct(ctx, line.PartID, line.WarehouseID, line.Quantity); err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					qty, _ := s.stockRepo.GetQuantity(ctx, line.PartID, line.WarehouseID)
+					return nil, fmt.Errorf("%w: part %s on warehouse %s (have %d, need %d)",
+						ErrInsufficientStock, line.PartID, line.WarehouseID, qty, line.Quantity)
+				}
+				return nil, err
+			}
+			if err := s.recordStockMovement(ctx, doc, line, line.WarehouseID, -line.Quantity, refLine, closedBy, now); err != nil {
+				return nil, err
+			}
+			if line.DestinationWarehouseID == nil {
+				return nil, ErrDestinationRequired
+			}
+			if err := s.stockRepo.Add(ctx, line.PartID, *line.DestinationWarehouseID, line.Quantity); err != nil {
+				return nil, err
+			}
+			if err := s.recordStockMovement(ctx, doc, line, *line.DestinationWarehouseID, line.Quantity, refLine, closedBy, now); err != nil {
+				return nil, err
+			}
+		default:
+			if _, err := s.stockRepo.Deduct(ctx, line.PartID, line.WarehouseID, line.Quantity); err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					qty, _ := s.stockRepo.GetQuantity(ctx, line.PartID, line.WarehouseID)
+					return nil, fmt.Errorf("%w: part %s on warehouse %s (have %d, need %d)",
+						ErrInsufficientStock, line.PartID, line.WarehouseID, qty, line.Quantity)
+				}
+				return nil, err
+			}
+			if err := s.recordStockMovement(ctx, doc, line, line.WarehouseID, -line.Quantity, refLine, closedBy, now); err != nil {
+				return nil, err
+			}
 		}
 	}
 	doc.Status = domain.DocumentStatusClosed
@@ -237,6 +315,159 @@ func (s *PartService) CloseMovementDocument(ctx context.Context, id string, clos
 // ConfirmMovementDocument — совместимость: закрывает документ (списание при closed).
 func (s *PartService) ConfirmMovementDocument(ctx context.Context, id string, confirmedBy *uuid.UUID) (*domain.MovementDocument, error) {
 	return s.CloseMovementDocument(ctx, id, confirmedBy)
+}
+
+func (s *PartService) closeExtractionLine(
+	ctx context.Context,
+	doc *domain.MovementDocument,
+	line domain.MovementDocumentLine,
+	refLine *uuid.UUID,
+	closedBy *uuid.UUID,
+	now time.Time,
+) error {
+	returnWh := line.WarehouseID
+	// Для извлечения после transfer товар на складе-получателе — списываем оттуда.
+	if line.DestinationWarehouseID != nil {
+		fromWh := *line.DestinationWarehouseID
+		if _, err := s.stockRepo.Deduct(ctx, line.PartID, fromWh, line.Quantity); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				qty, _ := s.stockRepo.GetQuantity(ctx, line.PartID, fromWh)
+				return fmt.Errorf("%w: part %s on warehouse %s (have %d, need %d)",
+					ErrInsufficientStock, line.PartID, fromWh, qty, line.Quantity)
+			}
+			return err
+		}
+		if err := s.recordStockMovement(ctx, doc, line, fromWh, -line.Quantity, refLine, closedBy, now); err != nil {
+			return err
+		}
+	}
+	if err := s.stockRepo.Add(ctx, line.PartID, returnWh, line.Quantity); err != nil {
+		return err
+	}
+	return s.recordStockMovement(ctx, doc, line, returnWh, line.Quantity, refLine, closedBy, now)
+}
+
+func (s *PartService) validateExtractionClose(ctx context.Context, doc *domain.MovementDocument) error {
+	if doc.ParentDocumentID == nil {
+		return ErrParentNotExtractable
+	}
+	parent, err := s.movementDocRepo.GetByID(ctx, *doc.ParentDocumentID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrMovementDocumentNotFound
+		}
+		return err
+	}
+	if parent.Status != domain.DocumentStatusClosed || !domain.MovementTypeSupportsExtraction(parent.MovementType) {
+		return ErrParentNotExtractable
+	}
+	for _, line := range doc.Lines {
+		if line.ReferenceLineID == nil {
+			return ErrExtractionExceedsBalance
+		}
+		extracted, err := s.movementDocRepo.ExtractedQuantityByParentLine(ctx, parent.ID, *line.ReferenceLineID)
+		if err != nil {
+			return err
+		}
+		var parentQty int32
+		for _, pl := range parent.Lines {
+			if pl.ID == *line.ReferenceLineID {
+				parentQty = pl.Quantity
+				break
+			}
+		}
+		if parentQty == 0 || line.Quantity > parentQty-extracted {
+			return fmt.Errorf("%w: line %s", ErrExtractionExceedsBalance, line.ID)
+		}
+	}
+	return nil
+}
+
+func (s *PartService) buildExtractionLine(parent *domain.MovementDocument, pl domain.MovementDocumentLine, docID uuid.UUID, remaining int32, sortOrder int32, now time.Time) domain.MovementDocumentLine {
+	refLineID := pl.ID
+	line := domain.MovementDocumentLine{
+		ID:              uuid.New(),
+		DocumentID:      docID,
+		PartID:          pl.PartID,
+		WarehouseID:     pl.WarehouseID,
+		Quantity:        remaining,
+		ReferenceLineID: &refLineID,
+		Notes:           fmt.Sprintf("извлечение из %s", parent.DocumentNumber),
+		SortOrder:       sortOrder,
+		CreatedAt:       now,
+	}
+	if parent.MovementType == domain.MovementTypeTransfer && pl.DestinationWarehouseID != nil {
+		dest := *pl.DestinationWarehouseID
+		line.DestinationWarehouseID = &dest
+	}
+	return line
+}
+
+func (s *PartService) CreateProductionExtraction(ctx context.Context, parentID string, createdBy *uuid.UUID) (*domain.MovementDocument, error) {
+	parentUID, err := uuid.Parse(parentID)
+	if err != nil {
+		return nil, ErrMovementDocumentNotFound
+	}
+	parent, err := s.movementDocRepo.GetByID(ctx, parentUID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrMovementDocumentNotFound
+		}
+		return nil, err
+	}
+	if parent.Status != domain.DocumentStatusClosed {
+		return nil, ErrParentNotClosed
+	}
+	if parent.MovementType == domain.MovementTypeFromProduction || !domain.MovementTypeSupportsExtraction(parent.MovementType) {
+		return nil, ErrParentNotExtractable
+	}
+	open, err := s.movementDocRepo.HasOpenExtractionForParent(ctx, parent.ID)
+	if err != nil {
+		return nil, err
+	}
+	if open {
+		return nil, ErrOpenExtractionExists
+	}
+	now := time.Now().UTC()
+	docID := uuid.New()
+	var lines []domain.MovementDocumentLine
+	for i, pl := range parent.Lines {
+		extracted, err := s.movementDocRepo.ExtractedQuantityByParentLine(ctx, parent.ID, pl.ID)
+		if err != nil {
+			return nil, err
+		}
+		remaining := pl.Quantity - extracted
+		if remaining <= 0 {
+			continue
+		}
+		lines = append(lines, s.buildExtractionLine(parent, pl, docID, remaining, int32(i+1), now))
+	}
+	if len(lines) == 0 {
+		return nil, ErrNothingToExtract
+	}
+	number, err := s.movementDocRepo.NextDocumentNumber(ctx)
+	if err != nil {
+		return nil, err
+	}
+	parentRef := parent.ID
+	doc := &domain.MovementDocument{
+		ID:               docID,
+		DocumentNumber:   number,
+		Status:           domain.DocumentStatusDraft,
+		MovementType:     domain.MovementTypeFromProduction,
+		ReferenceType:    domain.RefMovementDocument,
+		ReferenceID:      &parentRef,
+		ParentDocumentID: &parentRef,
+		Notes:            fmt.Sprintf("Извлечение по документу %s", parent.DocumentNumber),
+		CreatedBy:        createdBy,
+		Lines:            lines,
+		CreatedAt:        now,
+		UpdatedAt:        now,
+	}
+	if err := s.movementDocRepo.Create(ctx, doc); err != nil {
+		return nil, err
+	}
+	return doc, nil
 }
 
 func (s *PartService) CancelMovementDocument(ctx context.Context, id string) (*domain.MovementDocument, error) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Check, Pencil, Play, X } from 'lucide-react'
+import { ArrowLeft, Check, Pencil, Play, X } from 'lucide-react'
 import * as api from './movementDocumentsApi'
 import { useAuth } from './auth'
 import { PageHeader } from '@/components/common/PageHeader'
@@ -17,6 +17,20 @@ const STATUS_LABEL: Record<string, string> = {
   closed: 'Закрыт',
   confirmed: 'Закрыт',
   cancelled: 'Отменён',
+}
+
+const MOVEMENT_TYPE_LABEL: Record<string, string> = {
+  work_order_issue: 'В работу',
+  transfer: 'Между складами',
+  to_production: 'В производство',
+  from_production: 'Извлечение (возврат)',
+}
+
+const DEST_LABEL: Record<string, string> = {
+  transfer: 'Другой склад',
+  to_production: 'Производство',
+  work_order_issue: 'В работу',
+  from_production: 'Склад',
 }
 
 export function MovementDocumentView() {
@@ -63,11 +77,28 @@ export function MovementDocumentView() {
     }
   }
 
-  async function handleClose() {
+  async function handleCreateExtraction() {
     if (!id) return
+    setActing(true)
+    setError(null)
+    try {
+      const created = await api.createProductionExtraction(id, user?.userId)
+      navigate(`/movement-documents/${created.id}`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Не удалось создать извлечение')
+    } finally {
+      setActing(false)
+    }
+  }
+
+  async function handleClose() {
+    if (!id || !doc) return
+    const fromProduction = doc.movement_type === 'from_production'
     if (
       !window.confirm(
-        'Закрыть документ? Запчасти будут списаны со склада, отменить операцию будет нельзя.',
+        fromProduction
+          ? 'Закрыть документ? Запчасти будут возвращены на склад, отменить операцию будет нельзя.'
+          : 'Закрыть документ? Запчасти будут списаны со склада, отменить операцию будет нельзя.',
       )
     ) {
       return
@@ -107,6 +138,12 @@ export function MovementDocumentView() {
   const canClose = doc.status === 'in_progress'
   const canCancel = doc.status === 'draft' || doc.status === 'in_progress'
   const canEdit = doc.status === 'draft' || doc.status === 'in_progress'
+  const canCreateExtraction =
+    doc.status === 'closed' &&
+    doc.movement_type !== 'from_production' &&
+    ['work_order_issue', 'transfer', 'to_production'].includes(doc.movement_type)
+  const closeLabel =
+    doc.movement_type === 'from_production' ? 'Закрыть (вернуть на склад)' : 'Закрыть (списать со склада)'
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
@@ -121,8 +158,14 @@ export function MovementDocumentView() {
           </div>
         }
         action={
-          canEdit || canStart || canClose || canCancel ? (
-            <div className="flex gap-2">
+          canEdit || canStart || canClose || canCancel || canCreateExtraction ? (
+            <div className="flex flex-wrap gap-2">
+              {canCreateExtraction && (
+                <Button onClick={handleCreateExtraction} disabled={acting}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Извлечение (вернуть на склад)
+                </Button>
+              )}
               {canEdit && (
                 <Button variant="outline" asChild>
                   <Link to={`/movement-documents/${doc.id}/edit`}>
@@ -140,7 +183,7 @@ export function MovementDocumentView() {
               {canClose && (
                 <Button onClick={handleClose} disabled={acting}>
                   <Check className="mr-2 h-4 w-4" />
-                  Закрыть (списать со склада)
+                  {closeLabel}
                 </Button>
               )}
               {canCancel && (
@@ -159,7 +202,15 @@ export function MovementDocumentView() {
       <Card>
         <CardHeader><CardTitle className="text-base">Реквизиты</CardTitle></CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <div>Тип: {doc.movement_type}</div>
+          <div>Тип: {MOVEMENT_TYPE_LABEL[doc.movement_type] || doc.movement_type}</div>
+          {doc.parent_document_id && (
+            <div>
+              Перемещение в производство:{' '}
+              <Link className="text-primary underline" to={`/movement-documents/${doc.parent_document_id}`}>
+                {doc.parent_document_number || doc.parent_document_id}
+              </Link>
+            </div>
+          )}
           {doc.reference_type === 'work_order' && doc.reference_id && (
             <div>
               Заказ-наряд:{' '}
@@ -173,6 +224,14 @@ export function MovementDocumentView() {
                   {doc.vehicle_vin ? ` (VIN: ${doc.vehicle_vin})` : ''}
                 </div>
               )}
+            </div>
+          )}
+          {doc.reference_type === 'movement_document' && doc.reference_id && !doc.parent_document_id && (
+            <div>
+              Основание:{' '}
+              <Link className="text-primary underline" to={`/movement-documents/${doc.reference_id}`}>
+                {doc.reference_label || doc.reference_id}
+              </Link>
             </div>
           )}
           {doc.notes && <div>Примечание: {doc.notes}</div>}
@@ -193,12 +252,14 @@ export function MovementDocumentView() {
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Запчасть</TableHead>
-                <TableHead>Артикул</TableHead>
-                <TableHead>Склад</TableHead>
-                <TableHead>Кол-во</TableHead>
-              </TableRow>
+                    <TableRow>
+                      <TableHead>Запчасть</TableHead>
+                      <TableHead>Артикул</TableHead>
+                      <TableHead>Откуда</TableHead>
+                      <TableHead>Куда</TableHead>
+                      <TableHead>Кол-во</TableHead>
+                      <TableHead>Остаток до списания</TableHead>
+                    </TableRow>
             </TableHeader>
             <TableBody>
               {doc.lines?.map((line) => (
@@ -206,7 +267,16 @@ export function MovementDocumentView() {
                   <TableCell>{line.part_name || line.part_id}</TableCell>
                   <TableCell className="text-muted-foreground">{line.part_sku || '—'}</TableCell>
                   <TableCell>{line.warehouse_name || line.warehouse_id}</TableCell>
+                  <TableCell>
+                    {line.destination_warehouse_name ||
+                      line.destination_warehouse_id ||
+                      DEST_LABEL[doc.movement_type] ||
+                      '—'}
+                  </TableCell>
                   <TableCell>{line.quantity}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {line.source_stock_quantity > 0 ? line.source_stock_quantity : '—'}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

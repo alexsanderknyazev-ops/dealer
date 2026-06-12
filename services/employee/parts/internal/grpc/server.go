@@ -146,6 +146,24 @@ func (s *Server) GetPart(ctx context.Context, req *partsv1.GetPartRequest) (*par
 	return &partsv1.GetPartResponse{Part: toProto(p)}, nil
 }
 
+func (s *Server) ListPartStock(ctx context.Context, req *partsv1.ListPartStockRequest) (*partsv1.ListPartStockResponse, error) {
+	rows, err := s.svc.ListStock(ctx, req.PartId)
+	if err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			return nil, status.Error(codes.NotFound, "part not found")
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	out := make([]*partsv1.PartStockRow, len(rows))
+	for i, row := range rows {
+		out[i] = &partsv1.PartStockRow{
+			WarehouseId: row.WarehouseID.String(),
+			Quantity:    row.Quantity,
+		}
+	}
+	return &partsv1.ListPartStockResponse{Stock: out}, nil
+}
+
 func (s *Server) ListParts(ctx context.Context, req *partsv1.ListPartsRequest) (*partsv1.ListPartsResponse, error) {
 	list, total, err := s.svc.List(ctx, domain.PartListFilter{
 		Limit: req.Limit, Offset: req.Offset, Search: req.Search, CategoryFilter: req.Category,
@@ -280,6 +298,12 @@ func (s *Server) documentToProto(ctx context.Context, d *domain.MovementDocument
 	if d.ReferenceID != nil {
 		out.ReferenceId = d.ReferenceID.String()
 	}
+	if d.ParentDocumentID != nil {
+		out.ParentDocumentId = d.ParentDocumentID.String()
+		if parent, err := s.svc.GetMovementDocument(ctx, d.ParentDocumentID.String()); err == nil && parent != nil {
+			out.ParentDocumentNumber = parent.DocumentNumber
+		}
+	}
 	if d.CreatedBy != nil {
 		out.CreatedBy = d.CreatedBy.String()
 		if s.employees != nil {
@@ -308,12 +332,26 @@ func (s *Server) documentToProto(ctx context.Context, d *domain.MovementDocument
 		if l.ReferenceLineID != nil {
 			line.ReferenceLineId = l.ReferenceLineID.String()
 		}
+		if l.DestinationWarehouseID != nil {
+			line.DestinationWarehouseId = l.DestinationWarehouseID.String()
+			if s.dealerPoints != nil {
+				line.DestinationWarehouseName = s.dealerPoints.WarehouseName(ctx, *l.DestinationWarehouseID)
+			}
+		}
 		if part, err := s.svc.Get(ctx, l.PartID.String()); err == nil && part != nil {
 			line.PartName = part.Name
 			line.PartSku = part.SKU
 		}
 		if s.dealerPoints != nil {
 			line.WarehouseName = s.dealerPoints.WarehouseName(ctx, l.WarehouseID)
+		}
+		if stockRows, err := s.svc.ListStock(ctx, l.PartID.String()); err == nil {
+			for _, row := range stockRows {
+				if row.WarehouseID == l.WarehouseID {
+					line.SourceStockQuantity = row.Quantity
+					break
+				}
+			}
 		}
 		out.Lines[i] = line
 	}
@@ -323,6 +361,11 @@ func (s *Server) documentToProto(ctx context.Context, d *domain.MovementDocument
 			out.CustomerName = wo.CustomerName
 			out.VehicleVin = wo.VehicleVin
 			out.VehicleLabel = wo.VehicleLabel
+		}
+	}
+	if d.ReferenceType == domain.RefMovementDocument && d.ReferenceID != nil {
+		if ref, err := s.svc.GetMovementDocument(ctx, d.ReferenceID.String()); err == nil && ref != nil {
+			out.ReferenceLabel = ref.DocumentNumber
 		}
 	}
 	return out
@@ -337,7 +380,14 @@ func movementDocumentErr(err error) error {
 		errors.Is(err, service.ErrMovementDocumentNotEditable),
 		errors.Is(err, service.ErrMovementDocumentNoLines):
 		return status.Error(codes.FailedPrecondition, err.Error())
-	case errors.Is(err, service.ErrInsufficientStock):
+	case errors.Is(err, service.ErrInsufficientStock),
+		errors.Is(err, service.ErrParentNotClosed),
+		errors.Is(err, service.ErrParentNotExtractable),
+		errors.Is(err, service.ErrOpenExtractionExists),
+		errors.Is(err, service.ErrNothingToExtract),
+		errors.Is(err, service.ErrExtractionExceedsBalance),
+		errors.Is(err, service.ErrDestinationRequired),
+		errors.Is(err, service.ErrSameSourceDestination):
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, service.ErrNotFound), errors.Is(err, service.ErrWarehouseNotFound):
 		return status.Error(codes.NotFound, err.Error())
@@ -398,8 +448,14 @@ func parseMovementDocumentLines(reqLines []*partsv1.MovementDocumentLineInput) (
 				refLine = &id
 			}
 		}
+		var destWh *uuid.UUID
+		if it.DestinationWarehouseId != "" {
+			if id, err := uuid.Parse(it.DestinationWarehouseId); err == nil {
+				destWh = &id
+			}
+		}
 		lines = append(lines, domain.MovementDocumentLineInput{
-			PartID: partID, WarehouseID: warehouseID, Quantity: it.Quantity,
+			PartID: partID, WarehouseID: warehouseID, DestinationWarehouseID: destWh, Quantity: it.Quantity,
 			ReferenceLineID: refLine, Notes: it.Notes, SortOrder: it.SortOrder,
 		})
 	}
@@ -489,4 +545,18 @@ func (s *Server) CancelMovementDocument(ctx context.Context, req *partsv1.Cancel
 		return nil, movementDocumentErr(err)
 	}
 	return &partsv1.CancelMovementDocumentResponse{Document: s.documentToProto(ctx, doc)}, nil
+}
+
+func (s *Server) CreateProductionExtraction(ctx context.Context, req *partsv1.CreateProductionExtractionRequest) (*partsv1.CreateProductionExtractionResponse, error) {
+	var createdBy *uuid.UUID
+	if req.CreatedBy != "" {
+		if id, err := uuid.Parse(req.CreatedBy); err == nil {
+			createdBy = &id
+		}
+	}
+	doc, err := s.svc.CreateProductionExtraction(ctx, req.Id, createdBy)
+	if err != nil {
+		return nil, movementDocumentErr(err)
+	}
+	return &partsv1.CreateProductionExtractionResponse{Document: s.documentToProto(ctx, doc)}, nil
 }

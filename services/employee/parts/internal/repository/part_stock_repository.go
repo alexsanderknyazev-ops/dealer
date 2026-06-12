@@ -79,6 +79,17 @@ func (r *PartStockRepository) ReplaceForPart(ctx context.Context, partID uuid.UU
 }
 
 // HasStockInWarehouse — есть ли у запчасти остаток на этом складе (для фильтра списка)
+func (r *PartStockRepository) Add(ctx context.Context, partID, warehouseID uuid.UUID, quantity int32) error {
+	query := `
+		INSERT INTO part_stock (part_id, warehouse_id, quantity, updated_at)
+		VALUES ($1, $2, $3, now())
+		ON CONFLICT (part_id, warehouse_id) DO UPDATE
+		SET quantity = part_stock.quantity + EXCLUDED.quantity, updated_at = now()
+	`
+	_, err := r.pool.Exec(ctx, query, partID, warehouseID, quantity)
+	return err
+}
+
 func (r *PartStockRepository) Deduct(ctx context.Context, partID, warehouseID uuid.UUID, quantity int32) (int32, error) {
 	query := `
 		UPDATE part_stock

@@ -63,3 +63,10 @@ type CreateMovementDocumentInput struct {
 	CreatedBy     *uuid.UUID
 	Lines         []MovementDocumentLineInput
 }
+
+type UpdateMovementDocumentInput struct {
+	MovementType  *string
+	Notes         *string
+	Lines         []MovementDocumentLineInput
+	ReplaceLines  bool
+}

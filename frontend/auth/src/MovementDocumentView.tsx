@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Check, Play, X } from 'lucide-react'
+import { Check, Pencil, Play, X } from 'lucide-react'
 import * as api from './movementDocumentsApi'
 import { useAuth } from './auth'
 import { PageHeader } from '@/components/common/PageHeader'
@@ -106,6 +106,7 @@ export function MovementDocumentView() {
   const canStart = doc.status === 'draft'
   const canClose = doc.status === 'in_progress'
   const canCancel = doc.status === 'draft' || doc.status === 'in_progress'
+  const canEdit = doc.status === 'draft' || doc.status === 'in_progress'
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
@@ -120,8 +121,16 @@ export function MovementDocumentView() {
           </div>
         }
         action={
-          canStart || canClose || canCancel ? (
+          canEdit || canStart || canClose || canCancel ? (
             <div className="flex gap-2">
+              {canEdit && (
+                <Button variant="outline" asChild>
+                  <Link to={`/movement-documents/${doc.id}/edit`}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Редактировать
+                  </Link>
+                </Button>
+              )}
               {canStart && (
                 <Button onClick={handleStart} disabled={acting}>
                   <Play className="mr-2 h-4 w-4" />
@@ -155,8 +164,15 @@ export function MovementDocumentView() {
             <div>
               Заказ-наряд:{' '}
               <Link className="text-primary underline" to={`/work-orders/${doc.reference_id}`}>
-                открыть
+                {doc.reference_label || 'открыть'}
               </Link>
+              {doc.customer_name && <div>Клиент: {doc.customer_name}</div>}
+              {(doc.vehicle_vin || doc.vehicle_label) && (
+                <div>
+                  Автомобиль: {doc.vehicle_label}
+                  {doc.vehicle_vin ? ` (VIN: ${doc.vehicle_vin})` : ''}
+                </div>
+              )}
             </div>
           )}
           {doc.notes && <div>Примечание: {doc.notes}</div>}
@@ -179,6 +195,7 @@ export function MovementDocumentView() {
             <TableHeader>
               <TableRow>
                 <TableHead>Запчасть</TableHead>
+                <TableHead>Артикул</TableHead>
                 <TableHead>Склад</TableHead>
                 <TableHead>Кол-во</TableHead>
               </TableRow>
@@ -186,8 +203,9 @@ export function MovementDocumentView() {
             <TableBody>
               {doc.lines?.map((line) => (
                 <TableRow key={line.id}>
-                  <TableCell className="font-mono text-xs">{line.part_id}</TableCell>
-                  <TableCell className="font-mono text-xs">{line.warehouse_id}</TableCell>
+                  <TableCell>{line.part_name || line.part_id}</TableCell>
+                  <TableCell className="text-muted-foreground">{line.part_sku || '—'}</TableCell>
+                  <TableCell>{line.warehouse_name || line.warehouse_id}</TableCell>
                   <TableCell>{line.quantity}</TableCell>
                 </TableRow>
               ))}

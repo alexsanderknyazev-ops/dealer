@@ -15,12 +15,19 @@ import (
 
 type Server struct {
 	partsv1.UnimplementedPartsServiceServer
-	svc       *service.PartService
-	employees *client.EmployeeResolver
+	svc          *service.PartService
+	employees    *client.EmployeeResolver
+	dealerPoints *client.DealerPointsChecker
+	workOrders   *client.WorkOrdersNotifier
 }
 
-func NewServer(svc *service.PartService, employees *client.EmployeeResolver) *Server {
-	return &Server{svc: svc, employees: employees}
+func NewServer(
+	svc *service.PartService,
+	employees *client.EmployeeResolver,
+	dealerPoints *client.DealerPointsChecker,
+	workOrders *client.WorkOrdersNotifier,
+) *Server {
+	return &Server{svc: svc, employees: employees, dealerPoints: dealerPoints, workOrders: workOrders}
 }
 
 func partWriteErr(err error) error {
@@ -301,7 +308,22 @@ func (s *Server) documentToProto(ctx context.Context, d *domain.MovementDocument
 		if l.ReferenceLineID != nil {
 			line.ReferenceLineId = l.ReferenceLineID.String()
 		}
+		if part, err := s.svc.Get(ctx, l.PartID.String()); err == nil && part != nil {
+			line.PartName = part.Name
+			line.PartSku = part.SKU
+		}
+		if s.dealerPoints != nil {
+			line.WarehouseName = s.dealerPoints.WarehouseName(ctx, l.WarehouseID)
+		}
 		out.Lines[i] = line
+	}
+	if d.ReferenceType == domain.RefWorkOrder && d.ReferenceID != nil && s.workOrders != nil {
+		if wo, err := s.workOrders.GetWorkOrder(ctx, d.ReferenceID.String()); err == nil && wo != nil {
+			out.ReferenceLabel = wo.OrderNumber
+			out.CustomerName = wo.CustomerName
+			out.VehicleVin = wo.VehicleVin
+			out.VehicleLabel = wo.VehicleLabel
+		}
 	}
 	return out
 }
@@ -312,6 +334,7 @@ func movementDocumentErr(err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, service.ErrMovementDocumentNotDraft),
 		errors.Is(err, service.ErrMovementDocumentNotInProgress),
+		errors.Is(err, service.ErrMovementDocumentNotEditable),
 		errors.Is(err, service.ErrMovementDocumentNoLines):
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, service.ErrInsufficientStock):
@@ -324,26 +347,9 @@ func movementDocumentErr(err error) error {
 }
 
 func (s *Server) CreateMovementDocument(ctx context.Context, req *partsv1.CreateMovementDocumentRequest) (*partsv1.CreateMovementDocumentResponse, error) {
-	lines := make([]domain.MovementDocumentLineInput, 0, len(req.Lines))
-	for _, it := range req.Lines {
-		partID, err := uuid.Parse(it.PartId)
-		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, "invalid part_id")
-		}
-		warehouseID, err := uuid.Parse(it.WarehouseId)
-		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, "invalid warehouse_id")
-		}
-		var refLine *uuid.UUID
-		if it.ReferenceLineId != "" {
-			if id, err := uuid.Parse(it.ReferenceLineId); err == nil {
-				refLine = &id
-			}
-		}
-		lines = append(lines, domain.MovementDocumentLineInput{
-			PartID: partID, WarehouseID: warehouseID, Quantity: it.Quantity,
-			ReferenceLineID: refLine, Notes: it.Notes, SortOrder: it.SortOrder,
-		})
+	lines, err := parseMovementDocumentLines(req.Lines)
+	if err != nil {
+		return nil, err
 	}
 	var refID *uuid.UUID
 	if req.ReferenceId != "" {
@@ -373,6 +379,55 @@ func (s *Server) GetMovementDocument(ctx context.Context, req *partsv1.GetMoveme
 		return nil, movementDocumentErr(err)
 	}
 	return &partsv1.GetMovementDocumentResponse{Document: s.documentToProto(ctx, doc)}, nil
+}
+
+func parseMovementDocumentLines(reqLines []*partsv1.MovementDocumentLineInput) ([]domain.MovementDocumentLineInput, error) {
+	lines := make([]domain.MovementDocumentLineInput, 0, len(reqLines))
+	for _, it := range reqLines {
+		partID, err := uuid.Parse(it.PartId)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "invalid part_id")
+		}
+		warehouseID, err := uuid.Parse(it.WarehouseId)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "invalid warehouse_id")
+		}
+		var refLine *uuid.UUID
+		if it.ReferenceLineId != "" {
+			if id, err := uuid.Parse(it.ReferenceLineId); err == nil {
+				refLine = &id
+			}
+		}
+		lines = append(lines, domain.MovementDocumentLineInput{
+			PartID: partID, WarehouseID: warehouseID, Quantity: it.Quantity,
+			ReferenceLineID: refLine, Notes: it.Notes, SortOrder: it.SortOrder,
+		})
+	}
+	return lines, nil
+}
+
+func (s *Server) UpdateMovementDocument(ctx context.Context, req *partsv1.UpdateMovementDocumentRequest) (*partsv1.UpdateMovementDocumentResponse, error) {
+	in := domain.UpdateMovementDocumentInput{ReplaceLines: req.ReplaceLines}
+	if req.MovementType != nil {
+		v := req.GetMovementType()
+		in.MovementType = &v
+	}
+	if req.Notes != nil {
+		v := req.GetNotes()
+		in.Notes = &v
+	}
+	if req.ReplaceLines {
+		lines, err := parseMovementDocumentLines(req.Lines)
+		if err != nil {
+			return nil, err
+		}
+		in.Lines = lines
+	}
+	doc, err := s.svc.UpdateMovementDocument(ctx, req.Id, in)
+	if err != nil {
+		return nil, movementDocumentErr(err)
+	}
+	return &partsv1.UpdateMovementDocumentResponse{Document: s.documentToProto(ctx, doc)}, nil
 }
 
 func (s *Server) ListMovementDocuments(ctx context.Context, req *partsv1.ListMovementDocumentsRequest) (*partsv1.ListMovementDocumentsResponse, error) {

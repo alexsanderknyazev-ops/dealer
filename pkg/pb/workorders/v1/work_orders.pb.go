@@ -141,6 +141,8 @@ type WorkOrderPart struct {
 	Amount        string                 `protobuf:"bytes,7,opt,name=amount,proto3" json:"amount,omitempty"`
 	Issued        bool                   `protobuf:"varint,8,opt,name=issued,proto3" json:"issued,omitempty"`
 	SortOrder     int32                  `protobuf:"varint,9,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	PartSku       string                 `protobuf:"bytes,10,opt,name=part_sku,json=partSku,proto3" json:"part_sku,omitempty"`
+	WarehouseName string                 `protobuf:"bytes,11,opt,name=warehouse_name,json=warehouseName,proto3" json:"warehouse_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -238,6 +240,20 @@ func (x *WorkOrderPart) GetSortOrder() int32 {
 	return 0
 }
 
+func (x *WorkOrderPart) GetPartSku() string {
+	if x != nil {
+		return x.PartSku
+	}
+	return ""
+}
+
+func (x *WorkOrderPart) GetWarehouseName() string {
+	if x != nil {
+		return x.WarehouseName
+	}
+	return ""
+}
+
 type WorkOrder struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
 	Id                     string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -267,6 +283,9 @@ type WorkOrder struct {
 	MovementDocumentId     string                 `protobuf:"bytes,25,opt,name=movement_document_id,json=movementDocumentId,proto3" json:"movement_document_id,omitempty"`
 	MovementDocumentStatus string                 `protobuf:"bytes,26,opt,name=movement_document_status,json=movementDocumentStatus,proto3" json:"movement_document_status,omitempty"`
 	ServiceAdvisorName     string                 `protobuf:"bytes,27,opt,name=service_advisor_name,json=serviceAdvisorName,proto3" json:"service_advisor_name,omitempty"`
+	CustomerName           string                 `protobuf:"bytes,28,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
+	VehicleVin             string                 `protobuf:"bytes,29,opt,name=vehicle_vin,json=vehicleVin,proto3" json:"vehicle_vin,omitempty"`
+	VehicleLabel           string                 `protobuf:"bytes,30,opt,name=vehicle_label,json=vehicleLabel,proto3" json:"vehicle_label,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -486,6 +505,27 @@ func (x *WorkOrder) GetMovementDocumentStatus() string {
 func (x *WorkOrder) GetServiceAdvisorName() string {
 	if x != nil {
 		return x.ServiceAdvisorName
+	}
+	return ""
+}
+
+func (x *WorkOrder) GetCustomerName() string {
+	if x != nil {
+		return x.CustomerName
+	}
+	return ""
+}
+
+func (x *WorkOrder) GetVehicleVin() string {
+	if x != nil {
+		return x.VehicleVin
+	}
+	return ""
+}
+
+func (x *WorkOrder) GetVehicleLabel() string {
+	if x != nil {
+		return x.VehicleLabel
 	}
 	return ""
 }
@@ -1579,7 +1619,7 @@ const file_workorders_v1_work_orders_proto_rawDesc = "" +
 	"executorId\x12\x1d\n" +
 	"\n" +
 	"sort_order\x18\b \x01(\x05R\tsortOrder\x12#\n" +
-	"\rexecutor_name\x18\t \x01(\tR\fexecutorName\"\x87\x02\n" +
+	"\rexecutor_name\x18\t \x01(\tR\fexecutorName\"\xc9\x02\n" +
 	"\rWorkOrderPart\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\apart_id\x18\x02 \x01(\tR\x06partId\x12!\n" +
@@ -1591,7 +1631,10 @@ const file_workorders_v1_work_orders_proto_rawDesc = "" +
 	"\x06amount\x18\a \x01(\tR\x06amount\x12\x16\n" +
 	"\x06issued\x18\b \x01(\bR\x06issued\x12\x1d\n" +
 	"\n" +
-	"sort_order\x18\t \x01(\x05R\tsortOrder\"\xc8\a\n" +
+	"sort_order\x18\t \x01(\x05R\tsortOrder\x12\x19\n" +
+	"\bpart_sku\x18\n" +
+	" \x01(\tR\apartSku\x12%\n" +
+	"\x0ewarehouse_name\x18\v \x01(\tR\rwarehouseName\"\xb3\b\n" +
 	"\tWorkOrder\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\forder_number\x18\x02 \x01(\tR\vorderNumber\x12\x1f\n" +
@@ -1629,7 +1672,11 @@ const file_workorders_v1_work_orders_proto_rawDesc = "" +
 	"\x05parts\x18\x18 \x03(\v2\x1c.workorders.v1.WorkOrderPartR\x05parts\x120\n" +
 	"\x14movement_document_id\x18\x19 \x01(\tR\x12movementDocumentId\x128\n" +
 	"\x18movement_document_status\x18\x1a \x01(\tR\x16movementDocumentStatus\x120\n" +
-	"\x14service_advisor_name\x18\x1b \x01(\tR\x12serviceAdvisorName\"\xcb\x01\n" +
+	"\x14service_advisor_name\x18\x1b \x01(\tR\x12serviceAdvisorName\x12#\n" +
+	"\rcustomer_name\x18\x1c \x01(\tR\fcustomerName\x12\x1f\n" +
+	"\vvehicle_vin\x18\x1d \x01(\tR\n" +
+	"vehicleVin\x12#\n" +
+	"\rvehicle_label\x18\x1e \x01(\tR\fvehicleLabel\"\xcb\x01\n" +
 	"\x13WorkOrderLaborInput\x12\x17\n" +
 	"\awork_id\x18\x01 \x01(\tR\x06workId\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1a\n" +

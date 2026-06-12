@@ -471,6 +471,51 @@ func local_request_PartsService_GetMovementDocument_0(ctx context.Context, marsh
 	return msg, metadata, err
 }
 
+func request_PartsService_UpdateMovementDocument_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateMovementDocumentRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.UpdateMovementDocument(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_UpdateMovementDocument_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateMovementDocumentRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.UpdateMovementDocument(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 var filter_PartsService_ListMovementDocuments_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_PartsService_ListMovementDocuments_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -932,6 +977,26 @@ func RegisterPartsServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		}
 		forward_PartsService_GetMovementDocument_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_GetMovementDocument_0{resp.(*GetMovementDocumentResponse)}, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPut, pattern_PartsService_UpdateMovementDocument_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/UpdateMovementDocument", runtime.WithHTTPPathPattern("/api/movement-documents/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_UpdateMovementDocument_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_UpdateMovementDocument_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_UpdateMovementDocument_0{resp.(*UpdateMovementDocumentResponse)}, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_PartsService_ListMovementDocuments_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1276,6 +1341,23 @@ func RegisterPartsServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		}
 		forward_PartsService_GetMovementDocument_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_GetMovementDocument_0{resp.(*GetMovementDocumentResponse)}, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPut, pattern_PartsService_UpdateMovementDocument_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/UpdateMovementDocument", runtime.WithHTTPPathPattern("/api/movement-documents/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_UpdateMovementDocument_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_UpdateMovementDocument_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_UpdateMovementDocument_0{resp.(*UpdateMovementDocumentResponse)}, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_PartsService_ListMovementDocuments_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1436,6 +1518,15 @@ func (m response_PartsService_GetMovementDocument_0) XXX_ResponseBody() interfac
 	return response.Document
 }
 
+type response_PartsService_UpdateMovementDocument_0 struct {
+	*UpdateMovementDocumentResponse
+}
+
+func (m response_PartsService_UpdateMovementDocument_0) XXX_ResponseBody() interface{} {
+	response := m.UpdateMovementDocumentResponse
+	return response.Document
+}
+
 type response_PartsService_StartMovementDocument_0 struct {
 	*StartMovementDocumentResponse
 }
@@ -1485,6 +1576,7 @@ var (
 	pattern_PartsService_DeleteFolder_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "parts", "folders", "id"}, ""))
 	pattern_PartsService_CreateMovementDocument_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "movement-documents"}, ""))
 	pattern_PartsService_GetMovementDocument_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "movement-documents", "id"}, ""))
+	pattern_PartsService_UpdateMovementDocument_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "movement-documents", "id"}, ""))
 	pattern_PartsService_ListMovementDocuments_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "movement-documents"}, ""))
 	pattern_PartsService_StartMovementDocument_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "start"}, ""))
 	pattern_PartsService_CloseMovementDocument_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "close"}, ""))
@@ -1505,6 +1597,7 @@ var (
 	forward_PartsService_DeleteFolder_0            = runtime.ForwardResponseMessage
 	forward_PartsService_CreateMovementDocument_0  = runtime.ForwardResponseMessage
 	forward_PartsService_GetMovementDocument_0     = runtime.ForwardResponseMessage
+	forward_PartsService_UpdateMovementDocument_0  = runtime.ForwardResponseMessage
 	forward_PartsService_ListMovementDocuments_0   = runtime.ForwardResponseMessage
 	forward_PartsService_StartMovementDocument_0   = runtime.ForwardResponseMessage
 	forward_PartsService_CloseMovementDocument_0   = runtime.ForwardResponseMessage

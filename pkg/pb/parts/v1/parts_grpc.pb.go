@@ -31,6 +31,7 @@ const (
 	PartsService_DeleteFolder_FullMethodName            = "/parts.v1.PartsService/DeleteFolder"
 	PartsService_CreateMovementDocument_FullMethodName  = "/parts.v1.PartsService/CreateMovementDocument"
 	PartsService_GetMovementDocument_FullMethodName     = "/parts.v1.PartsService/GetMovementDocument"
+	PartsService_UpdateMovementDocument_FullMethodName  = "/parts.v1.PartsService/UpdateMovementDocument"
 	PartsService_ListMovementDocuments_FullMethodName   = "/parts.v1.PartsService/ListMovementDocuments"
 	PartsService_StartMovementDocument_FullMethodName   = "/parts.v1.PartsService/StartMovementDocument"
 	PartsService_CloseMovementDocument_FullMethodName   = "/parts.v1.PartsService/CloseMovementDocument"
@@ -54,6 +55,7 @@ type PartsServiceClient interface {
 	DeleteFolder(ctx context.Context, in *DeleteFolderRequest, opts ...grpc.CallOption) (*DeleteFolderResponse, error)
 	CreateMovementDocument(ctx context.Context, in *CreateMovementDocumentRequest, opts ...grpc.CallOption) (*CreateMovementDocumentResponse, error)
 	GetMovementDocument(ctx context.Context, in *GetMovementDocumentRequest, opts ...grpc.CallOption) (*GetMovementDocumentResponse, error)
+	UpdateMovementDocument(ctx context.Context, in *UpdateMovementDocumentRequest, opts ...grpc.CallOption) (*UpdateMovementDocumentResponse, error)
 	ListMovementDocuments(ctx context.Context, in *ListMovementDocumentsRequest, opts ...grpc.CallOption) (*ListMovementDocumentsResponse, error)
 	StartMovementDocument(ctx context.Context, in *StartMovementDocumentRequest, opts ...grpc.CallOption) (*StartMovementDocumentResponse, error)
 	CloseMovementDocument(ctx context.Context, in *CloseMovementDocumentRequest, opts ...grpc.CallOption) (*CloseMovementDocumentResponse, error)
@@ -190,6 +192,16 @@ func (c *partsServiceClient) GetMovementDocument(ctx context.Context, in *GetMov
 	return out, nil
 }
 
+func (c *partsServiceClient) UpdateMovementDocument(ctx context.Context, in *UpdateMovementDocumentRequest, opts ...grpc.CallOption) (*UpdateMovementDocumentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateMovementDocumentResponse)
+	err := c.cc.Invoke(ctx, PartsService_UpdateMovementDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *partsServiceClient) ListMovementDocuments(ctx context.Context, in *ListMovementDocumentsRequest, opts ...grpc.CallOption) (*ListMovementDocumentsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListMovementDocumentsResponse)
@@ -256,6 +268,7 @@ type PartsServiceServer interface {
 	DeleteFolder(context.Context, *DeleteFolderRequest) (*DeleteFolderResponse, error)
 	CreateMovementDocument(context.Context, *CreateMovementDocumentRequest) (*CreateMovementDocumentResponse, error)
 	GetMovementDocument(context.Context, *GetMovementDocumentRequest) (*GetMovementDocumentResponse, error)
+	UpdateMovementDocument(context.Context, *UpdateMovementDocumentRequest) (*UpdateMovementDocumentResponse, error)
 	ListMovementDocuments(context.Context, *ListMovementDocumentsRequest) (*ListMovementDocumentsResponse, error)
 	StartMovementDocument(context.Context, *StartMovementDocumentRequest) (*StartMovementDocumentResponse, error)
 	CloseMovementDocument(context.Context, *CloseMovementDocumentRequest) (*CloseMovementDocumentResponse, error)
@@ -307,6 +320,9 @@ func (UnimplementedPartsServiceServer) CreateMovementDocument(context.Context, *
 }
 func (UnimplementedPartsServiceServer) GetMovementDocument(context.Context, *GetMovementDocumentRequest) (*GetMovementDocumentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMovementDocument not implemented")
+}
+func (UnimplementedPartsServiceServer) UpdateMovementDocument(context.Context, *UpdateMovementDocumentRequest) (*UpdateMovementDocumentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateMovementDocument not implemented")
 }
 func (UnimplementedPartsServiceServer) ListMovementDocuments(context.Context, *ListMovementDocumentsRequest) (*ListMovementDocumentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMovementDocuments not implemented")
@@ -560,6 +576,24 @@ func _PartsService_GetMovementDocument_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartsService_UpdateMovementDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateMovementDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).UpdateMovementDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_UpdateMovementDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).UpdateMovementDocument(ctx, req.(*UpdateMovementDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PartsService_ListMovementDocuments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListMovementDocumentsRequest)
 	if err := dec(in); err != nil {
@@ -704,6 +738,10 @@ var PartsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMovementDocument",
 			Handler:    _PartsService_GetMovementDocument_Handler,
+		},
+		{
+			MethodName: "UpdateMovementDocument",
+			Handler:    _PartsService_UpdateMovementDocument_Handler,
 		},
 		{
 			MethodName: "ListMovementDocuments",

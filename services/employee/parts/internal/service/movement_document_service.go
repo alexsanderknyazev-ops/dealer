@@ -13,11 +13,12 @@ import (
 )
 
 var (
-	ErrMovementDocumentNotFound    = errors.New("movement document not found")
-	ErrMovementDocumentNotDraft    = errors.New("movement document is not draft")
+	ErrMovementDocumentNotFound      = errors.New("movement document not found")
+	ErrMovementDocumentNotDraft      = errors.New("movement document is not draft")
 	ErrMovementDocumentNotInProgress = errors.New("movement document is not in progress")
-	ErrMovementDocumentNoLines     = errors.New("movement document has no lines")
-	ErrInsufficientStock           = errors.New("insufficient stock")
+	ErrMovementDocumentNotEditable   = errors.New("movement document cannot be edited")
+	ErrMovementDocumentNoLines       = errors.New("movement document has no lines")
+	ErrInsufficientStock             = errors.New("insufficient stock")
 )
 
 type stockMovementRepository interface {
@@ -30,6 +31,7 @@ type movementDocumentRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.MovementDocument, error)
 	List(ctx context.Context, limit, offset int32, status, referenceType, referenceID string) ([]*domain.MovementDocument, int32, error)
 	UpdateStatus(ctx context.Context, doc *domain.MovementDocument) error
+	Update(ctx context.Context, doc *domain.MovementDocument, replaceLines bool) error
 }
 
 type WorkOrdersNotifier interface {
@@ -42,18 +44,9 @@ func (noopWorkOrdersNotifier) ApplyMovementDocument(context.Context, string, str
 	return nil
 }
 
-func (s *PartService) CreateMovementDocument(ctx context.Context, in domain.CreateMovementDocumentInput) (*domain.MovementDocument, error) {
-	if len(in.Lines) == 0 {
-		return nil, errors.New("movement document lines required")
-	}
-	number, err := s.movementDocRepo.NextDocumentNumber(ctx)
-	if err != nil {
-		return nil, err
-	}
-	now := time.Now().UTC()
-	docID := uuid.New()
-	lines := make([]domain.MovementDocumentLine, 0, len(in.Lines))
-	for _, lineIn := range in.Lines {
+func (s *PartService) buildMovementLines(ctx context.Context, docID uuid.UUID, inputs []domain.MovementDocumentLineInput, now time.Time) ([]domain.MovementDocumentLine, error) {
+	lines := make([]domain.MovementDocumentLine, 0, len(inputs))
+	for _, lineIn := range inputs {
 		if lineIn.Quantity <= 0 {
 			return nil, fmt.Errorf("invalid quantity for part %s", lineIn.PartID)
 		}
@@ -77,6 +70,23 @@ func (s *PartService) CreateMovementDocument(ctx context.Context, in domain.Crea
 			SortOrder:       lineIn.SortOrder,
 			CreatedAt:       now,
 		})
+	}
+	return lines, nil
+}
+
+func (s *PartService) CreateMovementDocument(ctx context.Context, in domain.CreateMovementDocumentInput) (*domain.MovementDocument, error) {
+	number, err := s.movementDocRepo.NextDocumentNumber(ctx)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	docID := uuid.New()
+	var lines []domain.MovementDocumentLine
+	if len(in.Lines) > 0 {
+		lines, err = s.buildMovementLines(ctx, docID, in.Lines, now)
+		if err != nil {
+			return nil, err
+		}
 	}
 	doc := &domain.MovementDocument{
 		ID:             docID,
@@ -117,6 +127,34 @@ func (s *PartService) ListMovementDocuments(ctx context.Context, limit, offset i
 		limit = 20
 	}
 	return s.movementDocRepo.List(ctx, limit, offset, status, referenceType, referenceID)
+}
+
+func (s *PartService) UpdateMovementDocument(ctx context.Context, id string, in domain.UpdateMovementDocumentInput) (*domain.MovementDocument, error) {
+	doc, err := s.GetMovementDocument(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if doc.Status != domain.DocumentStatusDraft && doc.Status != domain.DocumentStatusInProgress {
+		return nil, ErrMovementDocumentNotEditable
+	}
+	now := time.Now().UTC()
+	if in.MovementType != nil {
+		doc.MovementType = *in.MovementType
+	}
+	if in.Notes != nil {
+		doc.Notes = *in.Notes
+	}
+	if in.ReplaceLines {
+		doc.Lines, err = s.buildMovementLines(ctx, doc.ID, in.Lines, now)
+		if err != nil {
+			return nil, err
+		}
+	}
+	doc.UpdatedAt = now
+	if err := s.movementDocRepo.Update(ctx, doc, in.ReplaceLines); err != nil {
+		return nil, err
+	}
+	return s.GetMovementDocument(ctx, id)
 }
 
 func (s *PartService) StartMovementDocument(ctx context.Context, id string) (*domain.MovementDocument, error) {

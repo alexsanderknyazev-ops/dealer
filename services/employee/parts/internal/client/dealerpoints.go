@@ -48,3 +48,11 @@ func (c *DealerPointsChecker) WarehouseExists(ctx context.Context, id uuid.UUID)
 	_, err := c.dealerPoints.GetWarehouse(grpclient.OutgoingContext(ctx), &dealerpointsv1.GetWarehouseRequest{Id: id.String()})
 	return grpclient.ExistsFromRPC(err)
 }
+
+func (c *DealerPointsChecker) WarehouseName(ctx context.Context, id uuid.UUID) string {
+	resp, err := c.dealerPoints.GetWarehouse(grpclient.OutgoingContext(ctx), &dealerpointsv1.GetWarehouseRequest{Id: id.String()})
+	if err != nil || resp.Warehouse == nil {
+		return ""
+	}
+	return resp.Warehouse.Name
+}

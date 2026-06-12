@@ -139,7 +139,7 @@ func TestPartsGRPC_PartFlow(t *testing.T) {
 	pr := &gprPart{parts: map[uuid.UUID]*domain.Part{}}
 	svc := service.NewPartService(pr, &gprFolder{folders: map[uuid.UUID]*domain.PartFolder{}}, &gprStock{repo: pr}, nil, nil)
 	s := grpc.NewServer()
-	partsv1.RegisterPartsServiceServer(s, NewServer(svc, nil))
+	partsv1.RegisterPartsServiceServer(s, NewServer(svc, nil, nil, nil))
 	cli := dialParts(t, s)
 	ctx := context.Background()
 	cr, err := cli.CreatePart(ctx, &partsv1.CreatePartRequest{Sku: "S", Name: "N", Category: "c"})
@@ -167,7 +167,7 @@ func TestPartsGRPC_FolderFlow(t *testing.T) {
 	fr := &gprFolder{folders: map[uuid.UUID]*domain.PartFolder{}}
 	svc := service.NewPartService(pr, fr, &gprStock{repo: pr}, nil, nil)
 	s := grpc.NewServer()
-	partsv1.RegisterPartsServiceServer(s, NewServer(svc, nil))
+	partsv1.RegisterPartsServiceServer(s, NewServer(svc, nil, nil, nil))
 	cli := dialParts(t, s)
 	ctx := context.Background()
 	f, err := cli.CreateFolder(ctx, &partsv1.CreateFolderRequest{Name: "F"})

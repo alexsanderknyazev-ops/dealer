@@ -16,14 +16,23 @@ type EmployeeNamer interface {
 	EmployeeFullName(ctx context.Context, id uuid.UUID) string
 }
 
+type ReferenceDisplayer interface {
+	EmployeeNamer
+	CustomerName(ctx context.Context, id uuid.UUID) string
+	VehicleDisplay(ctx context.Context, id uuid.UUID) (vin, label string)
+	PartDisplay(ctx context.Context, id uuid.UUID) (name, sku string)
+	WarehouseName(ctx context.Context, id uuid.UUID) string
+}
+
 type Server struct {
 	workordersv1.UnimplementedWorkOrdersServiceServer
 	svc       *service.WorkOrderService
 	employees EmployeeNamer
+	refs      ReferenceDisplayer
 }
 
-func NewServer(svc *service.WorkOrderService, employees EmployeeNamer) *Server {
-	return &Server{svc: svc, employees: employees}
+func NewServer(svc *service.WorkOrderService, refs ReferenceDisplayer) *Server {
+	return &Server{svc: svc, employees: refs, refs: refs}
 }
 
 func (s *Server) toProto(ctx context.Context, wo *domain.WorkOrder) *workordersv1.WorkOrder {
@@ -53,6 +62,10 @@ func (s *Server) toProto(ctx context.Context, wo *domain.WorkOrder) *workordersv
 	}
 	if wo.WarehouseID != nil {
 		out.WarehouseId = wo.WarehouseID.String()
+	}
+	if s.refs != nil {
+		out.CustomerName = s.refs.CustomerName(ctx, wo.CustomerID)
+		out.VehicleVin, out.VehicleLabel = s.refs.VehicleDisplay(ctx, wo.VehicleID)
 	}
 	if wo.ServiceAdvisorID != nil {
 		out.ServiceAdvisorId = wo.ServiceAdvisorID.String()
@@ -96,7 +109,7 @@ func (s *Server) toProto(ctx context.Context, wo *domain.WorkOrder) *workordersv
 	}
 	out.Parts = make([]*workordersv1.WorkOrderPart, len(wo.Parts))
 	for i, p := range wo.Parts {
-		out.Parts[i] = &workordersv1.WorkOrderPart{
+		item := &workordersv1.WorkOrderPart{
 			Id:          p.ID.String(),
 			PartId:      p.PartID.String(),
 			WarehouseId: p.WarehouseID.String(),
@@ -107,6 +120,15 @@ func (s *Server) toProto(ctx context.Context, wo *domain.WorkOrder) *workordersv
 			Issued:      p.Issued,
 			SortOrder:   p.SortOrder,
 		}
+		if s.refs != nil {
+			name, sku := s.refs.PartDisplay(ctx, p.PartID)
+			if name != "" && item.Description == "" {
+				item.Description = name
+			}
+			item.PartSku = sku
+			item.WarehouseName = s.refs.WarehouseName(ctx, p.WarehouseID)
+		}
+		out.Parts[i] = item
 	}
 	return out
 }

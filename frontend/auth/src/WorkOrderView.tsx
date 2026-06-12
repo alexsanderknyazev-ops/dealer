@@ -125,8 +125,11 @@ export function WorkOrderView() {
         <Card>
           <CardHeader><CardTitle className="text-base">Основное</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <div>Клиент: <span className="font-mono">{wo.customer_id}</span></div>
-            <div>Автомобиль: <span className="font-mono">{wo.vehicle_id}</span></div>
+            <div>Клиент: {wo.customer_name || wo.customer_id || '—'}</div>
+            <div>
+              Автомобиль: {wo.vehicle_label || wo.vehicle_id || '—'}
+              {wo.vehicle_vin ? ` (VIN: ${wo.vehicle_vin})` : ''}
+            </div>
             <div>Мастер-консультант: {wo.service_advisor_name || wo.service_advisor_id || '—'}</div>
             <div>Пробег: {wo.mileage_km} км</div>
             <div>Открыт: {fmtTime(wo.opened_at)}</div>
@@ -202,8 +205,11 @@ export function WorkOrderView() {
               <TableBody>
                 {wo.parts.map((p) => (
                   <TableRow key={p.id || p.part_id}>
-                    <TableCell>{p.description || p.part_id}</TableCell>
-                    <TableCell className="font-mono text-xs">{p.warehouse_id}</TableCell>
+                    <TableCell>
+                      {p.description || p.part_id}
+                      {p.part_sku ? <span className="block text-xs text-muted-foreground">{p.part_sku}</span> : null}
+                    </TableCell>
+                    <TableCell>{p.warehouse_name || p.warehouse_id}</TableCell>
                     <TableCell>{p.quantity}</TableCell>
                     <TableCell>{p.unit_price}</TableCell>
                     <TableCell>{p.amount}</TableCell>

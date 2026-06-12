@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import { Check, Plus } from 'lucide-react'
 import * as api from './movementDocumentsApi'
 import { useAuth } from './auth'
 import { PageHeader } from '@/components/common/PageHeader'
@@ -109,7 +109,17 @@ export function MovementDocuments() {
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <PageHeader title="Перемещение товаров" />
+      <PageHeader
+        title="Перемещение товаров"
+        action={
+          <Button asChild>
+            <Link to="/movement-documents/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Новый документ
+            </Link>
+          </Button>
+        }
+      />
 
       <div className="mb-4 max-w-xs">
         <NativeSelect
@@ -170,7 +180,7 @@ export function MovementDocuments() {
                       <TableCell>
                         {doc.reference_type === 'work_order' && doc.reference_id ? (
                           <Link className="text-primary underline" to={`/work-orders/${doc.reference_id}`}>
-                            Заказ-наряд
+                            {doc.reference_label || 'Заказ-наряд'}
                           </Link>
                         ) : (
                           doc.reference_type || '—'

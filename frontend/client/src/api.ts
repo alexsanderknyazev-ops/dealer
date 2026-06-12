@@ -65,6 +65,17 @@ export type ReviewInvitation = {
   created_at: number
 }
 
+export type ClientNotification = {
+  id: string
+  kind: string
+  source_type: string
+  source_id: string
+  title: string
+  body: string
+  status: string
+  created_at: number
+}
+
 export class ApiError extends Error {
   status: number
 
@@ -168,6 +179,22 @@ export async function listReviewInvitations(
 
 export async function dismissReviewInvitation(accessToken: string, id: string): Promise<void> {
   await request(`/api/client/review-invitations/${id}/dismiss`, {
+    method: 'POST',
+    headers: authHeaders(accessToken),
+    body: JSON.stringify({}),
+  })
+}
+
+export async function listClientNotifications(
+  accessToken: string,
+): Promise<{ notifications: ClientNotification[] }> {
+  return request<{ notifications: ClientNotification[] }>('/api/client/notifications', {
+    headers: authHeaders(accessToken),
+  })
+}
+
+export async function dismissClientNotification(accessToken: string, id: string): Promise<void> {
+  await request(`/api/client/notifications/${id}/dismiss`, {
     method: 'POST',
     headers: authHeaders(accessToken),
     body: JSON.stringify({}),

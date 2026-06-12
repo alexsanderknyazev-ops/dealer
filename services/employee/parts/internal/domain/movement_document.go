@@ -16,9 +16,12 @@ const (
 	MovementTypeTransfer        = "transfer"
 	MovementTypeToProduction    = "to_production"
 	MovementTypeFromProduction  = "from_production"
+	MovementTypeSale            = "sale"
+	MovementTypeReceipt         = "receipt"
 
 	RefWorkOrder        = "work_order"
 	RefMovementDocument = "movement_document"
+	// RefSupplierOrder, RefCustomerOrder — в part_order.go
 )
 
 // MovementTypeSupportsExtraction — закрытый документ этого типа можно частично вернуть извлечением.
@@ -38,6 +41,7 @@ type MovementDocumentLine struct {
 	WarehouseID            uuid.UUID
 	DestinationWarehouseID *uuid.UUID
 	Quantity               int32
+	UnitCost               string
 	ReferenceLineID *uuid.UUID
 	Notes           string
 	SortOrder       int32
@@ -52,7 +56,11 @@ type MovementDocument struct {
 	ReferenceType    string
 	ReferenceID      *uuid.UUID
 	ParentDocumentID *uuid.UUID
-	Notes            string
+	CustomerID          *uuid.UUID
+	VehicleID           *uuid.UUID
+	SupplierID          *uuid.UUID
+	ReceiptWarehouseID  *uuid.UUID
+	Notes               string
 	CreatedBy      *uuid.UUID
 	ConfirmedBy    *uuid.UUID
 	Lines          []MovementDocumentLine
@@ -66,6 +74,7 @@ type MovementDocumentLineInput struct {
 	WarehouseID            uuid.UUID
 	DestinationWarehouseID *uuid.UUID
 	Quantity               int32
+	UnitCost               string
 	ReferenceLineID *uuid.UUID
 	Notes           string
 	SortOrder       int32
@@ -75,14 +84,25 @@ type CreateMovementDocumentInput struct {
 	MovementType  string
 	ReferenceType string
 	ReferenceID   *uuid.UUID
-	Notes         string
+	CustomerID    *uuid.UUID
+	VehicleID     *uuid.UUID
+	VehicleVIN           string
+	SupplierID           *uuid.UUID
+	ReceiptWarehouseID   *uuid.UUID
+	Notes                string
 	CreatedBy     *uuid.UUID
 	Lines         []MovementDocumentLineInput
 }
 
 type UpdateMovementDocumentInput struct {
 	MovementType  *string
-	Notes         *string
+	CustomerID    *uuid.UUID
+	VehicleID     *uuid.UUID
+	VehicleVIN    *string
+	ClearVehicle         bool
+	SupplierID           *uuid.UUID
+	ReceiptWarehouseID   *uuid.UUID
+	Notes                *string
 	Lines         []MovementDocumentLineInput
 	ReplaceLines  bool
 }

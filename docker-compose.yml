@@ -228,6 +228,7 @@ services:
       WORKORDERS_GRPC_ADDR: "workorders-service:50064"
       WORKS_GRPC_ADDR: "works-service:50065"
       EMPLOYEES_GRPC_ADDR: "employees-service:50066"
+      APPOINTMENTS_GRPC_ADDR: "appointments-service:50067"
     depends_on:
       auth-service:
         condition: service_started
@@ -255,7 +256,42 @@ services:
         condition: service_started
       workorders-service:
         condition: service_started
+      appointments-service:
+        condition: service_started
       kafka:
+        condition: service_started
+
+  appointments-service:
+    build:
+      context: .
+      dockerfile: build/appointments-service.Dockerfile
+    ports:
+      - "50067:50067"
+    environment:
+      APPOINTMENTS_GRPC_PORT: "50067"
+      APPOINTMENTS_HTTP_PORT: "8101"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
+      JWT_SECRET: "change-me-in-production"
+      CUSTOMERS_GRPC_ADDR: "customers-service:50052"
+      VEHICLES_GRPC_ADDR: "vehicles-service:50053"
+      DEALER_POINTS_GRPC_ADDR: "dealer-points-service:50057"
+      PARTS_GRPC_ADDR: "parts-service:50055"
+      WORKS_GRPC_ADDR: "works-service:50065"
+      WORKORDERS_GRPC_ADDR: "workorders-service:50064"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      customers-service:
+        condition: service_started
+      vehicles-service:
+        condition: service_started
+      dealer-points-service:
+        condition: service_started
+      parts-service:
+        condition: service_started
+      works-service:
+        condition: service_started
+      workorders-service:
         condition: service_started
 
   workorders-service:

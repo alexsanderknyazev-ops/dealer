@@ -70,6 +70,8 @@ type WorkOrder struct {
 	PartsIssuedAt          *time.Time
 	MovementDocumentID     *uuid.UUID
 	MovementDocumentStatus string
+	SourceOrderType        string
+	SourceOrderID          *uuid.UUID
 	Notes                  string
 	Labor            []WorkOrderLabor
 	Parts            []WorkOrderPart

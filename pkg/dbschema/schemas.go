@@ -16,6 +16,7 @@ const (
 	WorkOrders         = "workorders"
 	Works              = "works"
 	Employees          = "employees"
+	Appointments       = "appointments"
 	ClientStatistics   = "client_statistics"
 	Public             = "public"
 )

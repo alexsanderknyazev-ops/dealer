@@ -15,6 +15,7 @@ CREATE SCHEMA IF NOT EXISTS employee_reviews;
 CREATE SCHEMA IF NOT EXISTS workorders;
 CREATE SCHEMA IF NOT EXISTS works;
 CREATE SCHEMA IF NOT EXISTS employees;
+CREATE SCHEMA IF NOT EXISTS appointments;
 
 -- Если таблицы уже были в public, переносим их в целевые схемы.
 DO $$

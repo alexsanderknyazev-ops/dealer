@@ -104,6 +104,72 @@ func local_request_ClientAccountService_GetProfile_0(ctx context.Context, marsha
 	return msg, metadata, err
 }
 
+func request_ClientAccountService_ListClientNotifications_0(ctx context.Context, marshaler runtime.Marshaler, client ClientAccountServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListClientNotificationsRequest
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.ListClientNotifications(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_ClientAccountService_ListClientNotifications_0(ctx context.Context, marshaler runtime.Marshaler, server ClientAccountServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListClientNotificationsRequest
+		metadata runtime.ServerMetadata
+	)
+	msg, err := server.ListClientNotifications(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_ClientAccountService_DismissClientNotification_0(ctx context.Context, marshaler runtime.Marshaler, client ClientAccountServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq DismissClientNotificationRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.DismissClientNotification(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_ClientAccountService_DismissClientNotification_0(ctx context.Context, marshaler runtime.Marshaler, server ClientAccountServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq DismissClientNotificationRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.DismissClientNotification(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 // RegisterClientAccountServiceHandlerServer registers the http handlers for service ClientAccountService to "mux".
 // UnaryRPC     :call ClientAccountServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -169,6 +235,46 @@ func RegisterClientAccountServiceHandlerServer(ctx context.Context, mux *runtime
 			return
 		}
 		forward_ClientAccountService_GetProfile_0(annotatedContext, mux, outboundMarshaler, w, req, response_ClientAccountService_GetProfile_0{resp.(*GetProfileResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_ClientAccountService_ListClientNotifications_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/clients.v1.ClientAccountService/ListClientNotifications", runtime.WithHTTPPathPattern("/api/client/notifications"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ClientAccountService_ListClientNotifications_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_ClientAccountService_ListClientNotifications_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_ClientAccountService_DismissClientNotification_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/clients.v1.ClientAccountService/DismissClientNotification", runtime.WithHTTPPathPattern("/api/client/notifications/{id}/dismiss"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ClientAccountService_DismissClientNotification_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_ClientAccountService_DismissClientNotification_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -261,6 +367,40 @@ func RegisterClientAccountServiceHandlerClient(ctx context.Context, mux *runtime
 		}
 		forward_ClientAccountService_GetProfile_0(annotatedContext, mux, outboundMarshaler, w, req, response_ClientAccountService_GetProfile_0{resp.(*GetProfileResponse)}, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodGet, pattern_ClientAccountService_ListClientNotifications_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/clients.v1.ClientAccountService/ListClientNotifications", runtime.WithHTTPPathPattern("/api/client/notifications"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ClientAccountService_ListClientNotifications_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_ClientAccountService_ListClientNotifications_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_ClientAccountService_DismissClientNotification_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/clients.v1.ClientAccountService/DismissClientNotification", runtime.WithHTTPPathPattern("/api/client/notifications/{id}/dismiss"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ClientAccountService_DismissClientNotification_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_ClientAccountService_DismissClientNotification_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
@@ -283,13 +423,17 @@ func (m response_ClientAccountService_GetProfile_0) XXX_ResponseBody() interface
 }
 
 var (
-	pattern_ClientAccountService_AddVehicle_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "client", "vehicles"}, ""))
-	pattern_ClientAccountService_ListMyVehicles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "client", "vehicles"}, ""))
-	pattern_ClientAccountService_GetProfile_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "client", "profile"}, ""))
+	pattern_ClientAccountService_AddVehicle_0                = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "client", "vehicles"}, ""))
+	pattern_ClientAccountService_ListMyVehicles_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "client", "vehicles"}, ""))
+	pattern_ClientAccountService_GetProfile_0                = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "client", "profile"}, ""))
+	pattern_ClientAccountService_ListClientNotifications_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "client", "notifications"}, ""))
+	pattern_ClientAccountService_DismissClientNotification_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "client", "notifications", "id", "dismiss"}, ""))
 )
 
 var (
-	forward_ClientAccountService_AddVehicle_0     = runtime.ForwardResponseMessage
-	forward_ClientAccountService_ListMyVehicles_0 = runtime.ForwardResponseMessage
-	forward_ClientAccountService_GetProfile_0     = runtime.ForwardResponseMessage
+	forward_ClientAccountService_AddVehicle_0                = runtime.ForwardResponseMessage
+	forward_ClientAccountService_ListMyVehicles_0            = runtime.ForwardResponseMessage
+	forward_ClientAccountService_GetProfile_0                = runtime.ForwardResponseMessage
+	forward_ClientAccountService_ListClientNotifications_0   = runtime.ForwardResponseMessage
+	forward_ClientAccountService_DismissClientNotification_0 = runtime.ForwardResponseMessage
 )

@@ -38,8 +38,9 @@ func main() {
 	}
 	defer pool.Close()
 
-	repo := repository.NewInvitationRepository(pool)
-	svc := service.NewSchedulerService(repo, cfg.BatchSize)
+	invRepo := repository.NewInvitationRepository(pool)
+	notifRepo := repository.NewNotificationRepository(pool)
+	svc := service.NewSchedulerService(invRepo, notifRepo, cfg.BatchSize)
 	w := worker.NewWorker(svc, cfg.PollInterval, logger)
 	go w.Run(ctx)
 

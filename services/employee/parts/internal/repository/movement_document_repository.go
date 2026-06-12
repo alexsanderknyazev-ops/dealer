@@ -37,10 +37,12 @@ func (r *MovementDocumentRepository) Create(ctx context.Context, doc *domain.Mov
 	_, err = tx.Exec(ctx, `
 		INSERT INTO movement_documents (
 			id, document_number, status, movement_type, reference_type, reference_id,
-			parent_document_id, notes, created_by, created_at, updated_at
-		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+			parent_document_id, customer_id, vehicle_id, supplier_id, receipt_warehouse_id,
+			notes, created_by, created_at, updated_at
+		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
 	`, doc.ID, doc.DocumentNumber, doc.Status, doc.MovementType, doc.ReferenceType, doc.ReferenceID,
-		doc.ParentDocumentID, doc.Notes, doc.CreatedBy, doc.CreatedAt, doc.UpdatedAt)
+		doc.ParentDocumentID, doc.CustomerID, doc.VehicleID, doc.SupplierID, doc.ReceiptWarehouseID,
+		doc.Notes, doc.CreatedBy, doc.CreatedAt, doc.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -48,10 +50,10 @@ func (r *MovementDocumentRepository) Create(ctx context.Context, doc *domain.Mov
 		_, err = tx.Exec(ctx, `
 			INSERT INTO movement_document_lines (
 				id, document_id, part_id, warehouse_id, destination_warehouse_id,
-				quantity, reference_line_id, notes, sort_order, created_at
-			) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+				quantity, unit_cost, reference_line_id, notes, sort_order, created_at
+			) VALUES ($1,$2,$3,$4,$5,$6,$7::numeric,$8,$9,$10,$11)
 		`, line.ID, doc.ID, line.PartID, line.WarehouseID, line.DestinationWarehouseID,
-			line.Quantity, line.ReferenceLineID, line.Notes, line.SortOrder, line.CreatedAt)
+			line.Quantity, line.UnitCost, line.ReferenceLineID, line.Notes, line.SortOrder, line.CreatedAt)
 		if err != nil {
 			return err
 		}
@@ -61,7 +63,8 @@ func (r *MovementDocumentRepository) Create(ctx context.Context, doc *domain.Mov
 
 const documentSelect = `
 	SELECT id, document_number, status, movement_type, reference_type, reference_id,
-		parent_document_id, notes, created_by, confirmed_by, created_at, confirmed_at, updated_at
+		parent_document_id, customer_id, vehicle_id, supplier_id, receipt_warehouse_id,
+		notes, created_by, confirmed_by, created_at, confirmed_at, updated_at
 	FROM movement_documents
 `
 
@@ -69,7 +72,8 @@ func (r *MovementDocumentRepository) scanHeader(row pgx.Row) (*domain.MovementDo
 	var d domain.MovementDocument
 	err := row.Scan(
 		&d.ID, &d.DocumentNumber, &d.Status, &d.MovementType, &d.ReferenceType, &d.ReferenceID,
-		&d.ParentDocumentID, &d.Notes, &d.CreatedBy, &d.ConfirmedBy, &d.CreatedAt, &d.ConfirmedAt, &d.UpdatedAt,
+		&d.ParentDocumentID, &d.CustomerID, &d.VehicleID, &d.SupplierID, &d.ReceiptWarehouseID,
+		&d.Notes, &d.CreatedBy, &d.ConfirmedBy, &d.CreatedAt, &d.ConfirmedAt, &d.UpdatedAt,
 	)
 	return &d, err
 }
@@ -86,7 +90,7 @@ func (r *MovementDocumentRepository) GetByID(ctx context.Context, id uuid.UUID) 
 func (r *MovementDocumentRepository) listLines(ctx context.Context, documentID uuid.UUID) ([]domain.MovementDocumentLine, error) {
 	rows, err := r.pool.Query(ctx, `
 		SELECT id, document_id, part_id, warehouse_id, destination_warehouse_id,
-		       quantity, reference_line_id, notes, sort_order, created_at
+		       quantity, unit_cost::text, reference_line_id, notes, sort_order, created_at
 		FROM movement_document_lines WHERE document_id = $1 ORDER BY sort_order, created_at
 	`, documentID)
 	if err != nil {
@@ -98,7 +102,7 @@ func (r *MovementDocumentRepository) listLines(ctx context.Context, documentID u
 		var l domain.MovementDocumentLine
 		if err := rows.Scan(
 			&l.ID, &l.DocumentID, &l.PartID, &l.WarehouseID, &l.DestinationWarehouseID,
-			&l.Quantity, &l.ReferenceLineID, &l.Notes, &l.SortOrder, &l.CreatedAt,
+			&l.Quantity, &l.UnitCost, &l.ReferenceLineID, &l.Notes, &l.SortOrder, &l.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -171,9 +175,11 @@ func (r *MovementDocumentRepository) Update(ctx context.Context, doc *domain.Mov
 	defer tx.Rollback(ctx)
 	_, err = tx.Exec(ctx, `
 		UPDATE movement_documents
-		SET movement_type=$2, notes=$3, updated_at=$4
+		SET movement_type=$2, customer_id=$3, vehicle_id=$4, supplier_id=$5, receipt_warehouse_id=$6,
+		    notes=$7, updated_at=$8
 		WHERE id=$1
-	`, doc.ID, doc.MovementType, doc.Notes, doc.UpdatedAt)
+	`, doc.ID, doc.MovementType, doc.CustomerID, doc.VehicleID, doc.SupplierID, doc.ReceiptWarehouseID,
+		doc.Notes, doc.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -184,9 +190,11 @@ func (r *MovementDocumentRepository) Update(ctx context.Context, doc *domain.Mov
 		for _, line := range doc.Lines {
 			_, err = tx.Exec(ctx, `
 				INSERT INTO movement_document_lines (
-					id, document_id, part_id, warehouse_id, quantity, reference_line_id, notes, sort_order, created_at
-				) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-			`, line.ID, doc.ID, line.PartID, line.WarehouseID, line.Quantity, line.ReferenceLineID, line.Notes, line.SortOrder, line.CreatedAt)
+					id, document_id, part_id, warehouse_id, destination_warehouse_id,
+					quantity, unit_cost, reference_line_id, notes, sort_order, created_at
+				) VALUES ($1,$2,$3,$4,$5,$6,$7::numeric,$8,$9,$10,$11)
+			`, line.ID, doc.ID, line.PartID, line.WarehouseID, line.DestinationWarehouseID,
+				line.Quantity, line.UnitCost, line.ReferenceLineID, line.Notes, line.SortOrder, line.CreatedAt)
 			if err != nil {
 				return err
 			}

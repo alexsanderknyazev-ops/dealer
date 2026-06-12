@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,6 +28,13 @@ var (
 	ErrExtractionExceedsBalance      = errors.New("extraction quantity exceeds remaining balance")
 	ErrDestinationRequired           = errors.New("destination warehouse required")
 	ErrSameSourceDestination         = errors.New("source and destination warehouse must differ")
+	ErrCustomerRequired              = errors.New("customer required for goods sale")
+	ErrCustomerNotFound              = errors.New("customer not found")
+	ErrVehicleNotFound               = errors.New("vehicle not found")
+	ErrSupplierRequired              = errors.New("supplier required for goods receipt")
+	ErrSupplierNotFound              = errors.New("supplier not found")
+	ErrReceiptWarehouseRequired      = errors.New("receipt warehouse required")
+	ErrUnitCostRequired              = errors.New("unit cost required for receipt line")
 )
 
 type stockMovementRepository interface {
@@ -43,8 +52,26 @@ type movementDocumentRepository interface {
 	HasOpenExtractionForParent(ctx context.Context, parentDocumentID uuid.UUID) (bool, error)
 }
 
+type WorkOrderPartLineInput struct {
+	PartID, WarehouseID, Quantity, UnitPrice, Notes string
+	SortOrder                                     int32
+}
+
+type CreateWorkOrderFromOrderInput struct {
+	CustomerID, VehicleID, WarehouseID string
+	SourceOrderType, SourceOrderID     string
+	Notes                              string
+	Parts                              []WorkOrderPartLineInput
+}
+
+type CreatedWorkOrderRef struct {
+	ID, OrderNumber string
+}
+
 type WorkOrdersNotifier interface {
 	ApplyMovementDocument(ctx context.Context, workOrderID, documentID, status string) error
+	CreateWorkOrder(ctx context.Context, in CreateWorkOrderFromOrderInput) (*CreatedWorkOrderRef, error)
+	GetWorkOrder(ctx context.Context, id string) (orderNumber string, err error)
 }
 
 type noopWorkOrdersNotifier struct{}
@@ -53,10 +80,87 @@ func (noopWorkOrdersNotifier) ApplyMovementDocument(context.Context, string, str
 	return nil
 }
 
+func (noopWorkOrdersNotifier) CreateWorkOrder(context.Context, CreateWorkOrderFromOrderInput) (*CreatedWorkOrderRef, error) {
+	return nil, errors.New("workorders service unavailable")
+}
+
+func (noopWorkOrdersNotifier) GetWorkOrder(context.Context, string) (string, error) {
+	return "", errors.New("workorders service unavailable")
+}
+
+func parseUnitCost(raw string, required bool) (string, error) {
+	s := strings.TrimSpace(strings.ReplaceAll(raw, ",", "."))
+	if s == "" {
+		if required {
+			return "", ErrUnitCostRequired
+		}
+		return "0", nil
+	}
+	v, err := strconv.ParseFloat(s, 64)
+	if err != nil || v < 0 {
+		return "", ErrUnitCostRequired
+	}
+	if required && v <= 0 {
+		return "", ErrUnitCostRequired
+	}
+	return s, nil
+}
+
+func (s *PartService) validateReceiptDocument(
+	ctx context.Context,
+	movementType string,
+	supplierID *uuid.UUID,
+	receiptWarehouseID *uuid.UUID,
+) (*uuid.UUID, *uuid.UUID, error) {
+	if movementType != domain.MovementTypeReceipt {
+		return nil, nil, nil
+	}
+	if supplierID == nil {
+		return nil, nil, ErrSupplierRequired
+	}
+	if s.suppliers == nil {
+		return supplierID, receiptWarehouseID, nil
+	}
+	ok, err := s.suppliers.Exists(ctx, *supplierID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !ok {
+		return nil, nil, ErrSupplierNotFound
+	}
+	if receiptWarehouseID == nil {
+		return nil, nil, ErrReceiptWarehouseRequired
+	}
+	if err := s.checkRef(ctx, receiptWarehouseID, s.dealerPoints.WarehouseExists, ErrWarehouseNotFound); err != nil {
+		return nil, nil, err
+	}
+	return supplierID, receiptWarehouseID, nil
+}
+
+func (s *PartService) applyDocumentHeaderFields(
+	doc *domain.MovementDocument,
+	movementType string,
+	customerID, vehicleID, supplierID, receiptWarehouseID *uuid.UUID,
+) {
+	doc.CustomerID = nil
+	doc.VehicleID = nil
+	doc.SupplierID = nil
+	doc.ReceiptWarehouseID = nil
+	switch movementType {
+	case domain.MovementTypeSale:
+		doc.CustomerID = customerID
+		doc.VehicleID = vehicleID
+	case domain.MovementTypeReceipt:
+		doc.SupplierID = supplierID
+		doc.ReceiptWarehouseID = receiptWarehouseID
+	}
+}
+
 func (s *PartService) buildMovementLines(
 	ctx context.Context,
 	docID uuid.UUID,
 	movementType string,
+	receiptWarehouseID *uuid.UUID,
 	inputs []domain.MovementDocumentLineInput,
 	now time.Time,
 ) ([]domain.MovementDocumentLine, error) {
@@ -71,7 +175,17 @@ func (s *PartService) buildMovementLines(
 			}
 			return nil, err
 		}
-		if err := s.checkRef(ctx, &lineIn.WarehouseID, s.dealerPoints.WarehouseExists, ErrWarehouseNotFound); err != nil {
+		warehouseID := lineIn.WarehouseID
+		if movementType == domain.MovementTypeReceipt {
+			if receiptWarehouseID == nil {
+				return nil, ErrReceiptWarehouseRequired
+			}
+			warehouseID = *receiptWarehouseID
+		} else if err := s.checkRef(ctx, &lineIn.WarehouseID, s.dealerPoints.WarehouseExists, ErrWarehouseNotFound); err != nil {
+			return nil, err
+		}
+		unitCost, err := parseUnitCost(lineIn.UnitCost, movementType == domain.MovementTypeReceipt)
+		if err != nil {
 			return nil, err
 		}
 		var destID *uuid.UUID
@@ -91,21 +205,82 @@ func (s *PartService) buildMovementLines(
 			ID:                     uuid.New(),
 			DocumentID:             docID,
 			PartID:                 lineIn.PartID,
-			WarehouseID:            lineIn.WarehouseID,
+			WarehouseID:            warehouseID,
 			DestinationWarehouseID: destID,
 			Quantity:               lineIn.Quantity,
+			UnitCost:               unitCost,
 			ReferenceLineID:        lineIn.ReferenceLineID,
 			Notes:                  lineIn.Notes,
-			SortOrder:                lineIn.SortOrder,
-			CreatedAt:                now,
+			SortOrder:              lineIn.SortOrder,
+			CreatedAt:              now,
 		})
 	}
 	return lines, nil
 }
 
+func (s *PartService) resolveSaleVehicle(ctx context.Context, vehicleID *uuid.UUID, vehicleVIN string) (*uuid.UUID, error) {
+	if vehicleID != nil {
+		ok, err := s.customers.VehicleExists(ctx, *vehicleID)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, ErrVehicleNotFound
+		}
+		return vehicleID, nil
+	}
+	vin := strings.TrimSpace(vehicleVIN)
+	if vin == "" {
+		return nil, nil
+	}
+	id, err := s.customers.LookupVehicleIDByVIN(ctx, vin)
+	if err != nil {
+		return nil, err
+	}
+	if id == nil {
+		return nil, ErrVehicleNotFound
+	}
+	return id, nil
+}
+
+func (s *PartService) validateSaleDocument(
+	ctx context.Context,
+	movementType string,
+	customerID *uuid.UUID,
+	vehicleID *uuid.UUID,
+	vehicleVIN string,
+) (*uuid.UUID, *uuid.UUID, error) {
+	if movementType != domain.MovementTypeSale {
+		return nil, nil, nil
+	}
+	if customerID == nil {
+		return nil, nil, ErrCustomerRequired
+	}
+	ok, err := s.customers.CustomerExists(ctx, *customerID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !ok {
+		return nil, nil, ErrCustomerNotFound
+	}
+	resolvedVehicle, err := s.resolveSaleVehicle(ctx, vehicleID, vehicleVIN)
+	if err != nil {
+		return nil, nil, err
+	}
+	return customerID, resolvedVehicle, nil
+}
+
 func (s *PartService) CreateMovementDocument(ctx context.Context, in domain.CreateMovementDocumentInput) (*domain.MovementDocument, error) {
 	if in.MovementType == domain.MovementTypeFromProduction {
 		return nil, fmt.Errorf("use CreateProductionExtraction for from_production documents")
+	}
+	customerID, vehicleID, err := s.validateSaleDocument(ctx, in.MovementType, in.CustomerID, in.VehicleID, in.VehicleVIN)
+	if err != nil {
+		return nil, err
+	}
+	supplierID, receiptWarehouseID, err := s.validateReceiptDocument(ctx, in.MovementType, in.SupplierID, in.ReceiptWarehouseID)
+	if err != nil {
+		return nil, err
 	}
 	number, err := s.movementDocRepo.NextDocumentNumber(ctx)
 	if err != nil {
@@ -115,7 +290,7 @@ func (s *PartService) CreateMovementDocument(ctx context.Context, in domain.Crea
 	docID := uuid.New()
 	var lines []domain.MovementDocumentLine
 	if len(in.Lines) > 0 {
-		lines, err = s.buildMovementLines(ctx, docID, in.MovementType, in.Lines, now)
+		lines, err = s.buildMovementLines(ctx, docID, in.MovementType, receiptWarehouseID, in.Lines, now)
 		if err != nil {
 			return nil, err
 		}
@@ -133,6 +308,7 @@ func (s *PartService) CreateMovementDocument(ctx context.Context, in domain.Crea
 		CreatedAt:      now,
 		UpdatedAt:      now,
 	}
+	s.applyDocumentHeaderFields(doc, in.MovementType, customerID, vehicleID, supplierID, receiptWarehouseID)
 	if err := s.movementDocRepo.Create(ctx, doc); err != nil {
 		return nil, err
 	}
@@ -173,11 +349,42 @@ func (s *PartService) UpdateMovementDocument(ctx context.Context, id string, in 
 	if in.MovementType != nil {
 		doc.MovementType = *in.MovementType
 	}
+	nextCustomer := doc.CustomerID
+	if in.CustomerID != nil {
+		nextCustomer = in.CustomerID
+	}
+	nextVehicle := doc.VehicleID
+	if in.ClearVehicle {
+		nextVehicle = nil
+	} else if in.VehicleID != nil {
+		nextVehicle = in.VehicleID
+	}
+	vehicleVIN := ""
+	if in.VehicleVIN != nil {
+		vehicleVIN = *in.VehicleVIN
+	}
+	customerID, vehicleID, err := s.validateSaleDocument(ctx, doc.MovementType, nextCustomer, nextVehicle, vehicleVIN)
+	if err != nil {
+		return nil, err
+	}
+	nextSupplier := doc.SupplierID
+	if in.SupplierID != nil {
+		nextSupplier = in.SupplierID
+	}
+	nextReceiptWh := doc.ReceiptWarehouseID
+	if in.ReceiptWarehouseID != nil {
+		nextReceiptWh = in.ReceiptWarehouseID
+	}
+	supplierID, receiptWarehouseID, err := s.validateReceiptDocument(ctx, doc.MovementType, nextSupplier, nextReceiptWh)
+	if err != nil {
+		return nil, err
+	}
+	s.applyDocumentHeaderFields(doc, doc.MovementType, customerID, vehicleID, supplierID, receiptWarehouseID)
 	if in.Notes != nil {
 		doc.Notes = *in.Notes
 	}
 	if in.ReplaceLines {
-		doc.Lines, err = s.buildMovementLines(ctx, doc.ID, doc.MovementType, in.Lines, now)
+		doc.Lines, err = s.buildMovementLines(ctx, doc.ID, doc.MovementType, receiptWarehouseID, in.Lines, now)
 		if err != nil {
 			return nil, err
 		}
@@ -199,6 +406,16 @@ func (s *PartService) StartMovementDocument(ctx context.Context, id string) (*do
 	}
 	if len(doc.Lines) == 0 {
 		return nil, ErrMovementDocumentNoLines
+	}
+	if doc.MovementType == domain.MovementTypeSale {
+		if _, _, err := s.validateSaleDocument(ctx, doc.MovementType, doc.CustomerID, doc.VehicleID, ""); err != nil {
+			return nil, err
+		}
+	}
+	if doc.MovementType == domain.MovementTypeReceipt {
+		if _, _, err := s.validateReceiptDocument(ctx, doc.MovementType, doc.SupplierID, doc.ReceiptWarehouseID); err != nil {
+			return nil, err
+		}
 	}
 	doc.Status = domain.DocumentStatusInProgress
 	doc.UpdatedAt = time.Now().UTC()
@@ -262,6 +479,13 @@ func (s *PartService) CloseMovementDocument(ctx context.Context, id string, clos
 			if err := s.closeExtractionLine(ctx, doc, line, refLine, closedBy, now); err != nil {
 				return nil, err
 			}
+		case domain.MovementTypeReceipt:
+			if err := s.stockRepo.Add(ctx, line.PartID, line.WarehouseID, line.Quantity); err != nil {
+				return nil, err
+			}
+			if err := s.recordStockMovement(ctx, doc, line, line.WarehouseID, line.Quantity, refLine, closedBy, now); err != nil {
+				return nil, err
+			}
 		case domain.MovementTypeTransfer:
 			if _, err := s.stockRepo.Deduct(ctx, line.PartID, line.WarehouseID, line.Quantity); err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
@@ -309,6 +533,7 @@ func (s *PartService) CloseMovementDocument(ctx context.Context, id string, clos
 			return nil, fmt.Errorf("notify work order: %w", err)
 		}
 	}
+	s.fulfillLinkedOrder(ctx, doc)
 	return s.GetMovementDocument(ctx, id)
 }
 

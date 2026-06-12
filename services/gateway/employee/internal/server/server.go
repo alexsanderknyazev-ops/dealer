@@ -22,6 +22,7 @@ import (
 	vehiclesv1 "github.com/dealer/dealer/pkg/pb/vehicles/v1"
 	workordersv1 "github.com/dealer/dealer/pkg/pb/workorders/v1"
 	employeesv1 "github.com/dealer/dealer/pkg/pb/employees/v1"
+	appointmentsv1 "github.com/dealer/dealer/pkg/pb/appointments/v1"
 	worksv1 "github.com/dealer/dealer/pkg/pb/works/v1"
 	"github.com/dealer/dealer/services/gateway/internal/config"
 )
@@ -83,6 +84,7 @@ func (s *Server) registerBackends(ctx context.Context) error {
 		{"work-orders", workordersv1.RegisterWorkOrdersServiceHandlerFromEndpoint, s.cfg.WorkOrdersGRPCAddr},
 		{"works", worksv1.RegisterWorksServiceHandlerFromEndpoint, s.cfg.WorksGRPCAddr},
 		{"employees", employeesv1.RegisterEmployeesServiceHandlerFromEndpoint, s.cfg.EmployeesGRPCAddr},
+		{"appointments", appointmentsv1.RegisterRepairAppointmentsServiceHandlerFromEndpoint, s.cfg.AppointmentsGRPCAddr},
 	}
 	for _, r := range registrars {
 		if err := r.fn(ctx, s.mux, r.addr, opts); err != nil {

@@ -335,3 +335,14 @@ func (c *ReferenceChecker) CreateMovementDocument(
 	}
 	return resp.Document.Id, nil
 }
+
+func (c *ReferenceChecker) FulfillOrderFromWorkOrder(ctx context.Context, sourceOrderType, sourceOrderID string) error {
+	if c.parts == nil || sourceOrderType == "" || sourceOrderID == "" {
+		return nil
+	}
+	_, err := c.parts.FulfillOrderFromWorkOrder(grpclient.OutgoingContext(ctx), &partsv1.FulfillOrderFromWorkOrderRequest{
+		SourceOrderType: sourceOrderType,
+		SourceOrderId:   sourceOrderID,
+	})
+	return err
+}

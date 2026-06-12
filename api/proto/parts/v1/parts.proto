@@ -70,6 +70,78 @@ service PartsService {
   rpc CreateProductionExtraction(CreateProductionExtractionRequest) returns (CreateProductionExtractionResponse) {
     option (google.api.http) = { post: "/api/movement-documents/{id}/create-production-extraction" body: "*" response_body: "document" };
   }
+
+  rpc ListSuppliers(ListSuppliersRequest) returns (ListSuppliersResponse) {
+    option (google.api.http) = { get: "/api/suppliers" };
+  }
+
+  rpc CreateSupplierOrder(CreateSupplierOrderRequest) returns (CreateSupplierOrderResponse) {
+    option (google.api.http) = { post: "/api/supplier-orders" body: "*" response_body: "order" };
+  }
+  rpc GetSupplierOrder(GetSupplierOrderRequest) returns (GetSupplierOrderResponse) {
+    option (google.api.http) = { get: "/api/supplier-orders/{id}" response_body: "order" };
+  }
+  rpc UpdateSupplierOrder(UpdateSupplierOrderRequest) returns (UpdateSupplierOrderResponse) {
+    option (google.api.http) = { put: "/api/supplier-orders/{id}" body: "*" response_body: "order" };
+  }
+  rpc ListSupplierOrders(ListSupplierOrdersRequest) returns (ListSupplierOrdersResponse) {
+    option (google.api.http) = { get: "/api/supplier-orders" };
+  }
+  rpc CancelSupplierOrder(CancelSupplierOrderRequest) returns (CancelSupplierOrderResponse) {
+    option (google.api.http) = { post: "/api/supplier-orders/{id}/cancel" body: "*" response_body: "order" };
+  }
+  rpc CreateReceiptFromSupplierOrder(CreateReceiptFromSupplierOrderRequest) returns (CreateReceiptFromSupplierOrderResponse) {
+    option (google.api.http) = { post: "/api/supplier-orders/{id}/create-receipt" body: "*" response_body: "document" };
+  }
+
+  rpc CreateCustomerOrder(CreateCustomerOrderRequest) returns (CreateCustomerOrderResponse) {
+    option (google.api.http) = { post: "/api/customer-orders" body: "*" response_body: "order" };
+  }
+  rpc GetCustomerOrder(GetCustomerOrderRequest) returns (GetCustomerOrderResponse) {
+    option (google.api.http) = { get: "/api/customer-orders/{id}" response_body: "order" };
+  }
+  rpc UpdateCustomerOrder(UpdateCustomerOrderRequest) returns (UpdateCustomerOrderResponse) {
+    option (google.api.http) = { put: "/api/customer-orders/{id}" body: "*" response_body: "order" };
+  }
+  rpc ListCustomerOrders(ListCustomerOrdersRequest) returns (ListCustomerOrdersResponse) {
+    option (google.api.http) = { get: "/api/customer-orders" };
+  }
+  rpc CancelCustomerOrder(CancelCustomerOrderRequest) returns (CancelCustomerOrderResponse) {
+    option (google.api.http) = { post: "/api/customer-orders/{id}/cancel" body: "*" response_body: "order" };
+  }
+  rpc CreateSaleFromCustomerOrder(CreateSaleFromCustomerOrderRequest) returns (CreateSaleFromCustomerOrderResponse) {
+    option (google.api.http) = { post: "/api/customer-orders/{id}/create-sale" body: "*" response_body: "document" };
+  }
+  rpc CreateWorkOrderFromSupplierOrder(CreateWorkOrderFromSupplierOrderRequest) returns (CreateWorkOrderFromOrderResponse) {
+    option (google.api.http) = { post: "/api/supplier-orders/{id}/create-work-order" body: "*" };
+  }
+  rpc CreateWorkOrderFromCustomerOrder(CreateWorkOrderFromCustomerOrderRequest) returns (CreateWorkOrderFromOrderResponse) {
+    option (google.api.http) = { post: "/api/customer-orders/{id}/create-work-order" body: "*" };
+  }
+  // Вызывается workorders-service при закрытии заказ-наряда, созданного из заказа.
+  rpc FulfillOrderFromWorkOrder(FulfillOrderFromWorkOrderRequest) returns (FulfillOrderFromWorkOrderResponse);
+}
+
+message Supplier {
+  string id = 1;
+  string name = 2;
+  string inn = 3;
+  string phone = 4;
+  string email = 5;
+  string notes = 6;
+  int64 created_at = 7;
+  int64 updated_at = 8;
+}
+
+message ListSuppliersRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string search = 3;
+}
+
+message ListSuppliersResponse {
+  repeated Supplier suppliers = 1;
+  int32 total = 2;
 }
 
 message PartFolder {
@@ -150,6 +222,7 @@ message MovementDocumentLine {
   string destination_warehouse_id = 11;
   string destination_warehouse_name = 12;
   int32 source_stock_quantity = 13;
+  string unit_cost = 14;
 }
 
 message MovementDocumentLineInput {
@@ -160,6 +233,7 @@ message MovementDocumentLineInput {
   string notes = 5;
   int32 sort_order = 6;
   string destination_warehouse_id = 7;
+  string unit_cost = 8;
 }
 
 message MovementDocument {
@@ -184,6 +258,12 @@ message MovementDocument {
   string vehicle_label = 19;
   string parent_document_id = 20;
   string parent_document_number = 21;
+  string customer_id = 22;
+  string vehicle_id = 23;
+  string supplier_id = 24;
+  string supplier_name = 25;
+  string receipt_warehouse_id = 26;
+  string receipt_warehouse_name = 27;
 }
 
 message UpdateMovementDocumentRequest {
@@ -192,6 +272,12 @@ message UpdateMovementDocumentRequest {
   optional string notes = 3;
   repeated MovementDocumentLineInput lines = 4;
   bool replace_lines = 5;
+  optional string customer_id = 6;
+  optional string vehicle_id = 7;
+  optional string vehicle_vin = 8;
+  bool clear_vehicle = 9;
+  optional string supplier_id = 10;
+  optional string receipt_warehouse_id = 11;
 }
 
 message UpdateMovementDocumentResponse {
@@ -205,6 +291,11 @@ message CreateMovementDocumentRequest {
   string notes = 4;
   string created_by = 5;
   repeated MovementDocumentLineInput lines = 6;
+  string customer_id = 7;
+  string vehicle_id = 8;
+  string vehicle_vin = 9;
+  string supplier_id = 10;
+  string receipt_warehouse_id = 11;
 }
 
 message CreateMovementDocumentResponse {
@@ -379,3 +470,224 @@ message DeletePartRequest {
 }
 
 message DeletePartResponse {}
+
+message PartOrderLine {
+  string id = 1;
+  string part_id = 2;
+  int32 quantity = 3;
+  string unit_price = 4;
+  string notes = 5;
+  int32 sort_order = 6;
+  string part_name = 7;
+  string part_sku = 8;
+}
+
+message PartOrderLineInput {
+  string part_id = 1;
+  int32 quantity = 2;
+  string unit_price = 3;
+  string notes = 4;
+  int32 sort_order = 5;
+}
+
+message SupplierOrder {
+  string id = 1;
+  string order_number = 2;
+  string status = 3;
+  string supplier_id = 4;
+  string supplier_name = 5;
+  string receipt_warehouse_id = 6;
+  string receipt_warehouse_name = 7;
+  string fulfillment_movement_document_id = 8;
+  string fulfillment_movement_document_number = 9;
+  string fulfillment_work_order_id = 16;
+  string fulfillment_work_order_number = 17;
+  string customer_order_id = 18;
+  string customer_order_number = 19;
+  string notes = 10;
+  string created_by = 11;
+  string created_by_name = 12;
+  int64 created_at = 13;
+  int64 updated_at = 14;
+  repeated PartOrderLine lines = 15;
+}
+
+message CreateSupplierOrderRequest {
+  string supplier_id = 1;
+  string receipt_warehouse_id = 2;
+  string notes = 3;
+  string created_by = 4;
+  repeated PartOrderLineInput lines = 5;
+  string customer_order_id = 6;
+}
+
+message CreateSupplierOrderResponse {
+  SupplierOrder order = 1;
+}
+
+message GetSupplierOrderRequest {
+  string id = 1;
+}
+
+message GetSupplierOrderResponse {
+  SupplierOrder order = 1;
+}
+
+message UpdateSupplierOrderRequest {
+  string id = 1;
+  optional string supplier_id = 2;
+  optional string receipt_warehouse_id = 3;
+  optional string customer_order_id = 4;
+  bool clear_customer_order = 5;
+  optional string notes = 6;
+  repeated PartOrderLineInput lines = 7;
+  bool replace_lines = 8;
+}
+
+message UpdateSupplierOrderResponse {
+  SupplierOrder order = 1;
+}
+
+message ListSupplierOrdersRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string status = 3;
+}
+
+message ListSupplierOrdersResponse {
+  repeated SupplierOrder orders = 1;
+  int32 total = 2;
+}
+
+message CancelSupplierOrderRequest {
+  string id = 1;
+}
+
+message CancelSupplierOrderResponse {
+  SupplierOrder order = 1;
+}
+
+message CreateReceiptFromSupplierOrderRequest {
+  string id = 1;
+  string created_by = 2;
+}
+
+message CreateReceiptFromSupplierOrderResponse {
+  MovementDocument document = 1;
+}
+
+message CustomerOrder {
+  string id = 1;
+  string order_number = 2;
+  string status = 3;
+  string customer_id = 4;
+  string customer_name = 5;
+  string vehicle_id = 6;
+  string vehicle_vin = 7;
+  string vehicle_label = 8;
+  string issue_warehouse_id = 9;
+  string issue_warehouse_name = 10;
+  string fulfillment_movement_document_id = 11;
+  string fulfillment_movement_document_number = 12;
+  string fulfillment_work_order_id = 19;
+  string fulfillment_work_order_number = 20;
+  string notes = 13;
+  string created_by = 14;
+  string created_by_name = 15;
+  int64 created_at = 16;
+  int64 updated_at = 17;
+  repeated PartOrderLine lines = 18;
+}
+
+message CreateCustomerOrderRequest {
+  string customer_id = 1;
+  string vehicle_id = 2;
+  string vehicle_vin = 3;
+  string issue_warehouse_id = 4;
+  string notes = 5;
+  string created_by = 6;
+  repeated PartOrderLineInput lines = 7;
+}
+
+message CreateCustomerOrderResponse {
+  CustomerOrder order = 1;
+}
+
+message GetCustomerOrderRequest {
+  string id = 1;
+}
+
+message GetCustomerOrderResponse {
+  CustomerOrder order = 1;
+}
+
+message UpdateCustomerOrderRequest {
+  string id = 1;
+  optional string customer_id = 2;
+  optional string vehicle_id = 3;
+  optional string vehicle_vin = 4;
+  bool clear_vehicle = 5;
+  optional string issue_warehouse_id = 6;
+  optional string notes = 7;
+  repeated PartOrderLineInput lines = 8;
+  bool replace_lines = 9;
+}
+
+message UpdateCustomerOrderResponse {
+  CustomerOrder order = 1;
+}
+
+message ListCustomerOrdersRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string status = 3;
+}
+
+message ListCustomerOrdersResponse {
+  repeated CustomerOrder orders = 1;
+  int32 total = 2;
+}
+
+message CancelCustomerOrderRequest {
+  string id = 1;
+}
+
+message CancelCustomerOrderResponse {
+  CustomerOrder order = 1;
+}
+
+message CreateSaleFromCustomerOrderRequest {
+  string id = 1;
+  string created_by = 2;
+}
+
+message CreateSaleFromCustomerOrderResponse {
+  MovementDocument document = 1;
+}
+
+message CreateWorkOrderFromSupplierOrderRequest {
+  string id = 1;
+  string customer_id = 2;
+  string vehicle_id = 3;
+  string vehicle_vin = 4;
+  string notes = 5;
+}
+
+message CreateWorkOrderFromCustomerOrderRequest {
+  string id = 1;
+  string vehicle_id = 2;
+  string vehicle_vin = 3;
+  string notes = 4;
+}
+
+message CreateWorkOrderFromOrderResponse {
+  string work_order_id = 1;
+  string work_order_number = 2;
+}
+
+message FulfillOrderFromWorkOrderRequest {
+  string source_order_type = 1;
+  string source_order_id = 2;
+}
+
+message FulfillOrderFromWorkOrderResponse {}

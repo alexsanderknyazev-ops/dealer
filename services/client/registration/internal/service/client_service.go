@@ -56,22 +56,30 @@ type RegisterResult struct {
 	ExpiresAt    int64
 }
 
+type notificationRepository interface {
+	ListUnreadByUserID(ctx context.Context, userID uuid.UUID) ([]*domain.ClientNotification, error)
+	Dismiss(ctx context.Context, userID, id uuid.UUID) error
+}
+
 type ClientAPI interface {
 	Register(ctx context.Context, email, password, fullName, phone, vin string) (*RegisterResult, error)
 	AddVehicle(ctx context.Context, userID uuid.UUID, vin string) (*domain.ClientVehicle, error)
 	ListVehicles(ctx context.Context, userID uuid.UUID) ([]*domain.ClientVehicle, error)
 	GetProfile(ctx context.Context, userID uuid.UUID) (*domain.Client, []*domain.ClientVehicle, error)
+	ListNotifications(ctx context.Context, userID uuid.UUID) ([]*domain.ClientNotification, error)
+	DismissNotification(ctx context.Context, userID, id uuid.UUID) error
 }
 
 type ClientService struct {
-	repo       clientRepository
-	publisher  registrationPublisher
-	clientAuth sessionIssuer
-	vehicles   vehicleLookup
+	repo          clientRepository
+	notifications notificationRepository
+	publisher     registrationPublisher
+	clientAuth    sessionIssuer
+	vehicles      vehicleLookup
 }
 
-func NewClientService(repo clientRepository, publisher registrationPublisher, clientAuth sessionIssuer, vehicles vehicleLookup) *ClientService {
-	return &ClientService{repo: repo, publisher: publisher, clientAuth: clientAuth, vehicles: vehicles}
+func NewClientService(repo clientRepository, notifications notificationRepository, publisher registrationPublisher, clientAuth sessionIssuer, vehicles vehicleLookup) *ClientService {
+	return &ClientService{repo: repo, notifications: notifications, publisher: publisher, clientAuth: clientAuth, vehicles: vehicles}
 }
 
 func (s *ClientService) Register(ctx context.Context, email, password, fullName, phone, vin string) (*RegisterResult, error) {
@@ -254,6 +262,26 @@ func (s *ClientService) GetProfile(ctx context.Context, userID uuid.UUID) (*doma
 		return nil, nil, err
 	}
 	return client, vehicles, nil
+}
+
+func (s *ClientService) ListNotifications(ctx context.Context, userID uuid.UUID) ([]*domain.ClientNotification, error) {
+	if s.notifications == nil {
+		return nil, nil
+	}
+	return s.notifications.ListUnreadByUserID(ctx, userID)
+}
+
+func (s *ClientService) DismissNotification(ctx context.Context, userID, id uuid.UUID) error {
+	if s.notifications == nil {
+		return ErrClientNotFound
+	}
+	if err := s.notifications.Dismiss(ctx, userID, id); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrClientNotFound
+		}
+		return err
+	}
+	return nil
 }
 
 func (s *ClientService) lookupVehicle(ctx context.Context, vin string) (*vehiclesv1.Vehicle, error) {

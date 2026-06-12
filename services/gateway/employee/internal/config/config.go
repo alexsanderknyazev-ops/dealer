@@ -19,6 +19,7 @@ type Config struct {
 	WorkOrdersGRPCAddr          string
 	WorksGRPCAddr               string
 	EmployeesGRPCAddr           string
+	AppointmentsGRPCAddr        string
 }
 
 func Load() *Config {
@@ -36,6 +37,7 @@ func Load() *Config {
 		EmployeeReviewsGRPCAddr: configenv.String("EMPLOYEE_REVIEWS_GRPC_ADDR", "127.0.0.1:50063"),
 		WorkOrdersGRPCAddr:      configenv.String("WORKORDERS_GRPC_ADDR", "127.0.0.1:50064"),
 		WorksGRPCAddr:           configenv.String("WORKS_GRPC_ADDR", "127.0.0.1:50065"),
-		EmployeesGRPCAddr:       configenv.String("EMPLOYEES_GRPC_ADDR", "127.0.0.1:50066"),
+		EmployeesGRPCAddr:    configenv.String("EMPLOYEES_GRPC_ADDR", "127.0.0.1:50066"),
+		AppointmentsGRPCAddr: configenv.String("APPOINTMENTS_GRPC_ADDR", "127.0.0.1:50067"),
 	}
 }

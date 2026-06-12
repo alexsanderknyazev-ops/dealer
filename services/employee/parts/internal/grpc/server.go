@@ -328,6 +328,7 @@ func (s *Server) documentToProto(ctx context.Context, d *domain.MovementDocument
 			Quantity:    l.Quantity,
 			Notes:       l.Notes,
 			SortOrder:   l.SortOrder,
+			UnitCost:    l.UnitCost,
 		}
 		if l.ReferenceLineID != nil {
 			line.ReferenceLineId = l.ReferenceLineID.String()
@@ -356,7 +357,7 @@ func (s *Server) documentToProto(ctx context.Context, d *domain.MovementDocument
 		out.Lines[i] = line
 	}
 	if d.ReferenceType == domain.RefWorkOrder && d.ReferenceID != nil && s.workOrders != nil {
-		if wo, err := s.workOrders.GetWorkOrder(ctx, d.ReferenceID.String()); err == nil && wo != nil {
+		if wo, err := s.workOrders.GetWorkOrderDetails(ctx, d.ReferenceID.String()); err == nil && wo != nil {
 			out.ReferenceLabel = wo.OrderNumber
 			out.CustomerName = wo.CustomerName
 			out.VehicleVin = wo.VehicleVin
@@ -366,6 +367,32 @@ func (s *Server) documentToProto(ctx context.Context, d *domain.MovementDocument
 	if d.ReferenceType == domain.RefMovementDocument && d.ReferenceID != nil {
 		if ref, err := s.svc.GetMovementDocument(ctx, d.ReferenceID.String()); err == nil && ref != nil {
 			out.ReferenceLabel = ref.DocumentNumber
+		}
+	}
+	if d.ReferenceType == domain.RefSupplierOrder && d.ReferenceID != nil {
+		out.ReferenceLabel = s.svc.GetSupplierOrderNumber(ctx, *d.ReferenceID)
+	}
+	if d.ReferenceType == domain.RefCustomerOrder && d.ReferenceID != nil {
+		out.ReferenceLabel = s.svc.GetCustomerOrderNumber(ctx, *d.ReferenceID)
+	}
+	if d.CustomerID != nil {
+		out.CustomerId = d.CustomerID.String()
+		out.CustomerName = s.svc.CustomerName(ctx, *d.CustomerID)
+	}
+	if d.VehicleID != nil {
+		out.VehicleId = d.VehicleID.String()
+		vin, label := s.svc.VehicleInfo(ctx, *d.VehicleID)
+		out.VehicleVin = vin
+		out.VehicleLabel = label
+	}
+	if d.SupplierID != nil {
+		out.SupplierId = d.SupplierID.String()
+		out.SupplierName = s.svc.SupplierName(ctx, *d.SupplierID)
+	}
+	if d.ReceiptWarehouseID != nil {
+		out.ReceiptWarehouseId = d.ReceiptWarehouseID.String()
+		if s.dealerPoints != nil {
+			out.ReceiptWarehouseName = s.dealerPoints.WarehouseName(ctx, *d.ReceiptWarehouseID)
 		}
 	}
 	return out
@@ -389,11 +416,27 @@ func movementDocumentErr(err error) error {
 		errors.Is(err, service.ErrDestinationRequired),
 		errors.Is(err, service.ErrSameSourceDestination):
 		return status.Error(codes.FailedPrecondition, err.Error())
-	case errors.Is(err, service.ErrNotFound), errors.Is(err, service.ErrWarehouseNotFound):
+	case errors.Is(err, service.ErrCustomerRequired), errors.Is(err, service.ErrSupplierRequired),
+		errors.Is(err, service.ErrReceiptWarehouseRequired), errors.Is(err, service.ErrUnitCostRequired):
+		return status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, service.ErrNotFound), errors.Is(err, service.ErrWarehouseNotFound),
+		errors.Is(err, service.ErrCustomerNotFound), errors.Is(err, service.ErrVehicleNotFound),
+		errors.Is(err, service.ErrSupplierNotFound):
 		return status.Error(codes.NotFound, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}
+}
+
+func parseOptionalUUIDField(s string) *uuid.UUID {
+	if s == "" {
+		return nil
+	}
+	id, err := uuid.Parse(s)
+	if err != nil {
+		return nil
+	}
+	return &id
 }
 
 func (s *Server) CreateMovementDocument(ctx context.Context, req *partsv1.CreateMovementDocumentRequest) (*partsv1.CreateMovementDocumentResponse, error) {
@@ -415,6 +458,11 @@ func (s *Server) CreateMovementDocument(ctx context.Context, req *partsv1.Create
 	}
 	doc, err := s.svc.CreateMovementDocument(ctx, domain.CreateMovementDocumentInput{
 		MovementType: req.MovementType, ReferenceType: req.ReferenceType, ReferenceID: refID,
+		CustomerID: parseOptionalUUIDField(req.CustomerId),
+		VehicleID:  parseOptionalUUIDField(req.VehicleId),
+		VehicleVIN: req.VehicleVin,
+		SupplierID: parseOptionalUUIDField(req.SupplierId),
+		ReceiptWarehouseID: parseOptionalUUIDField(req.ReceiptWarehouseId),
 		Notes: req.Notes, CreatedBy: createdBy, Lines: lines,
 	})
 	if err != nil {
@@ -438,9 +486,13 @@ func parseMovementDocumentLines(reqLines []*partsv1.MovementDocumentLineInput) (
 		if err != nil {
 			return nil, status.Error(codes.InvalidArgument, "invalid part_id")
 		}
-		warehouseID, err := uuid.Parse(it.WarehouseId)
-		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, "invalid warehouse_id")
+		var warehouseID uuid.UUID
+		if it.WarehouseId != "" {
+			var err error
+			warehouseID, err = uuid.Parse(it.WarehouseId)
+			if err != nil {
+				return nil, status.Error(codes.InvalidArgument, "invalid warehouse_id")
+			}
 		}
 		var refLine *uuid.UUID
 		if it.ReferenceLineId != "" {
@@ -456,7 +508,7 @@ func parseMovementDocumentLines(reqLines []*partsv1.MovementDocumentLineInput) (
 		}
 		lines = append(lines, domain.MovementDocumentLineInput{
 			PartID: partID, WarehouseID: warehouseID, DestinationWarehouseID: destWh, Quantity: it.Quantity,
-			ReferenceLineID: refLine, Notes: it.Notes, SortOrder: it.SortOrder,
+			UnitCost: it.UnitCost, ReferenceLineID: refLine, Notes: it.Notes, SortOrder: it.SortOrder,
 		})
 	}
 	return lines, nil
@@ -471,6 +523,23 @@ func (s *Server) UpdateMovementDocument(ctx context.Context, req *partsv1.Update
 	if req.Notes != nil {
 		v := req.GetNotes()
 		in.Notes = &v
+	}
+	if req.CustomerId != nil {
+		in.CustomerID = parseOptionalUUIDField(req.GetCustomerId())
+	}
+	if req.VehicleId != nil {
+		in.VehicleID = parseOptionalUUIDField(req.GetVehicleId())
+	}
+	if req.VehicleVin != nil {
+		v := req.GetVehicleVin()
+		in.VehicleVIN = &v
+	}
+	in.ClearVehicle = req.ClearVehicle
+	if req.SupplierId != nil {
+		in.SupplierID = parseOptionalUUIDField(req.GetSupplierId())
+	}
+	if req.ReceiptWarehouseId != nil {
+		in.ReceiptWarehouseID = parseOptionalUUIDField(req.GetReceiptWarehouseId())
 	}
 	if req.ReplaceLines {
 		lines, err := parseMovementDocumentLines(req.Lines)
@@ -559,4 +628,26 @@ func (s *Server) CreateProductionExtraction(ctx context.Context, req *partsv1.Cr
 		return nil, movementDocumentErr(err)
 	}
 	return &partsv1.CreateProductionExtractionResponse{Document: s.documentToProto(ctx, doc)}, nil
+}
+
+func supplierToProto(s *domain.Supplier) *partsv1.Supplier {
+	if s == nil {
+		return nil
+	}
+	return &partsv1.Supplier{
+		Id: s.ID.String(), Name: s.Name, Inn: s.INN, Phone: s.Phone, Email: s.Email, Notes: s.Notes,
+		CreatedAt: s.CreatedAt.Unix(), UpdatedAt: s.UpdatedAt.Unix(),
+	}
+}
+
+func (s *Server) ListSuppliers(ctx context.Context, req *partsv1.ListSuppliersRequest) (*partsv1.ListSuppliersResponse, error) {
+	list, total, err := s.svc.ListSuppliers(ctx, req.Limit, req.Offset, req.Search)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	out := make([]*partsv1.Supplier, len(list))
+	for i, sup := range list {
+		out[i] = supplierToProto(sup)
+	}
+	return &partsv1.ListSuppliersResponse{Suppliers: out, Total: total}, nil
 }

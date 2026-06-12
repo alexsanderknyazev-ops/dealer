@@ -815,6 +815,603 @@ func local_request_PartsService_CreateProductionExtraction_0(ctx context.Context
 	return msg, metadata, err
 }
 
+var filter_PartsService_ListSuppliers_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+
+func request_PartsService_ListSuppliers_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListSuppliersRequest
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_PartsService_ListSuppliers_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := client.ListSuppliers(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_ListSuppliers_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListSuppliersRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_PartsService_ListSuppliers_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.ListSuppliers(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_CreateSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateSupplierOrderRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.CreateSupplierOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_CreateSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateSupplierOrderRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.CreateSupplierOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_GetSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetSupplierOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.GetSupplierOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_GetSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetSupplierOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.GetSupplierOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_UpdateSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateSupplierOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.UpdateSupplierOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_UpdateSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateSupplierOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.UpdateSupplierOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+var filter_PartsService_ListSupplierOrders_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+
+func request_PartsService_ListSupplierOrders_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListSupplierOrdersRequest
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_PartsService_ListSupplierOrders_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := client.ListSupplierOrders(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_ListSupplierOrders_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListSupplierOrdersRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_PartsService_ListSupplierOrders_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.ListSupplierOrders(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_CancelSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CancelSupplierOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.CancelSupplierOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_CancelSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CancelSupplierOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.CancelSupplierOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_CreateReceiptFromSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateReceiptFromSupplierOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.CreateReceiptFromSupplierOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_CreateReceiptFromSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateReceiptFromSupplierOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.CreateReceiptFromSupplierOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_CreateCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateCustomerOrderRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.CreateCustomerOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_CreateCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateCustomerOrderRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.CreateCustomerOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_GetCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetCustomerOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.GetCustomerOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_GetCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetCustomerOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.GetCustomerOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_UpdateCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateCustomerOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.UpdateCustomerOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_UpdateCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateCustomerOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.UpdateCustomerOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+var filter_PartsService_ListCustomerOrders_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+
+func request_PartsService_ListCustomerOrders_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListCustomerOrdersRequest
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_PartsService_ListCustomerOrders_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := client.ListCustomerOrders(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_ListCustomerOrders_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListCustomerOrdersRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_PartsService_ListCustomerOrders_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.ListCustomerOrders(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_CancelCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CancelCustomerOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.CancelCustomerOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_CancelCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CancelCustomerOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.CancelCustomerOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_CreateSaleFromCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateSaleFromCustomerOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.CreateSaleFromCustomerOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_CreateSaleFromCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateSaleFromCustomerOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.CreateSaleFromCustomerOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_CreateWorkOrderFromSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateWorkOrderFromSupplierOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.CreateWorkOrderFromSupplierOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_CreateWorkOrderFromSupplierOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateWorkOrderFromSupplierOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.CreateWorkOrderFromSupplierOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_PartsService_CreateWorkOrderFromCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, client PartsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateWorkOrderFromCustomerOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.CreateWorkOrderFromCustomerOrder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PartsService_CreateWorkOrderFromCustomerOrder_0(ctx context.Context, marshaler runtime.Marshaler, server PartsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateWorkOrderFromCustomerOrderRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.CreateWorkOrderFromCustomerOrder(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 // RegisterPartsServiceHandlerServer registers the http handlers for service PartsService to "mux".
 // UnaryRPC     :call PartsServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -1221,6 +1818,306 @@ func RegisterPartsServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		}
 		forward_PartsService_CreateProductionExtraction_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CreateProductionExtraction_0{resp.(*CreateProductionExtractionResponse)}, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodGet, pattern_PartsService_ListSuppliers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/ListSuppliers", runtime.WithHTTPPathPattern("/api/suppliers"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_ListSuppliers_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_ListSuppliers_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/CreateSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_CreateSupplierOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CreateSupplierOrder_0{resp.(*CreateSupplierOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_PartsService_GetSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/GetSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_GetSupplierOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_GetSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_GetSupplierOrder_0{resp.(*GetSupplierOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPut, pattern_PartsService_UpdateSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/UpdateSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_UpdateSupplierOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_UpdateSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_UpdateSupplierOrder_0{resp.(*UpdateSupplierOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_PartsService_ListSupplierOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/ListSupplierOrders", runtime.WithHTTPPathPattern("/api/supplier-orders"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_ListSupplierOrders_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_ListSupplierOrders_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CancelSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/CancelSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders/{id}/cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_CancelSupplierOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CancelSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CancelSupplierOrder_0{resp.(*CancelSupplierOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateReceiptFromSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/CreateReceiptFromSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders/{id}/create-receipt"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_CreateReceiptFromSupplierOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateReceiptFromSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CreateReceiptFromSupplierOrder_0{resp.(*CreateReceiptFromSupplierOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/CreateCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_CreateCustomerOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CreateCustomerOrder_0{resp.(*CreateCustomerOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_PartsService_GetCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/GetCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_GetCustomerOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_GetCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_GetCustomerOrder_0{resp.(*GetCustomerOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPut, pattern_PartsService_UpdateCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/UpdateCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_UpdateCustomerOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_UpdateCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_UpdateCustomerOrder_0{resp.(*UpdateCustomerOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_PartsService_ListCustomerOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/ListCustomerOrders", runtime.WithHTTPPathPattern("/api/customer-orders"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_ListCustomerOrders_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_ListCustomerOrders_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CancelCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/CancelCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders/{id}/cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_CancelCustomerOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CancelCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CancelCustomerOrder_0{resp.(*CancelCustomerOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateSaleFromCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/CreateSaleFromCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders/{id}/create-sale"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_CreateSaleFromCustomerOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateSaleFromCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CreateSaleFromCustomerOrder_0{resp.(*CreateSaleFromCustomerOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateWorkOrderFromSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/CreateWorkOrderFromSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders/{id}/create-work-order"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_CreateWorkOrderFromSupplierOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateWorkOrderFromSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateWorkOrderFromCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/parts.v1.PartsService/CreateWorkOrderFromCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders/{id}/create-work-order"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PartsService_CreateWorkOrderFromCustomerOrder_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateWorkOrderFromCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 
 	return nil
 }
@@ -1601,6 +2498,261 @@ func RegisterPartsServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		}
 		forward_PartsService_CreateProductionExtraction_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CreateProductionExtraction_0{resp.(*CreateProductionExtractionResponse)}, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodGet, pattern_PartsService_ListSuppliers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/ListSuppliers", runtime.WithHTTPPathPattern("/api/suppliers"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_ListSuppliers_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_ListSuppliers_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/CreateSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_CreateSupplierOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CreateSupplierOrder_0{resp.(*CreateSupplierOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_PartsService_GetSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/GetSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_GetSupplierOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_GetSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_GetSupplierOrder_0{resp.(*GetSupplierOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPut, pattern_PartsService_UpdateSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/UpdateSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_UpdateSupplierOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_UpdateSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_UpdateSupplierOrder_0{resp.(*UpdateSupplierOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_PartsService_ListSupplierOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/ListSupplierOrders", runtime.WithHTTPPathPattern("/api/supplier-orders"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_ListSupplierOrders_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_ListSupplierOrders_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CancelSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/CancelSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders/{id}/cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_CancelSupplierOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CancelSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CancelSupplierOrder_0{resp.(*CancelSupplierOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateReceiptFromSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/CreateReceiptFromSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders/{id}/create-receipt"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_CreateReceiptFromSupplierOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateReceiptFromSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CreateReceiptFromSupplierOrder_0{resp.(*CreateReceiptFromSupplierOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/CreateCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_CreateCustomerOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CreateCustomerOrder_0{resp.(*CreateCustomerOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_PartsService_GetCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/GetCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_GetCustomerOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_GetCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_GetCustomerOrder_0{resp.(*GetCustomerOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPut, pattern_PartsService_UpdateCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/UpdateCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_UpdateCustomerOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_UpdateCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_UpdateCustomerOrder_0{resp.(*UpdateCustomerOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodGet, pattern_PartsService_ListCustomerOrders_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/ListCustomerOrders", runtime.WithHTTPPathPattern("/api/customer-orders"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_ListCustomerOrders_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_ListCustomerOrders_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CancelCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/CancelCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders/{id}/cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_CancelCustomerOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CancelCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CancelCustomerOrder_0{resp.(*CancelCustomerOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateSaleFromCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/CreateSaleFromCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders/{id}/create-sale"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_CreateSaleFromCustomerOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateSaleFromCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, response_PartsService_CreateSaleFromCustomerOrder_0{resp.(*CreateSaleFromCustomerOrderResponse)}, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateWorkOrderFromSupplierOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/CreateWorkOrderFromSupplierOrder", runtime.WithHTTPPathPattern("/api/supplier-orders/{id}/create-work-order"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_CreateWorkOrderFromSupplierOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateWorkOrderFromSupplierOrder_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_PartsService_CreateWorkOrderFromCustomerOrder_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/parts.v1.PartsService/CreateWorkOrderFromCustomerOrder", runtime.WithHTTPPathPattern("/api/customer-orders/{id}/create-work-order"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PartsService_CreateWorkOrderFromCustomerOrder_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PartsService_CreateWorkOrderFromCustomerOrder_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
@@ -1730,48 +2882,168 @@ func (m response_PartsService_CreateProductionExtraction_0) XXX_ResponseBody() i
 	return response.Document
 }
 
+type response_PartsService_CreateSupplierOrder_0 struct {
+	*CreateSupplierOrderResponse
+}
+
+func (m response_PartsService_CreateSupplierOrder_0) XXX_ResponseBody() interface{} {
+	response := m.CreateSupplierOrderResponse
+	return response.Order
+}
+
+type response_PartsService_GetSupplierOrder_0 struct {
+	*GetSupplierOrderResponse
+}
+
+func (m response_PartsService_GetSupplierOrder_0) XXX_ResponseBody() interface{} {
+	response := m.GetSupplierOrderResponse
+	return response.Order
+}
+
+type response_PartsService_UpdateSupplierOrder_0 struct {
+	*UpdateSupplierOrderResponse
+}
+
+func (m response_PartsService_UpdateSupplierOrder_0) XXX_ResponseBody() interface{} {
+	response := m.UpdateSupplierOrderResponse
+	return response.Order
+}
+
+type response_PartsService_CancelSupplierOrder_0 struct {
+	*CancelSupplierOrderResponse
+}
+
+func (m response_PartsService_CancelSupplierOrder_0) XXX_ResponseBody() interface{} {
+	response := m.CancelSupplierOrderResponse
+	return response.Order
+}
+
+type response_PartsService_CreateReceiptFromSupplierOrder_0 struct {
+	*CreateReceiptFromSupplierOrderResponse
+}
+
+func (m response_PartsService_CreateReceiptFromSupplierOrder_0) XXX_ResponseBody() interface{} {
+	response := m.CreateReceiptFromSupplierOrderResponse
+	return response.Document
+}
+
+type response_PartsService_CreateCustomerOrder_0 struct {
+	*CreateCustomerOrderResponse
+}
+
+func (m response_PartsService_CreateCustomerOrder_0) XXX_ResponseBody() interface{} {
+	response := m.CreateCustomerOrderResponse
+	return response.Order
+}
+
+type response_PartsService_GetCustomerOrder_0 struct {
+	*GetCustomerOrderResponse
+}
+
+func (m response_PartsService_GetCustomerOrder_0) XXX_ResponseBody() interface{} {
+	response := m.GetCustomerOrderResponse
+	return response.Order
+}
+
+type response_PartsService_UpdateCustomerOrder_0 struct {
+	*UpdateCustomerOrderResponse
+}
+
+func (m response_PartsService_UpdateCustomerOrder_0) XXX_ResponseBody() interface{} {
+	response := m.UpdateCustomerOrderResponse
+	return response.Order
+}
+
+type response_PartsService_CancelCustomerOrder_0 struct {
+	*CancelCustomerOrderResponse
+}
+
+func (m response_PartsService_CancelCustomerOrder_0) XXX_ResponseBody() interface{} {
+	response := m.CancelCustomerOrderResponse
+	return response.Order
+}
+
+type response_PartsService_CreateSaleFromCustomerOrder_0 struct {
+	*CreateSaleFromCustomerOrderResponse
+}
+
+func (m response_PartsService_CreateSaleFromCustomerOrder_0) XXX_ResponseBody() interface{} {
+	response := m.CreateSaleFromCustomerOrderResponse
+	return response.Document
+}
+
 var (
-	pattern_PartsService_CreatePart_0                 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "parts"}, ""))
-	pattern_PartsService_GetPart_0                    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "parts", "id"}, ""))
-	pattern_PartsService_ListPartStock_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "parts", "part_id", "stock"}, ""))
-	pattern_PartsService_ListParts_0                  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "parts"}, ""))
-	pattern_PartsService_UpdatePart_0                 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "parts", "id"}, ""))
-	pattern_PartsService_DeletePart_0                 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "parts", "id"}, ""))
-	pattern_PartsService_CreateFolder_0               = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "parts", "folders"}, ""))
-	pattern_PartsService_GetFolder_0                  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "parts", "folders", "id"}, ""))
-	pattern_PartsService_ListFolders_0                = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "parts", "folders"}, ""))
-	pattern_PartsService_UpdateFolder_0               = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "parts", "folders", "id"}, ""))
-	pattern_PartsService_DeleteFolder_0               = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "parts", "folders", "id"}, ""))
-	pattern_PartsService_CreateMovementDocument_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "movement-documents"}, ""))
-	pattern_PartsService_GetMovementDocument_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "movement-documents", "id"}, ""))
-	pattern_PartsService_UpdateMovementDocument_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "movement-documents", "id"}, ""))
-	pattern_PartsService_ListMovementDocuments_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "movement-documents"}, ""))
-	pattern_PartsService_StartMovementDocument_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "start"}, ""))
-	pattern_PartsService_CloseMovementDocument_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "close"}, ""))
-	pattern_PartsService_ConfirmMovementDocument_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "confirm"}, ""))
-	pattern_PartsService_CancelMovementDocument_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "cancel"}, ""))
-	pattern_PartsService_CreateProductionExtraction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "create-production-extraction"}, ""))
+	pattern_PartsService_CreatePart_0                       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "parts"}, ""))
+	pattern_PartsService_GetPart_0                          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "parts", "id"}, ""))
+	pattern_PartsService_ListPartStock_0                    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "parts", "part_id", "stock"}, ""))
+	pattern_PartsService_ListParts_0                        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "parts"}, ""))
+	pattern_PartsService_UpdatePart_0                       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "parts", "id"}, ""))
+	pattern_PartsService_DeletePart_0                       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "parts", "id"}, ""))
+	pattern_PartsService_CreateFolder_0                     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "parts", "folders"}, ""))
+	pattern_PartsService_GetFolder_0                        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "parts", "folders", "id"}, ""))
+	pattern_PartsService_ListFolders_0                      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "parts", "folders"}, ""))
+	pattern_PartsService_UpdateFolder_0                     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "parts", "folders", "id"}, ""))
+	pattern_PartsService_DeleteFolder_0                     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "parts", "folders", "id"}, ""))
+	pattern_PartsService_CreateMovementDocument_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "movement-documents"}, ""))
+	pattern_PartsService_GetMovementDocument_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "movement-documents", "id"}, ""))
+	pattern_PartsService_UpdateMovementDocument_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "movement-documents", "id"}, ""))
+	pattern_PartsService_ListMovementDocuments_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "movement-documents"}, ""))
+	pattern_PartsService_StartMovementDocument_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "start"}, ""))
+	pattern_PartsService_CloseMovementDocument_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "close"}, ""))
+	pattern_PartsService_ConfirmMovementDocument_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "confirm"}, ""))
+	pattern_PartsService_CancelMovementDocument_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "cancel"}, ""))
+	pattern_PartsService_CreateProductionExtraction_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "movement-documents", "id", "create-production-extraction"}, ""))
+	pattern_PartsService_ListSuppliers_0                    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "suppliers"}, ""))
+	pattern_PartsService_CreateSupplierOrder_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "supplier-orders"}, ""))
+	pattern_PartsService_GetSupplierOrder_0                 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "supplier-orders", "id"}, ""))
+	pattern_PartsService_UpdateSupplierOrder_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "supplier-orders", "id"}, ""))
+	pattern_PartsService_ListSupplierOrders_0               = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "supplier-orders"}, ""))
+	pattern_PartsService_CancelSupplierOrder_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "supplier-orders", "id", "cancel"}, ""))
+	pattern_PartsService_CreateReceiptFromSupplierOrder_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "supplier-orders", "id", "create-receipt"}, ""))
+	pattern_PartsService_CreateCustomerOrder_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "customer-orders"}, ""))
+	pattern_PartsService_GetCustomerOrder_0                 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "customer-orders", "id"}, ""))
+	pattern_PartsService_UpdateCustomerOrder_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "customer-orders", "id"}, ""))
+	pattern_PartsService_ListCustomerOrders_0               = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "customer-orders"}, ""))
+	pattern_PartsService_CancelCustomerOrder_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "customer-orders", "id", "cancel"}, ""))
+	pattern_PartsService_CreateSaleFromCustomerOrder_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "customer-orders", "id", "create-sale"}, ""))
+	pattern_PartsService_CreateWorkOrderFromSupplierOrder_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "supplier-orders", "id", "create-work-order"}, ""))
+	pattern_PartsService_CreateWorkOrderFromCustomerOrder_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "customer-orders", "id", "create-work-order"}, ""))
 )
 
 var (
-	forward_PartsService_CreatePart_0                 = runtime.ForwardResponseMessage
-	forward_PartsService_GetPart_0                    = runtime.ForwardResponseMessage
-	forward_PartsService_ListPartStock_0              = runtime.ForwardResponseMessage
-	forward_PartsService_ListParts_0                  = runtime.ForwardResponseMessage
-	forward_PartsService_UpdatePart_0                 = runtime.ForwardResponseMessage
-	forward_PartsService_DeletePart_0                 = runtime.ForwardResponseMessage
-	forward_PartsService_CreateFolder_0               = runtime.ForwardResponseMessage
-	forward_PartsService_GetFolder_0                  = runtime.ForwardResponseMessage
-	forward_PartsService_ListFolders_0                = runtime.ForwardResponseMessage
-	forward_PartsService_UpdateFolder_0               = runtime.ForwardResponseMessage
-	forward_PartsService_DeleteFolder_0               = runtime.ForwardResponseMessage
-	forward_PartsService_CreateMovementDocument_0     = runtime.ForwardResponseMessage
-	forward_PartsService_GetMovementDocument_0        = runtime.ForwardResponseMessage
-	forward_PartsService_UpdateMovementDocument_0     = runtime.ForwardResponseMessage
-	forward_PartsService_ListMovementDocuments_0      = runtime.ForwardResponseMessage
-	forward_PartsService_StartMovementDocument_0      = runtime.ForwardResponseMessage
-	forward_PartsService_CloseMovementDocument_0      = runtime.ForwardResponseMessage
-	forward_PartsService_ConfirmMovementDocument_0    = runtime.ForwardResponseMessage
-	forward_PartsService_CancelMovementDocument_0     = runtime.ForwardResponseMessage
-	forward_PartsService_CreateProductionExtraction_0 = runtime.ForwardResponseMessage
+	forward_PartsService_CreatePart_0                       = runtime.ForwardResponseMessage
+	forward_PartsService_GetPart_0                          = runtime.ForwardResponseMessage
+	forward_PartsService_ListPartStock_0                    = runtime.ForwardResponseMessage
+	forward_PartsService_ListParts_0                        = runtime.ForwardResponseMessage
+	forward_PartsService_UpdatePart_0                       = runtime.ForwardResponseMessage
+	forward_PartsService_DeletePart_0                       = runtime.ForwardResponseMessage
+	forward_PartsService_CreateFolder_0                     = runtime.ForwardResponseMessage
+	forward_PartsService_GetFolder_0                        = runtime.ForwardResponseMessage
+	forward_PartsService_ListFolders_0                      = runtime.ForwardResponseMessage
+	forward_PartsService_UpdateFolder_0                     = runtime.ForwardResponseMessage
+	forward_PartsService_DeleteFolder_0                     = runtime.ForwardResponseMessage
+	forward_PartsService_CreateMovementDocument_0           = runtime.ForwardResponseMessage
+	forward_PartsService_GetMovementDocument_0              = runtime.ForwardResponseMessage
+	forward_PartsService_UpdateMovementDocument_0           = runtime.ForwardResponseMessage
+	forward_PartsService_ListMovementDocuments_0            = runtime.ForwardResponseMessage
+	forward_PartsService_StartMovementDocument_0            = runtime.ForwardResponseMessage
+	forward_PartsService_CloseMovementDocument_0            = runtime.ForwardResponseMessage
+	forward_PartsService_ConfirmMovementDocument_0          = runtime.ForwardResponseMessage
+	forward_PartsService_CancelMovementDocument_0           = runtime.ForwardResponseMessage
+	forward_PartsService_CreateProductionExtraction_0       = runtime.ForwardResponseMessage
+	forward_PartsService_ListSuppliers_0                    = runtime.ForwardResponseMessage
+	forward_PartsService_CreateSupplierOrder_0              = runtime.ForwardResponseMessage
+	forward_PartsService_GetSupplierOrder_0                 = runtime.ForwardResponseMessage
+	forward_PartsService_UpdateSupplierOrder_0              = runtime.ForwardResponseMessage
+	forward_PartsService_ListSupplierOrders_0               = runtime.ForwardResponseMessage
+	forward_PartsService_CancelSupplierOrder_0              = runtime.ForwardResponseMessage
+	forward_PartsService_CreateReceiptFromSupplierOrder_0   = runtime.ForwardResponseMessage
+	forward_PartsService_CreateCustomerOrder_0              = runtime.ForwardResponseMessage
+	forward_PartsService_GetCustomerOrder_0                 = runtime.ForwardResponseMessage
+	forward_PartsService_UpdateCustomerOrder_0              = runtime.ForwardResponseMessage
+	forward_PartsService_ListCustomerOrders_0               = runtime.ForwardResponseMessage
+	forward_PartsService_CancelCustomerOrder_0              = runtime.ForwardResponseMessage
+	forward_PartsService_CreateSaleFromCustomerOrder_0      = runtime.ForwardResponseMessage
+	forward_PartsService_CreateWorkOrderFromSupplierOrder_0 = runtime.ForwardResponseMessage
+	forward_PartsService_CreateWorkOrderFromCustomerOrder_0 = runtime.ForwardResponseMessage
 )

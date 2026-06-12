@@ -87,6 +87,10 @@ func (s *Server) toProto(ctx context.Context, wo *domain.WorkOrder) *workordersv
 		out.MovementDocumentId = wo.MovementDocumentID.String()
 	}
 	out.MovementDocumentStatus = wo.MovementDocumentStatus
+	out.SourceOrderType = wo.SourceOrderType
+	if wo.SourceOrderID != nil {
+		out.SourceOrderId = wo.SourceOrderID.String()
+	}
 	out.Labor = make([]*workordersv1.WorkOrderLabor, len(wo.Labor))
 	for i, l := range wo.Labor {
 		item := &workordersv1.WorkOrderLabor{
@@ -205,6 +209,7 @@ func (s *Server) CreateWorkOrder(ctx context.Context, req *workordersv1.CreateWo
 		ServiceAdvisorID: req.ServiceAdvisorId, Complaint: req.Complaint, Diagnosis: req.Diagnosis,
 		MileageKm: req.MileageKm, OpenedAt: req.OpenedAt, Notes: req.Notes,
 		Labor: laborInputs(req.Labor), Parts: partInputs(req.Parts),
+		SourceOrderType: req.SourceOrderType, SourceOrderID: req.SourceOrderId,
 	})
 	if err != nil {
 		return nil, mapErr(err)

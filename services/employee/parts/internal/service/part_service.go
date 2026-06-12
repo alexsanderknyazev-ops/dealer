@@ -75,6 +75,20 @@ type DealerPointsChecker interface {
 	WarehouseExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
+type supplierRepository interface {
+	Exists(ctx context.Context, id uuid.UUID) (bool, error)
+	Name(ctx context.Context, id uuid.UUID) string
+	List(ctx context.Context, limit, offset int32, search string) ([]*domain.Supplier, int32, error)
+}
+
+type CustomerVehicleChecker interface {
+	CustomerExists(ctx context.Context, id uuid.UUID) (bool, error)
+	VehicleExists(ctx context.Context, id uuid.UUID) (bool, error)
+	LookupVehicleIDByVIN(ctx context.Context, vin string) (*uuid.UUID, error)
+	CustomerName(ctx context.Context, id uuid.UUID) string
+	VehicleInfo(ctx context.Context, id uuid.UUID) (vin, label string)
+}
+
 type noopBrandChecker struct{}
 
 func (noopBrandChecker) BrandExists(context.Context, uuid.UUID) (bool, error) { return true, nil }
@@ -91,6 +105,22 @@ func (noopDealerPointsChecker) WarehouseExists(context.Context, uuid.UUID) (bool
 	return true, nil
 }
 
+type noopCustomerVehicleChecker struct{}
+
+func (noopCustomerVehicleChecker) CustomerExists(context.Context, uuid.UUID) (bool, error) {
+	return true, nil
+}
+func (noopCustomerVehicleChecker) VehicleExists(context.Context, uuid.UUID) (bool, error) {
+	return true, nil
+}
+func (noopCustomerVehicleChecker) LookupVehicleIDByVIN(context.Context, string) (*uuid.UUID, error) {
+	return nil, nil
+}
+func (noopCustomerVehicleChecker) CustomerName(context.Context, uuid.UUID) string { return "" }
+func (noopCustomerVehicleChecker) VehicleInfo(context.Context, uuid.UUID) (string, string) {
+	return "", ""
+}
+
 type PartService struct {
 	repo            partRepository
 	folderRepo      folderRepository
@@ -100,6 +130,10 @@ type PartService struct {
 	workOrders      WorkOrdersNotifier
 	brands          BrandChecker
 	dealerPoints    DealerPointsChecker
+	customers       CustomerVehicleChecker
+	suppliers         supplierRepository
+	supplierOrderRepo supplierOrderRepository
+	customerOrderRepo customerOrderRepository
 }
 
 func NewPartService(
@@ -111,6 +145,10 @@ func NewPartService(
 	workOrders WorkOrdersNotifier,
 	brands BrandChecker,
 	dealerPoints DealerPointsChecker,
+	customers CustomerVehicleChecker,
+	suppliers supplierRepository,
+	supplierOrderRepo supplierOrderRepository,
+	customerOrderRepo customerOrderRepository,
 ) *PartService {
 	if brands == nil {
 		brands = noopBrandChecker{}
@@ -121,11 +159,37 @@ func NewPartService(
 	if workOrders == nil {
 		workOrders = noopWorkOrdersNotifier{}
 	}
+	if customers == nil {
+		customers = noopCustomerVehicleChecker{}
+	}
 	return &PartService{
 		repo: repo, folderRepo: folderRepo, stockRepo: stockRepo, movementRepo: movementRepo,
 		movementDocRepo: movementDocRepo, workOrders: workOrders,
-		brands: brands, dealerPoints: dealerPoints,
+		brands: brands, dealerPoints: dealerPoints, customers: customers, suppliers: suppliers,
+		supplierOrderRepo: supplierOrderRepo, customerOrderRepo: customerOrderRepo,
 	}
+}
+
+func (s *PartService) CustomerName(ctx context.Context, id uuid.UUID) string {
+	return s.customers.CustomerName(ctx, id)
+}
+
+func (s *PartService) VehicleInfo(ctx context.Context, id uuid.UUID) (string, string) {
+	return s.customers.VehicleInfo(ctx, id)
+}
+
+func (s *PartService) SupplierName(ctx context.Context, id uuid.UUID) string {
+	if s.suppliers == nil {
+		return ""
+	}
+	return s.suppliers.Name(ctx, id)
+}
+
+func (s *PartService) ListSuppliers(ctx context.Context, limit, offset int32, search string) ([]*domain.Supplier, int32, error) {
+	if s.suppliers == nil {
+		return nil, 0, nil
+	}
+	return s.suppliers.List(ctx, limit, offset, search)
 }
 
 func (s *PartService) checkRef(

@@ -19,9 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ClientAccountService_AddVehicle_FullMethodName     = "/clients.v1.ClientAccountService/AddVehicle"
-	ClientAccountService_ListMyVehicles_FullMethodName = "/clients.v1.ClientAccountService/ListMyVehicles"
-	ClientAccountService_GetProfile_FullMethodName     = "/clients.v1.ClientAccountService/GetProfile"
+	ClientAccountService_AddVehicle_FullMethodName                = "/clients.v1.ClientAccountService/AddVehicle"
+	ClientAccountService_ListMyVehicles_FullMethodName            = "/clients.v1.ClientAccountService/ListMyVehicles"
+	ClientAccountService_GetProfile_FullMethodName                = "/clients.v1.ClientAccountService/GetProfile"
+	ClientAccountService_ListClientNotifications_FullMethodName   = "/clients.v1.ClientAccountService/ListClientNotifications"
+	ClientAccountService_DismissClientNotification_FullMethodName = "/clients.v1.ClientAccountService/DismissClientNotification"
 )
 
 // ClientAccountServiceClient is the client API for ClientAccountService service.
@@ -33,6 +35,8 @@ type ClientAccountServiceClient interface {
 	AddVehicle(ctx context.Context, in *AddVehicleRequest, opts ...grpc.CallOption) (*AddVehicleResponse, error)
 	ListMyVehicles(ctx context.Context, in *ListMyVehiclesRequest, opts ...grpc.CallOption) (*ListMyVehiclesResponse, error)
 	GetProfile(ctx context.Context, in *GetProfileRequest, opts ...grpc.CallOption) (*GetProfileResponse, error)
+	ListClientNotifications(ctx context.Context, in *ListClientNotificationsRequest, opts ...grpc.CallOption) (*ListClientNotificationsResponse, error)
+	DismissClientNotification(ctx context.Context, in *DismissClientNotificationRequest, opts ...grpc.CallOption) (*DismissClientNotificationResponse, error)
 }
 
 type clientAccountServiceClient struct {
@@ -73,6 +77,26 @@ func (c *clientAccountServiceClient) GetProfile(ctx context.Context, in *GetProf
 	return out, nil
 }
 
+func (c *clientAccountServiceClient) ListClientNotifications(ctx context.Context, in *ListClientNotificationsRequest, opts ...grpc.CallOption) (*ListClientNotificationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListClientNotificationsResponse)
+	err := c.cc.Invoke(ctx, ClientAccountService_ListClientNotifications_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clientAccountServiceClient) DismissClientNotification(ctx context.Context, in *DismissClientNotificationRequest, opts ...grpc.CallOption) (*DismissClientNotificationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DismissClientNotificationResponse)
+	err := c.cc.Invoke(ctx, ClientAccountService_DismissClientNotification_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClientAccountServiceServer is the server API for ClientAccountService service.
 // All implementations must embed UnimplementedClientAccountServiceServer
 // for forward compatibility.
@@ -82,6 +106,8 @@ type ClientAccountServiceServer interface {
 	AddVehicle(context.Context, *AddVehicleRequest) (*AddVehicleResponse, error)
 	ListMyVehicles(context.Context, *ListMyVehiclesRequest) (*ListMyVehiclesResponse, error)
 	GetProfile(context.Context, *GetProfileRequest) (*GetProfileResponse, error)
+	ListClientNotifications(context.Context, *ListClientNotificationsRequest) (*ListClientNotificationsResponse, error)
+	DismissClientNotification(context.Context, *DismissClientNotificationRequest) (*DismissClientNotificationResponse, error)
 	mustEmbedUnimplementedClientAccountServiceServer()
 }
 
@@ -100,6 +126,12 @@ func (UnimplementedClientAccountServiceServer) ListMyVehicles(context.Context, *
 }
 func (UnimplementedClientAccountServiceServer) GetProfile(context.Context, *GetProfileRequest) (*GetProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetProfile not implemented")
+}
+func (UnimplementedClientAccountServiceServer) ListClientNotifications(context.Context, *ListClientNotificationsRequest) (*ListClientNotificationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListClientNotifications not implemented")
+}
+func (UnimplementedClientAccountServiceServer) DismissClientNotification(context.Context, *DismissClientNotificationRequest) (*DismissClientNotificationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DismissClientNotification not implemented")
 }
 func (UnimplementedClientAccountServiceServer) mustEmbedUnimplementedClientAccountServiceServer() {}
 func (UnimplementedClientAccountServiceServer) testEmbeddedByValue()                              {}
@@ -176,6 +208,42 @@ func _ClientAccountService_GetProfile_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClientAccountService_ListClientNotifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListClientNotificationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClientAccountServiceServer).ListClientNotifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ClientAccountService_ListClientNotifications_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClientAccountServiceServer).ListClientNotifications(ctx, req.(*ListClientNotificationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClientAccountService_DismissClientNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DismissClientNotificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClientAccountServiceServer).DismissClientNotification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ClientAccountService_DismissClientNotification_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClientAccountServiceServer).DismissClientNotification(ctx, req.(*DismissClientNotificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClientAccountService_ServiceDesc is the grpc.ServiceDesc for ClientAccountService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -194,6 +262,14 @@ var ClientAccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProfile",
 			Handler:    _ClientAccountService_GetProfile_Handler,
+		},
+		{
+			MethodName: "ListClientNotifications",
+			Handler:    _ClientAccountService_ListClientNotifications_Handler,
+		},
+		{
+			MethodName: "DismissClientNotification",
+			Handler:    _ClientAccountService_DismissClientNotification_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

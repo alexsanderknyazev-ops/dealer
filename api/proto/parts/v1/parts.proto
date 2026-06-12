@@ -48,6 +48,13 @@ service PartsService {
   rpc ListMovementDocuments(ListMovementDocumentsRequest) returns (ListMovementDocumentsResponse) {
     option (google.api.http) = { get: "/api/movement-documents" };
   }
+  rpc StartMovementDocument(StartMovementDocumentRequest) returns (StartMovementDocumentResponse) {
+    option (google.api.http) = { post: "/api/movement-documents/{id}/start" body: "*" response_body: "document" };
+  }
+  rpc CloseMovementDocument(CloseMovementDocumentRequest) returns (CloseMovementDocumentResponse) {
+    option (google.api.http) = { post: "/api/movement-documents/{id}/close" body: "*" response_body: "document" };
+  }
+  // Устаревший alias: закрывает документ (списание со склада).
   rpc ConfirmMovementDocument(ConfirmMovementDocumentRequest) returns (ConfirmMovementDocumentResponse) {
     option (google.api.http) = { post: "/api/movement-documents/{id}/confirm" body: "*" response_body: "document" };
   }
@@ -189,6 +196,23 @@ message ListMovementDocumentsRequest {
 message ListMovementDocumentsResponse {
   repeated MovementDocument documents = 1;
   int32 total = 2;
+}
+
+message StartMovementDocumentRequest {
+  string id = 1;
+}
+
+message StartMovementDocumentResponse {
+  MovementDocument document = 1;
+}
+
+message CloseMovementDocumentRequest {
+  string id = 1;
+  string closed_by = 2;
+}
+
+message CloseMovementDocumentResponse {
+  MovementDocument document = 1;
 }
 
 message ConfirmMovementDocumentRequest {

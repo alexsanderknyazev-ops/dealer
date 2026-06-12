@@ -275,7 +275,7 @@ func (r *WorkOrderRepository) MarkPartsIssued(ctx context.Context, workOrderID u
 	}
 	_, err = tx.Exec(ctx, `
 		UPDATE work_orders
-		SET parts_issued = true, parts_issued_at = $2, movement_document_status = 'confirmed', updated_at = $2
+		SET parts_issued = true, parts_issued_at = $2, movement_document_status = 'closed', updated_at = $2
 		WHERE id = $1
 	`, workOrderID, issuedAt)
 	if err != nil {

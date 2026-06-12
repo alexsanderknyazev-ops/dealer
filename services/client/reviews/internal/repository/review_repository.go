@@ -113,6 +113,59 @@ func IsDuplicateReview(err error) bool {
 	return isUniqueViolation(err)
 }
 
+func (r *ReviewRepository) ListPendingInvitationsByUserID(ctx context.Context, userID uuid.UUID) ([]*domain.ReviewInvitation, error) {
+	query := `
+		SELECT id, client_id, user_id, vehicle_id, dealer_point_id,
+		       source_type, source_id, service_kind, status, created_at, updated_at
+		FROM review_invitations
+		WHERE user_id = $1 AND status = 'pending'
+		ORDER BY created_at DESC
+	`
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []*domain.ReviewInvitation
+	for rows.Next() {
+		var inv domain.ReviewInvitation
+		if err := rows.Scan(
+			&inv.ID, &inv.ClientID, &inv.UserID, &inv.VehicleID, &inv.DealerPointID,
+			&inv.SourceType, &inv.SourceID, &inv.ServiceKind, &inv.Status, &inv.CreatedAt, &inv.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		out = append(out, &inv)
+	}
+	return out, rows.Err()
+}
+
+func (r *ReviewRepository) DismissInvitationForUser(ctx context.Context, id, userID uuid.UUID) error {
+	query := `
+		UPDATE review_invitations
+		SET status = 'dismissed', updated_at = now()
+		WHERE id = $1 AND user_id = $2 AND status = 'pending'
+	`
+	tag, err := r.pool.Exec(ctx, query, id, userID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
+}
+
+func (r *ReviewRepository) CompleteInvitationsForVehicle(ctx context.Context, clientID, vehicleID uuid.UUID) error {
+	query := `
+		UPDATE review_invitations
+		SET status = 'completed', updated_at = now()
+		WHERE client_id = $1 AND vehicle_id = $2 AND status = 'pending'
+	`
+	_, err := r.pool.Exec(ctx, query, clientID, vehicleID)
+	return err
+}
+
 func NowUTC() time.Time {
 	return time.Now().UTC()
 }

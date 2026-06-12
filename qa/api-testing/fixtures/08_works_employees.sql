@@ -35,7 +35,7 @@ ON CONFLICT (id) DO UPDATE SET
   notes       = EXCLUDED.notes,
   updated_at  = now();
 
--- Employees linked to QA auth users (ResolveRef accepts user_id or employee id)
+-- Employees linked to QA auth users (migration 024 may have rows by user_id — upsert on user_id)
 INSERT INTO employees (id, user_id, full_name, position, department, phone, active, created_at, updated_at)
 VALUES
   (
@@ -68,8 +68,7 @@ VALUES
     true,
     now(), now()
   )
-ON CONFLICT (id) DO UPDATE SET
-  user_id    = EXCLUDED.user_id,
+ON CONFLICT (user_id) DO UPDATE SET
   full_name  = EXCLUDED.full_name,
   position   = EXCLUDED.position,
   department = EXCLUDED.department,

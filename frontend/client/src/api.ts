@@ -53,6 +53,18 @@ export type Review = {
   updated_at: number
 }
 
+export type ReviewInvitation = {
+  id: string
+  client_id: string
+  vehicle_id: string
+  dealer_point_id: string
+  source_type: string
+  source_id: string
+  service_kind: string
+  status: string
+  created_at: number
+}
+
 export class ApiError extends Error {
   status: number
 
@@ -143,5 +155,21 @@ export async function createReview(
     method: 'POST',
     headers: authHeaders(accessToken),
     body: JSON.stringify(payload),
+  })
+}
+
+export async function listReviewInvitations(
+  accessToken: string,
+): Promise<{ invitations: ReviewInvitation[] }> {
+  return request<{ invitations: ReviewInvitation[] }>('/api/client/review-invitations', {
+    headers: authHeaders(accessToken),
+  })
+}
+
+export async function dismissReviewInvitation(accessToken: string, id: string): Promise<void> {
+  await request(`/api/client/review-invitations/${id}/dismiss`, {
+    method: 'POST',
+    headers: authHeaders(accessToken),
+    body: JSON.stringify({}),
   })
 }

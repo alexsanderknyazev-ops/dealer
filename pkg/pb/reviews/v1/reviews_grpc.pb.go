@@ -19,9 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ReviewsService_CreateReview_FullMethodName  = "/reviews.v1.ReviewsService/CreateReview"
-	ReviewsService_ListMyReviews_FullMethodName = "/reviews.v1.ReviewsService/ListMyReviews"
-	ReviewsService_GetReview_FullMethodName     = "/reviews.v1.ReviewsService/GetReview"
+	ReviewsService_CreateReview_FullMethodName            = "/reviews.v1.ReviewsService/CreateReview"
+	ReviewsService_ListMyReviews_FullMethodName           = "/reviews.v1.ReviewsService/ListMyReviews"
+	ReviewsService_GetReview_FullMethodName               = "/reviews.v1.ReviewsService/GetReview"
+	ReviewsService_ListReviewInvitations_FullMethodName   = "/reviews.v1.ReviewsService/ListReviewInvitations"
+	ReviewsService_DismissReviewInvitation_FullMethodName = "/reviews.v1.ReviewsService/DismissReviewInvitation"
 )
 
 // ReviewsServiceClient is the client API for ReviewsService service.
@@ -33,6 +35,8 @@ type ReviewsServiceClient interface {
 	CreateReview(ctx context.Context, in *CreateReviewRequest, opts ...grpc.CallOption) (*CreateReviewResponse, error)
 	ListMyReviews(ctx context.Context, in *ListMyReviewsRequest, opts ...grpc.CallOption) (*ListMyReviewsResponse, error)
 	GetReview(ctx context.Context, in *GetReviewRequest, opts ...grpc.CallOption) (*GetReviewResponse, error)
+	ListReviewInvitations(ctx context.Context, in *ListReviewInvitationsRequest, opts ...grpc.CallOption) (*ListReviewInvitationsResponse, error)
+	DismissReviewInvitation(ctx context.Context, in *DismissReviewInvitationRequest, opts ...grpc.CallOption) (*DismissReviewInvitationResponse, error)
 }
 
 type reviewsServiceClient struct {
@@ -73,6 +77,26 @@ func (c *reviewsServiceClient) GetReview(ctx context.Context, in *GetReviewReque
 	return out, nil
 }
 
+func (c *reviewsServiceClient) ListReviewInvitations(ctx context.Context, in *ListReviewInvitationsRequest, opts ...grpc.CallOption) (*ListReviewInvitationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListReviewInvitationsResponse)
+	err := c.cc.Invoke(ctx, ReviewsService_ListReviewInvitations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reviewsServiceClient) DismissReviewInvitation(ctx context.Context, in *DismissReviewInvitationRequest, opts ...grpc.CallOption) (*DismissReviewInvitationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DismissReviewInvitationResponse)
+	err := c.cc.Invoke(ctx, ReviewsService_DismissReviewInvitation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReviewsServiceServer is the server API for ReviewsService service.
 // All implementations must embed UnimplementedReviewsServiceServer
 // for forward compatibility.
@@ -82,6 +106,8 @@ type ReviewsServiceServer interface {
 	CreateReview(context.Context, *CreateReviewRequest) (*CreateReviewResponse, error)
 	ListMyReviews(context.Context, *ListMyReviewsRequest) (*ListMyReviewsResponse, error)
 	GetReview(context.Context, *GetReviewRequest) (*GetReviewResponse, error)
+	ListReviewInvitations(context.Context, *ListReviewInvitationsRequest) (*ListReviewInvitationsResponse, error)
+	DismissReviewInvitation(context.Context, *DismissReviewInvitationRequest) (*DismissReviewInvitationResponse, error)
 	mustEmbedUnimplementedReviewsServiceServer()
 }
 
@@ -100,6 +126,12 @@ func (UnimplementedReviewsServiceServer) ListMyReviews(context.Context, *ListMyR
 }
 func (UnimplementedReviewsServiceServer) GetReview(context.Context, *GetReviewRequest) (*GetReviewResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetReview not implemented")
+}
+func (UnimplementedReviewsServiceServer) ListReviewInvitations(context.Context, *ListReviewInvitationsRequest) (*ListReviewInvitationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListReviewInvitations not implemented")
+}
+func (UnimplementedReviewsServiceServer) DismissReviewInvitation(context.Context, *DismissReviewInvitationRequest) (*DismissReviewInvitationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DismissReviewInvitation not implemented")
 }
 func (UnimplementedReviewsServiceServer) mustEmbedUnimplementedReviewsServiceServer() {}
 func (UnimplementedReviewsServiceServer) testEmbeddedByValue()                        {}
@@ -176,6 +208,42 @@ func _ReviewsService_GetReview_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReviewsService_ListReviewInvitations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListReviewInvitationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewsServiceServer).ListReviewInvitations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReviewsService_ListReviewInvitations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewsServiceServer).ListReviewInvitations(ctx, req.(*ListReviewInvitationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReviewsService_DismissReviewInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DismissReviewInvitationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewsServiceServer).DismissReviewInvitation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReviewsService_DismissReviewInvitation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewsServiceServer).DismissReviewInvitation(ctx, req.(*DismissReviewInvitationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReviewsService_ServiceDesc is the grpc.ServiceDesc for ReviewsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -194,6 +262,14 @@ var ReviewsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetReview",
 			Handler:    _ReviewsService_GetReview_Handler,
+		},
+		{
+			MethodName: "ListReviewInvitations",
+			Handler:    _ReviewsService_ListReviewInvitations_Handler,
+		},
+		{
+			MethodName: "DismissReviewInvitation",
+			Handler:    _ReviewsService_DismissReviewInvitation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

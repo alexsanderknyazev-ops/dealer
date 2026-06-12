@@ -584,7 +584,7 @@ func (s *WorkOrderService) ApplyMovementDocument(ctx context.Context, workOrderI
 	}
 	wo.MovementDocumentStatus = documentStatus
 	wo.UpdatedAt = time.Now().UTC()
-	if documentStatus == "confirmed" {
+	if documentStatus == "closed" || documentStatus == "confirmed" {
 		lineIDs := make([]uuid.UUID, 0)
 		for _, p := range wo.Parts {
 			if !p.Issued {

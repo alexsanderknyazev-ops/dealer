@@ -72,7 +72,6 @@ assert_code "AUTH-001" "POST /api/register" "200" "$REG_CODE"
 
 REG_BODY=$(cat /tmp/qa_resp_$$)
 ACCESS=$(echo "$REG_BODY" | json_field "['access_token']")
-REFRESH=$(echo "$REFRESH" | json_field "['refresh_token']")
 REFRESH=$(echo "$REG_BODY" | json_field "['refresh_token']")
 USER_ID=$(echo "$REG_BODY" | json_field "['user_id']")
 
@@ -409,7 +408,8 @@ fi
 TEL=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 2 \
   -X POST "$ERRORS_INGEST/api/telemetry/events" \
   -H 'Content-Type: application/json' \
-  -d "{\"kind\":\"js_error\",\"message\":\"qa-$RUN_ID\",\"at\":$(date +%s000)}")
+  -d "{\"kind\":\"js_error\",\"message\":\"qa-$RUN_ID\",\"at\":$(date +%s000)}" \
+  2>/dev/null || echo "000")
 if [[ "$TEL" == "204" ]]; then
   assert_code "ERR-001" "POST telemetry js_error" "204" "$TEL"
   assert_code "ERR-002" "POST telemetry api_latency" "204" \

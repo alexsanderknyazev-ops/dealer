@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/auth'
 import * as api from '@/api'
 import { FormPage } from '@/components/common/FormPage'
@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea'
 export function ReviewNew() {
   const { getAccessToken } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const preselectedVehicleId = searchParams.get('vehicle_id') ?? ''
   const [vehicles, setVehicles] = useState<api.ClientVehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -29,11 +31,14 @@ export function ReviewNew() {
       .then((r) => {
         const items = r.vehicles ?? []
         setVehicles(items)
-        if (items[0]) setVehicleId(items[0].vehicle_id)
+        const preferred = preselectedVehicleId && items.some((v) => v.vehicle_id === preselectedVehicleId)
+          ? preselectedVehicleId
+          : items[0]?.vehicle_id ?? ''
+        if (preferred) setVehicleId(preferred)
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Ошибка загрузки'))
       .finally(() => setLoading(false))
-  }, [getAccessToken])
+  }, [getAccessToken, preselectedVehicleId])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

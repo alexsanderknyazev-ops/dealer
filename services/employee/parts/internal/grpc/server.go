@@ -310,7 +310,9 @@ func movementDocumentErr(err error) error {
 	switch {
 	case errors.Is(err, service.ErrMovementDocumentNotFound):
 		return status.Error(codes.NotFound, err.Error())
-	case errors.Is(err, service.ErrMovementDocumentNotDraft):
+	case errors.Is(err, service.ErrMovementDocumentNotDraft),
+		errors.Is(err, service.ErrMovementDocumentNotInProgress),
+		errors.Is(err, service.ErrMovementDocumentNoLines):
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, service.ErrInsufficientStock):
 		return status.Error(codes.FailedPrecondition, err.Error())
@@ -388,6 +390,28 @@ func (s *Server) ListMovementDocuments(ctx context.Context, req *partsv1.ListMov
 		}
 	}
 	return &partsv1.ListMovementDocumentsResponse{Documents: out, Total: total}, nil
+}
+
+func (s *Server) StartMovementDocument(ctx context.Context, req *partsv1.StartMovementDocumentRequest) (*partsv1.StartMovementDocumentResponse, error) {
+	doc, err := s.svc.StartMovementDocument(ctx, req.Id)
+	if err != nil {
+		return nil, movementDocumentErr(err)
+	}
+	return &partsv1.StartMovementDocumentResponse{Document: s.documentToProto(ctx, doc)}, nil
+}
+
+func (s *Server) CloseMovementDocument(ctx context.Context, req *partsv1.CloseMovementDocumentRequest) (*partsv1.CloseMovementDocumentResponse, error) {
+	var closedBy *uuid.UUID
+	if req.ClosedBy != "" {
+		if id, err := uuid.Parse(req.ClosedBy); err == nil {
+			closedBy = &id
+		}
+	}
+	doc, err := s.svc.CloseMovementDocument(ctx, req.Id, closedBy)
+	if err != nil {
+		return nil, movementDocumentErr(err)
+	}
+	return &partsv1.CloseMovementDocumentResponse{Document: s.documentToProto(ctx, doc)}, nil
 }
 
 func (s *Server) ConfirmMovementDocument(ctx context.Context, req *partsv1.ConfirmMovementDocumentRequest) (*partsv1.ConfirmMovementDocumentResponse, error) {

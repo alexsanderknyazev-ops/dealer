@@ -77,7 +77,9 @@ export function WorkOrderView() {
 
   const hasUnissuedParts = wo?.parts?.some((p) => !p.issued) ?? false
   const canCreateMovementDoc = hasUnissuedParts && !wo?.movement_document_id
-  const movementDocDraft = wo?.movement_document_status === 'draft' && wo?.movement_document_id
+  const movementDocActive =
+    !!wo?.movement_document_id &&
+    (wo.movement_document_status === 'draft' || wo.movement_document_status === 'in_progress')
 
   if (loading) return <LoadingState />
   if (!wo) return error ? <ErrorAlert message={error} onRetry={load} /> : null
@@ -100,10 +102,10 @@ export function WorkOrderView() {
                 {issuing ? 'Создание…' : 'Создать документ перемещения'}
               </Button>
             )}
-            {movementDocDraft && (
+            {movementDocActive && (
               <Button variant="default" asChild>
                 <Link to={`/movement-documents/${wo.movement_document_id}`}>
-                  Подтвердить перемещение
+                  {wo.movement_document_status === 'in_progress' ? 'Закрыть перемещение' : 'Оформить перемещение'}
                 </Link>
               </Button>
             )}

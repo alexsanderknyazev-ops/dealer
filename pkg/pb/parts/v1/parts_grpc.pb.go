@@ -32,6 +32,8 @@ const (
 	PartsService_CreateMovementDocument_FullMethodName  = "/parts.v1.PartsService/CreateMovementDocument"
 	PartsService_GetMovementDocument_FullMethodName     = "/parts.v1.PartsService/GetMovementDocument"
 	PartsService_ListMovementDocuments_FullMethodName   = "/parts.v1.PartsService/ListMovementDocuments"
+	PartsService_StartMovementDocument_FullMethodName   = "/parts.v1.PartsService/StartMovementDocument"
+	PartsService_CloseMovementDocument_FullMethodName   = "/parts.v1.PartsService/CloseMovementDocument"
 	PartsService_ConfirmMovementDocument_FullMethodName = "/parts.v1.PartsService/ConfirmMovementDocument"
 	PartsService_CancelMovementDocument_FullMethodName  = "/parts.v1.PartsService/CancelMovementDocument"
 )
@@ -53,6 +55,9 @@ type PartsServiceClient interface {
 	CreateMovementDocument(ctx context.Context, in *CreateMovementDocumentRequest, opts ...grpc.CallOption) (*CreateMovementDocumentResponse, error)
 	GetMovementDocument(ctx context.Context, in *GetMovementDocumentRequest, opts ...grpc.CallOption) (*GetMovementDocumentResponse, error)
 	ListMovementDocuments(ctx context.Context, in *ListMovementDocumentsRequest, opts ...grpc.CallOption) (*ListMovementDocumentsResponse, error)
+	StartMovementDocument(ctx context.Context, in *StartMovementDocumentRequest, opts ...grpc.CallOption) (*StartMovementDocumentResponse, error)
+	CloseMovementDocument(ctx context.Context, in *CloseMovementDocumentRequest, opts ...grpc.CallOption) (*CloseMovementDocumentResponse, error)
+	// Устаревший alias: закрывает документ (списание со склада).
 	ConfirmMovementDocument(ctx context.Context, in *ConfirmMovementDocumentRequest, opts ...grpc.CallOption) (*ConfirmMovementDocumentResponse, error)
 	CancelMovementDocument(ctx context.Context, in *CancelMovementDocumentRequest, opts ...grpc.CallOption) (*CancelMovementDocumentResponse, error)
 }
@@ -195,6 +200,26 @@ func (c *partsServiceClient) ListMovementDocuments(ctx context.Context, in *List
 	return out, nil
 }
 
+func (c *partsServiceClient) StartMovementDocument(ctx context.Context, in *StartMovementDocumentRequest, opts ...grpc.CallOption) (*StartMovementDocumentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartMovementDocumentResponse)
+	err := c.cc.Invoke(ctx, PartsService_StartMovementDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) CloseMovementDocument(ctx context.Context, in *CloseMovementDocumentRequest, opts ...grpc.CallOption) (*CloseMovementDocumentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CloseMovementDocumentResponse)
+	err := c.cc.Invoke(ctx, PartsService_CloseMovementDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *partsServiceClient) ConfirmMovementDocument(ctx context.Context, in *ConfirmMovementDocumentRequest, opts ...grpc.CallOption) (*ConfirmMovementDocumentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ConfirmMovementDocumentResponse)
@@ -232,6 +257,9 @@ type PartsServiceServer interface {
 	CreateMovementDocument(context.Context, *CreateMovementDocumentRequest) (*CreateMovementDocumentResponse, error)
 	GetMovementDocument(context.Context, *GetMovementDocumentRequest) (*GetMovementDocumentResponse, error)
 	ListMovementDocuments(context.Context, *ListMovementDocumentsRequest) (*ListMovementDocumentsResponse, error)
+	StartMovementDocument(context.Context, *StartMovementDocumentRequest) (*StartMovementDocumentResponse, error)
+	CloseMovementDocument(context.Context, *CloseMovementDocumentRequest) (*CloseMovementDocumentResponse, error)
+	// Устаревший alias: закрывает документ (списание со склада).
 	ConfirmMovementDocument(context.Context, *ConfirmMovementDocumentRequest) (*ConfirmMovementDocumentResponse, error)
 	CancelMovementDocument(context.Context, *CancelMovementDocumentRequest) (*CancelMovementDocumentResponse, error)
 	mustEmbedUnimplementedPartsServiceServer()
@@ -282,6 +310,12 @@ func (UnimplementedPartsServiceServer) GetMovementDocument(context.Context, *Get
 }
 func (UnimplementedPartsServiceServer) ListMovementDocuments(context.Context, *ListMovementDocumentsRequest) (*ListMovementDocumentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMovementDocuments not implemented")
+}
+func (UnimplementedPartsServiceServer) StartMovementDocument(context.Context, *StartMovementDocumentRequest) (*StartMovementDocumentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartMovementDocument not implemented")
+}
+func (UnimplementedPartsServiceServer) CloseMovementDocument(context.Context, *CloseMovementDocumentRequest) (*CloseMovementDocumentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CloseMovementDocument not implemented")
 }
 func (UnimplementedPartsServiceServer) ConfirmMovementDocument(context.Context, *ConfirmMovementDocumentRequest) (*ConfirmMovementDocumentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ConfirmMovementDocument not implemented")
@@ -544,6 +578,42 @@ func _PartsService_ListMovementDocuments_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartsService_StartMovementDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartMovementDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).StartMovementDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_StartMovementDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).StartMovementDocument(ctx, req.(*StartMovementDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_CloseMovementDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseMovementDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CloseMovementDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CloseMovementDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CloseMovementDocument(ctx, req.(*CloseMovementDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PartsService_ConfirmMovementDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ConfirmMovementDocumentRequest)
 	if err := dec(in); err != nil {
@@ -638,6 +708,14 @@ var PartsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListMovementDocuments",
 			Handler:    _PartsService_ListMovementDocuments_Handler,
+		},
+		{
+			MethodName: "StartMovementDocument",
+			Handler:    _PartsService_StartMovementDocument_Handler,
+		},
+		{
+			MethodName: "CloseMovementDocument",
+			Handler:    _PartsService_CloseMovementDocument_Handler,
 		},
 		{
 			MethodName: "ConfirmMovementDocument",

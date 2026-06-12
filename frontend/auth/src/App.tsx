@@ -29,6 +29,7 @@ import { Statistics } from './Statistics'
 import { WorkOrders } from './WorkOrders'
 import { WorkOrderForm } from './WorkOrderForm'
 import { WorkOrderView } from './WorkOrderView'
+import { MovementDocuments } from './MovementDocuments'
 import { MovementDocumentView } from './MovementDocumentView'
 
 function RequireAuth(props: { children: ReactNode }) {
@@ -90,6 +91,7 @@ export default function App() {
         <Route path="work-orders" element={<RequireAuth><WorkOrders /></RequireAuth>} />
         <Route path="work-orders/new" element={<RequireAuth><WorkOrderForm /></RequireAuth>} />
         <Route path="work-orders/:id/edit" element={<RequireAuth><WorkOrderForm /></RequireAuth>} />
+        <Route path="movement-documents" element={<RequireAuth><MovementDocuments /></RequireAuth>} />
         <Route path="movement-documents/:id" element={<RequireAuth><MovementDocumentView /></RequireAuth>} />
         <Route path="work-orders/:id" element={<RequireAuth><WorkOrderView /></RequireAuth>} />
         <Route path="login" element={<GuestOnly><Login /></GuestOnly>} />

@@ -71,7 +71,8 @@ func main() {
 	}
 
 	repo := repository.NewClientRepository(pool)
-	svc := service.NewClientService(repo, publisher, clientAuthClient, vehiclesClient)
+	notifRepo := repository.NewNotificationRepository(pool)
+	svc := service.NewClientService(repo, notifRepo, publisher, clientAuthClient, vehiclesClient)
 
 	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, nil)...)
 	srv := grpcserver.NewServer(svc, cfg.JWTSecret)

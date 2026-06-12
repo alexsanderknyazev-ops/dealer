@@ -27,6 +27,8 @@ const MOVEMENT_TYPE_LABEL: Record<string, string> = {
   transfer: 'Между складами',
   to_production: 'В производство',
   from_production: 'Извлечение (возврат)',
+  sale: 'Реализация товара',
+  receipt: 'Поступление товара',
 }
 
 export function MovementDocuments() {

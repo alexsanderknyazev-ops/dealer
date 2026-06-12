@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Car, MessageSquare, Star } from 'lucide-react'
+import { Bell, Car, MessageSquare, Star } from 'lucide-react'
 import { useAuth } from '@/auth'
 import * as api from '@/api'
 import { PageHeader } from '@/components/common/PageHeader'
@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 
 function invitationLabel(inv: api.ReviewInvitation): string {
   if (inv.service_kind === 'sale') return 'Оцените покупку автомобиля'
+  if (inv.service_kind === 'parts') return 'Оцените покупку запчастей'
   return 'Оцените обслуживание в сервисе'
 }
 
@@ -19,22 +20,29 @@ export function Dashboard() {
   const { getAccessToken, user } = useAuth()
   const [profile, setProfile] = useState<api.ClientProfile | null>(null)
   const [invitations, setInvitations] = useState<api.ReviewInvitation[]>([])
+  const [notifications, setNotifications] = useState<api.ClientNotification[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [dismissingId, setDismissingId] = useState<string | null>(null)
+  const [dismissingNotificationId, setDismissingNotificationId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
     getAccessToken()
       .then(async (token) => {
         if (!token) throw new Error('Сессия истекла')
-        const [p, inv] = await Promise.all([api.getProfile(token), api.listReviewInvitations(token)])
-        return { p, inv }
+        const [p, inv, notes] = await Promise.all([
+          api.getProfile(token),
+          api.listReviewInvitations(token),
+          api.listClientNotifications(token),
+        ])
+        return { p, inv, notes }
       })
-      .then(({ p, inv }) => {
+      .then(({ p, inv, notes }) => {
         if (!cancelled) {
           setProfile(p)
           setInvitations(inv.invitations ?? [])
+          setNotifications(notes.notifications ?? [])
         }
       })
       .catch((e) => {
@@ -47,6 +55,20 @@ export function Dashboard() {
       cancelled = true
     }
   }, [getAccessToken])
+
+  async function handleDismissNotification(id: string) {
+    setDismissingNotificationId(id)
+    try {
+      const token = await getAccessToken()
+      if (!token) throw new Error('Сессия истекла')
+      await api.dismissClientNotification(token, id)
+      setNotifications((prev) => prev.filter((n) => n.id !== id))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Не удалось скрыть уведомление')
+    } finally {
+      setDismissingNotificationId(null)
+    }
+  }
 
   async function handleDismiss(id: string) {
     setDismissingId(id)
@@ -68,6 +90,30 @@ export function Dashboard() {
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6">
       <PageHeader title="Профиль" subtitle={<span className="text-muted-foreground">{user?.email}</span>} />
+
+      {notifications.length > 0 && (
+        <div className="space-y-3">
+          {notifications.map((n) => (
+            <Alert key={n.id}>
+              <Bell className="h-4 w-4" />
+              <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                  <span className="font-medium">{n.title}</span>
+                  {n.body ? <span className="mt-1 block text-sm text-muted-foreground">{n.body}</span> : null}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={dismissingNotificationId === n.id}
+                  onClick={() => handleDismissNotification(n.id)}
+                >
+                  Понятно
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ))}
+        </div>
+      )}
 
       {invitations.length > 0 && (
         <div className="space-y-3">

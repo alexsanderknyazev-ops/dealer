@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/dealer/dealer/client-registration-service/internal/domain"
 	"github.com/dealer/dealer/client-registration-service/internal/service"
 	"github.com/dealer/dealer/pkg/clientjwt"
@@ -84,6 +85,37 @@ func (s *Server) GetProfile(ctx context.Context, _ *clientsv1.GetProfileRequest)
 	return &clientsv1.GetProfileResponse{Profile: toProtoProfile(client, vehicles)}, nil
 }
 
+func (s *Server) ListClientNotifications(ctx context.Context, _ *clientsv1.ListClientNotificationsRequest) (*clientsv1.ListClientNotificationsResponse, error) {
+	userID, err := clientjwt.UserID(ctx, s.jwtSecret)
+	if err != nil {
+		return nil, err
+	}
+	list, err := s.svc.ListNotifications(ctx, userID)
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	out := make([]*clientsv1.ClientNotification, len(list))
+	for i, n := range list {
+		out[i] = toProtoNotification(n)
+	}
+	return &clientsv1.ListClientNotificationsResponse{Notifications: out}, nil
+}
+
+func (s *Server) DismissClientNotification(ctx context.Context, req *clientsv1.DismissClientNotificationRequest) (*clientsv1.DismissClientNotificationResponse, error) {
+	userID, err := clientjwt.UserID(ctx, s.jwtSecret)
+	if err != nil {
+		return nil, err
+	}
+	nid, err := uuid.Parse(req.Id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid id")
+	}
+	if err := s.svc.DismissNotification(ctx, userID, nid); err != nil {
+		return nil, mapErr(err)
+	}
+	return &clientsv1.DismissClientNotificationResponse{}, nil
+}
+
 func mapErr(err error) error {
 	switch {
 	case errors.Is(err, service.ErrVINNotFound):
@@ -113,6 +145,16 @@ func toProtoVehicle(v *domain.ClientVehicle) *clientsv1.ClientVehicle {
 		Model:     v.Model,
 		Year:      v.Year,
 		AddedAt:   v.AddedAt.Unix(),
+	}
+}
+
+func toProtoNotification(n *domain.ClientNotification) *clientsv1.ClientNotification {
+	if n == nil {
+		return nil
+	}
+	return &clientsv1.ClientNotification{
+		Id: n.ID.String(), Kind: n.Kind, SourceType: n.SourceType, SourceId: n.SourceID.String(),
+		Title: n.Title, Body: n.Body, Status: n.Status, CreatedAt: n.CreatedAt.Unix(),
 	}
 }
 

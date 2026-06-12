@@ -19,26 +19,42 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PartsService_CreatePart_FullMethodName                 = "/parts.v1.PartsService/CreatePart"
-	PartsService_GetPart_FullMethodName                    = "/parts.v1.PartsService/GetPart"
-	PartsService_ListPartStock_FullMethodName              = "/parts.v1.PartsService/ListPartStock"
-	PartsService_ListParts_FullMethodName                  = "/parts.v1.PartsService/ListParts"
-	PartsService_UpdatePart_FullMethodName                 = "/parts.v1.PartsService/UpdatePart"
-	PartsService_DeletePart_FullMethodName                 = "/parts.v1.PartsService/DeletePart"
-	PartsService_CreateFolder_FullMethodName               = "/parts.v1.PartsService/CreateFolder"
-	PartsService_GetFolder_FullMethodName                  = "/parts.v1.PartsService/GetFolder"
-	PartsService_ListFolders_FullMethodName                = "/parts.v1.PartsService/ListFolders"
-	PartsService_UpdateFolder_FullMethodName               = "/parts.v1.PartsService/UpdateFolder"
-	PartsService_DeleteFolder_FullMethodName               = "/parts.v1.PartsService/DeleteFolder"
-	PartsService_CreateMovementDocument_FullMethodName     = "/parts.v1.PartsService/CreateMovementDocument"
-	PartsService_GetMovementDocument_FullMethodName        = "/parts.v1.PartsService/GetMovementDocument"
-	PartsService_UpdateMovementDocument_FullMethodName     = "/parts.v1.PartsService/UpdateMovementDocument"
-	PartsService_ListMovementDocuments_FullMethodName      = "/parts.v1.PartsService/ListMovementDocuments"
-	PartsService_StartMovementDocument_FullMethodName      = "/parts.v1.PartsService/StartMovementDocument"
-	PartsService_CloseMovementDocument_FullMethodName      = "/parts.v1.PartsService/CloseMovementDocument"
-	PartsService_ConfirmMovementDocument_FullMethodName    = "/parts.v1.PartsService/ConfirmMovementDocument"
-	PartsService_CancelMovementDocument_FullMethodName     = "/parts.v1.PartsService/CancelMovementDocument"
-	PartsService_CreateProductionExtraction_FullMethodName = "/parts.v1.PartsService/CreateProductionExtraction"
+	PartsService_CreatePart_FullMethodName                       = "/parts.v1.PartsService/CreatePart"
+	PartsService_GetPart_FullMethodName                          = "/parts.v1.PartsService/GetPart"
+	PartsService_ListPartStock_FullMethodName                    = "/parts.v1.PartsService/ListPartStock"
+	PartsService_ListParts_FullMethodName                        = "/parts.v1.PartsService/ListParts"
+	PartsService_UpdatePart_FullMethodName                       = "/parts.v1.PartsService/UpdatePart"
+	PartsService_DeletePart_FullMethodName                       = "/parts.v1.PartsService/DeletePart"
+	PartsService_CreateFolder_FullMethodName                     = "/parts.v1.PartsService/CreateFolder"
+	PartsService_GetFolder_FullMethodName                        = "/parts.v1.PartsService/GetFolder"
+	PartsService_ListFolders_FullMethodName                      = "/parts.v1.PartsService/ListFolders"
+	PartsService_UpdateFolder_FullMethodName                     = "/parts.v1.PartsService/UpdateFolder"
+	PartsService_DeleteFolder_FullMethodName                     = "/parts.v1.PartsService/DeleteFolder"
+	PartsService_CreateMovementDocument_FullMethodName           = "/parts.v1.PartsService/CreateMovementDocument"
+	PartsService_GetMovementDocument_FullMethodName              = "/parts.v1.PartsService/GetMovementDocument"
+	PartsService_UpdateMovementDocument_FullMethodName           = "/parts.v1.PartsService/UpdateMovementDocument"
+	PartsService_ListMovementDocuments_FullMethodName            = "/parts.v1.PartsService/ListMovementDocuments"
+	PartsService_StartMovementDocument_FullMethodName            = "/parts.v1.PartsService/StartMovementDocument"
+	PartsService_CloseMovementDocument_FullMethodName            = "/parts.v1.PartsService/CloseMovementDocument"
+	PartsService_ConfirmMovementDocument_FullMethodName          = "/parts.v1.PartsService/ConfirmMovementDocument"
+	PartsService_CancelMovementDocument_FullMethodName           = "/parts.v1.PartsService/CancelMovementDocument"
+	PartsService_CreateProductionExtraction_FullMethodName       = "/parts.v1.PartsService/CreateProductionExtraction"
+	PartsService_ListSuppliers_FullMethodName                    = "/parts.v1.PartsService/ListSuppliers"
+	PartsService_CreateSupplierOrder_FullMethodName              = "/parts.v1.PartsService/CreateSupplierOrder"
+	PartsService_GetSupplierOrder_FullMethodName                 = "/parts.v1.PartsService/GetSupplierOrder"
+	PartsService_UpdateSupplierOrder_FullMethodName              = "/parts.v1.PartsService/UpdateSupplierOrder"
+	PartsService_ListSupplierOrders_FullMethodName               = "/parts.v1.PartsService/ListSupplierOrders"
+	PartsService_CancelSupplierOrder_FullMethodName              = "/parts.v1.PartsService/CancelSupplierOrder"
+	PartsService_CreateReceiptFromSupplierOrder_FullMethodName   = "/parts.v1.PartsService/CreateReceiptFromSupplierOrder"
+	PartsService_CreateCustomerOrder_FullMethodName              = "/parts.v1.PartsService/CreateCustomerOrder"
+	PartsService_GetCustomerOrder_FullMethodName                 = "/parts.v1.PartsService/GetCustomerOrder"
+	PartsService_UpdateCustomerOrder_FullMethodName              = "/parts.v1.PartsService/UpdateCustomerOrder"
+	PartsService_ListCustomerOrders_FullMethodName               = "/parts.v1.PartsService/ListCustomerOrders"
+	PartsService_CancelCustomerOrder_FullMethodName              = "/parts.v1.PartsService/CancelCustomerOrder"
+	PartsService_CreateSaleFromCustomerOrder_FullMethodName      = "/parts.v1.PartsService/CreateSaleFromCustomerOrder"
+	PartsService_CreateWorkOrderFromSupplierOrder_FullMethodName = "/parts.v1.PartsService/CreateWorkOrderFromSupplierOrder"
+	PartsService_CreateWorkOrderFromCustomerOrder_FullMethodName = "/parts.v1.PartsService/CreateWorkOrderFromCustomerOrder"
+	PartsService_FulfillOrderFromWorkOrder_FullMethodName        = "/parts.v1.PartsService/FulfillOrderFromWorkOrder"
 )
 
 // PartsServiceClient is the client API for PartsService service.
@@ -66,6 +82,23 @@ type PartsServiceClient interface {
 	ConfirmMovementDocument(ctx context.Context, in *ConfirmMovementDocumentRequest, opts ...grpc.CallOption) (*ConfirmMovementDocumentResponse, error)
 	CancelMovementDocument(ctx context.Context, in *CancelMovementDocumentRequest, opts ...grpc.CallOption) (*CancelMovementDocumentResponse, error)
 	CreateProductionExtraction(ctx context.Context, in *CreateProductionExtractionRequest, opts ...grpc.CallOption) (*CreateProductionExtractionResponse, error)
+	ListSuppliers(ctx context.Context, in *ListSuppliersRequest, opts ...grpc.CallOption) (*ListSuppliersResponse, error)
+	CreateSupplierOrder(ctx context.Context, in *CreateSupplierOrderRequest, opts ...grpc.CallOption) (*CreateSupplierOrderResponse, error)
+	GetSupplierOrder(ctx context.Context, in *GetSupplierOrderRequest, opts ...grpc.CallOption) (*GetSupplierOrderResponse, error)
+	UpdateSupplierOrder(ctx context.Context, in *UpdateSupplierOrderRequest, opts ...grpc.CallOption) (*UpdateSupplierOrderResponse, error)
+	ListSupplierOrders(ctx context.Context, in *ListSupplierOrdersRequest, opts ...grpc.CallOption) (*ListSupplierOrdersResponse, error)
+	CancelSupplierOrder(ctx context.Context, in *CancelSupplierOrderRequest, opts ...grpc.CallOption) (*CancelSupplierOrderResponse, error)
+	CreateReceiptFromSupplierOrder(ctx context.Context, in *CreateReceiptFromSupplierOrderRequest, opts ...grpc.CallOption) (*CreateReceiptFromSupplierOrderResponse, error)
+	CreateCustomerOrder(ctx context.Context, in *CreateCustomerOrderRequest, opts ...grpc.CallOption) (*CreateCustomerOrderResponse, error)
+	GetCustomerOrder(ctx context.Context, in *GetCustomerOrderRequest, opts ...grpc.CallOption) (*GetCustomerOrderResponse, error)
+	UpdateCustomerOrder(ctx context.Context, in *UpdateCustomerOrderRequest, opts ...grpc.CallOption) (*UpdateCustomerOrderResponse, error)
+	ListCustomerOrders(ctx context.Context, in *ListCustomerOrdersRequest, opts ...grpc.CallOption) (*ListCustomerOrdersResponse, error)
+	CancelCustomerOrder(ctx context.Context, in *CancelCustomerOrderRequest, opts ...grpc.CallOption) (*CancelCustomerOrderResponse, error)
+	CreateSaleFromCustomerOrder(ctx context.Context, in *CreateSaleFromCustomerOrderRequest, opts ...grpc.CallOption) (*CreateSaleFromCustomerOrderResponse, error)
+	CreateWorkOrderFromSupplierOrder(ctx context.Context, in *CreateWorkOrderFromSupplierOrderRequest, opts ...grpc.CallOption) (*CreateWorkOrderFromOrderResponse, error)
+	CreateWorkOrderFromCustomerOrder(ctx context.Context, in *CreateWorkOrderFromCustomerOrderRequest, opts ...grpc.CallOption) (*CreateWorkOrderFromOrderResponse, error)
+	// Вызывается workorders-service при закрытии заказ-наряда, созданного из заказа.
+	FulfillOrderFromWorkOrder(ctx context.Context, in *FulfillOrderFromWorkOrderRequest, opts ...grpc.CallOption) (*FulfillOrderFromWorkOrderResponse, error)
 }
 
 type partsServiceClient struct {
@@ -276,6 +309,166 @@ func (c *partsServiceClient) CreateProductionExtraction(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *partsServiceClient) ListSuppliers(ctx context.Context, in *ListSuppliersRequest, opts ...grpc.CallOption) (*ListSuppliersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSuppliersResponse)
+	err := c.cc.Invoke(ctx, PartsService_ListSuppliers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) CreateSupplierOrder(ctx context.Context, in *CreateSupplierOrderRequest, opts ...grpc.CallOption) (*CreateSupplierOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateSupplierOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_CreateSupplierOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) GetSupplierOrder(ctx context.Context, in *GetSupplierOrderRequest, opts ...grpc.CallOption) (*GetSupplierOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSupplierOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_GetSupplierOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) UpdateSupplierOrder(ctx context.Context, in *UpdateSupplierOrderRequest, opts ...grpc.CallOption) (*UpdateSupplierOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateSupplierOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_UpdateSupplierOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) ListSupplierOrders(ctx context.Context, in *ListSupplierOrdersRequest, opts ...grpc.CallOption) (*ListSupplierOrdersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSupplierOrdersResponse)
+	err := c.cc.Invoke(ctx, PartsService_ListSupplierOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) CancelSupplierOrder(ctx context.Context, in *CancelSupplierOrderRequest, opts ...grpc.CallOption) (*CancelSupplierOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelSupplierOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_CancelSupplierOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) CreateReceiptFromSupplierOrder(ctx context.Context, in *CreateReceiptFromSupplierOrderRequest, opts ...grpc.CallOption) (*CreateReceiptFromSupplierOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateReceiptFromSupplierOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_CreateReceiptFromSupplierOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) CreateCustomerOrder(ctx context.Context, in *CreateCustomerOrderRequest, opts ...grpc.CallOption) (*CreateCustomerOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateCustomerOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_CreateCustomerOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) GetCustomerOrder(ctx context.Context, in *GetCustomerOrderRequest, opts ...grpc.CallOption) (*GetCustomerOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCustomerOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_GetCustomerOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) UpdateCustomerOrder(ctx context.Context, in *UpdateCustomerOrderRequest, opts ...grpc.CallOption) (*UpdateCustomerOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateCustomerOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_UpdateCustomerOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) ListCustomerOrders(ctx context.Context, in *ListCustomerOrdersRequest, opts ...grpc.CallOption) (*ListCustomerOrdersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCustomerOrdersResponse)
+	err := c.cc.Invoke(ctx, PartsService_ListCustomerOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) CancelCustomerOrder(ctx context.Context, in *CancelCustomerOrderRequest, opts ...grpc.CallOption) (*CancelCustomerOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelCustomerOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_CancelCustomerOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) CreateSaleFromCustomerOrder(ctx context.Context, in *CreateSaleFromCustomerOrderRequest, opts ...grpc.CallOption) (*CreateSaleFromCustomerOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateSaleFromCustomerOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_CreateSaleFromCustomerOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) CreateWorkOrderFromSupplierOrder(ctx context.Context, in *CreateWorkOrderFromSupplierOrderRequest, opts ...grpc.CallOption) (*CreateWorkOrderFromOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateWorkOrderFromOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_CreateWorkOrderFromSupplierOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) CreateWorkOrderFromCustomerOrder(ctx context.Context, in *CreateWorkOrderFromCustomerOrderRequest, opts ...grpc.CallOption) (*CreateWorkOrderFromOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateWorkOrderFromOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_CreateWorkOrderFromCustomerOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partsServiceClient) FulfillOrderFromWorkOrder(ctx context.Context, in *FulfillOrderFromWorkOrderRequest, opts ...grpc.CallOption) (*FulfillOrderFromWorkOrderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FulfillOrderFromWorkOrderResponse)
+	err := c.cc.Invoke(ctx, PartsService_FulfillOrderFromWorkOrder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PartsServiceServer is the server API for PartsService service.
 // All implementations must embed UnimplementedPartsServiceServer
 // for forward compatibility.
@@ -301,6 +494,23 @@ type PartsServiceServer interface {
 	ConfirmMovementDocument(context.Context, *ConfirmMovementDocumentRequest) (*ConfirmMovementDocumentResponse, error)
 	CancelMovementDocument(context.Context, *CancelMovementDocumentRequest) (*CancelMovementDocumentResponse, error)
 	CreateProductionExtraction(context.Context, *CreateProductionExtractionRequest) (*CreateProductionExtractionResponse, error)
+	ListSuppliers(context.Context, *ListSuppliersRequest) (*ListSuppliersResponse, error)
+	CreateSupplierOrder(context.Context, *CreateSupplierOrderRequest) (*CreateSupplierOrderResponse, error)
+	GetSupplierOrder(context.Context, *GetSupplierOrderRequest) (*GetSupplierOrderResponse, error)
+	UpdateSupplierOrder(context.Context, *UpdateSupplierOrderRequest) (*UpdateSupplierOrderResponse, error)
+	ListSupplierOrders(context.Context, *ListSupplierOrdersRequest) (*ListSupplierOrdersResponse, error)
+	CancelSupplierOrder(context.Context, *CancelSupplierOrderRequest) (*CancelSupplierOrderResponse, error)
+	CreateReceiptFromSupplierOrder(context.Context, *CreateReceiptFromSupplierOrderRequest) (*CreateReceiptFromSupplierOrderResponse, error)
+	CreateCustomerOrder(context.Context, *CreateCustomerOrderRequest) (*CreateCustomerOrderResponse, error)
+	GetCustomerOrder(context.Context, *GetCustomerOrderRequest) (*GetCustomerOrderResponse, error)
+	UpdateCustomerOrder(context.Context, *UpdateCustomerOrderRequest) (*UpdateCustomerOrderResponse, error)
+	ListCustomerOrders(context.Context, *ListCustomerOrdersRequest) (*ListCustomerOrdersResponse, error)
+	CancelCustomerOrder(context.Context, *CancelCustomerOrderRequest) (*CancelCustomerOrderResponse, error)
+	CreateSaleFromCustomerOrder(context.Context, *CreateSaleFromCustomerOrderRequest) (*CreateSaleFromCustomerOrderResponse, error)
+	CreateWorkOrderFromSupplierOrder(context.Context, *CreateWorkOrderFromSupplierOrderRequest) (*CreateWorkOrderFromOrderResponse, error)
+	CreateWorkOrderFromCustomerOrder(context.Context, *CreateWorkOrderFromCustomerOrderRequest) (*CreateWorkOrderFromOrderResponse, error)
+	// Вызывается workorders-service при закрытии заказ-наряда, созданного из заказа.
+	FulfillOrderFromWorkOrder(context.Context, *FulfillOrderFromWorkOrderRequest) (*FulfillOrderFromWorkOrderResponse, error)
 	mustEmbedUnimplementedPartsServiceServer()
 }
 
@@ -370,6 +580,54 @@ func (UnimplementedPartsServiceServer) CancelMovementDocument(context.Context, *
 }
 func (UnimplementedPartsServiceServer) CreateProductionExtraction(context.Context, *CreateProductionExtractionRequest) (*CreateProductionExtractionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateProductionExtraction not implemented")
+}
+func (UnimplementedPartsServiceServer) ListSuppliers(context.Context, *ListSuppliersRequest) (*ListSuppliersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSuppliers not implemented")
+}
+func (UnimplementedPartsServiceServer) CreateSupplierOrder(context.Context, *CreateSupplierOrderRequest) (*CreateSupplierOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateSupplierOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) GetSupplierOrder(context.Context, *GetSupplierOrderRequest) (*GetSupplierOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSupplierOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) UpdateSupplierOrder(context.Context, *UpdateSupplierOrderRequest) (*UpdateSupplierOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSupplierOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) ListSupplierOrders(context.Context, *ListSupplierOrdersRequest) (*ListSupplierOrdersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSupplierOrders not implemented")
+}
+func (UnimplementedPartsServiceServer) CancelSupplierOrder(context.Context, *CancelSupplierOrderRequest) (*CancelSupplierOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelSupplierOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) CreateReceiptFromSupplierOrder(context.Context, *CreateReceiptFromSupplierOrderRequest) (*CreateReceiptFromSupplierOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateReceiptFromSupplierOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) CreateCustomerOrder(context.Context, *CreateCustomerOrderRequest) (*CreateCustomerOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateCustomerOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) GetCustomerOrder(context.Context, *GetCustomerOrderRequest) (*GetCustomerOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCustomerOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) UpdateCustomerOrder(context.Context, *UpdateCustomerOrderRequest) (*UpdateCustomerOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateCustomerOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) ListCustomerOrders(context.Context, *ListCustomerOrdersRequest) (*ListCustomerOrdersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCustomerOrders not implemented")
+}
+func (UnimplementedPartsServiceServer) CancelCustomerOrder(context.Context, *CancelCustomerOrderRequest) (*CancelCustomerOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelCustomerOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) CreateSaleFromCustomerOrder(context.Context, *CreateSaleFromCustomerOrderRequest) (*CreateSaleFromCustomerOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateSaleFromCustomerOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) CreateWorkOrderFromSupplierOrder(context.Context, *CreateWorkOrderFromSupplierOrderRequest) (*CreateWorkOrderFromOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateWorkOrderFromSupplierOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) CreateWorkOrderFromCustomerOrder(context.Context, *CreateWorkOrderFromCustomerOrderRequest) (*CreateWorkOrderFromOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateWorkOrderFromCustomerOrder not implemented")
+}
+func (UnimplementedPartsServiceServer) FulfillOrderFromWorkOrder(context.Context, *FulfillOrderFromWorkOrderRequest) (*FulfillOrderFromWorkOrderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FulfillOrderFromWorkOrder not implemented")
 }
 func (UnimplementedPartsServiceServer) mustEmbedUnimplementedPartsServiceServer() {}
 func (UnimplementedPartsServiceServer) testEmbeddedByValue()                      {}
@@ -752,6 +1010,294 @@ func _PartsService_CreateProductionExtraction_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PartsService_ListSuppliers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSuppliersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).ListSuppliers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_ListSuppliers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).ListSuppliers(ctx, req.(*ListSuppliersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_CreateSupplierOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSupplierOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CreateSupplierOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CreateSupplierOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CreateSupplierOrder(ctx, req.(*CreateSupplierOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_GetSupplierOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSupplierOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).GetSupplierOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_GetSupplierOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).GetSupplierOrder(ctx, req.(*GetSupplierOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_UpdateSupplierOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSupplierOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).UpdateSupplierOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_UpdateSupplierOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).UpdateSupplierOrder(ctx, req.(*UpdateSupplierOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_ListSupplierOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSupplierOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).ListSupplierOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_ListSupplierOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).ListSupplierOrders(ctx, req.(*ListSupplierOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_CancelSupplierOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelSupplierOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CancelSupplierOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CancelSupplierOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CancelSupplierOrder(ctx, req.(*CancelSupplierOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_CreateReceiptFromSupplierOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateReceiptFromSupplierOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CreateReceiptFromSupplierOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CreateReceiptFromSupplierOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CreateReceiptFromSupplierOrder(ctx, req.(*CreateReceiptFromSupplierOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_CreateCustomerOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCustomerOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CreateCustomerOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CreateCustomerOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CreateCustomerOrder(ctx, req.(*CreateCustomerOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_GetCustomerOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCustomerOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).GetCustomerOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_GetCustomerOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).GetCustomerOrder(ctx, req.(*GetCustomerOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_UpdateCustomerOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCustomerOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).UpdateCustomerOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_UpdateCustomerOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).UpdateCustomerOrder(ctx, req.(*UpdateCustomerOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_ListCustomerOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCustomerOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).ListCustomerOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_ListCustomerOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).ListCustomerOrders(ctx, req.(*ListCustomerOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_CancelCustomerOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelCustomerOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CancelCustomerOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CancelCustomerOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CancelCustomerOrder(ctx, req.(*CancelCustomerOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_CreateSaleFromCustomerOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSaleFromCustomerOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CreateSaleFromCustomerOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CreateSaleFromCustomerOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CreateSaleFromCustomerOrder(ctx, req.(*CreateSaleFromCustomerOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_CreateWorkOrderFromSupplierOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateWorkOrderFromSupplierOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CreateWorkOrderFromSupplierOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CreateWorkOrderFromSupplierOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CreateWorkOrderFromSupplierOrder(ctx, req.(*CreateWorkOrderFromSupplierOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_CreateWorkOrderFromCustomerOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateWorkOrderFromCustomerOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).CreateWorkOrderFromCustomerOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_CreateWorkOrderFromCustomerOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).CreateWorkOrderFromCustomerOrder(ctx, req.(*CreateWorkOrderFromCustomerOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartsService_FulfillOrderFromWorkOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FulfillOrderFromWorkOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartsServiceServer).FulfillOrderFromWorkOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartsService_FulfillOrderFromWorkOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartsServiceServer).FulfillOrderFromWorkOrder(ctx, req.(*FulfillOrderFromWorkOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PartsService_ServiceDesc is the grpc.ServiceDesc for PartsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -838,6 +1384,70 @@ var PartsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateProductionExtraction",
 			Handler:    _PartsService_CreateProductionExtraction_Handler,
+		},
+		{
+			MethodName: "ListSuppliers",
+			Handler:    _PartsService_ListSuppliers_Handler,
+		},
+		{
+			MethodName: "CreateSupplierOrder",
+			Handler:    _PartsService_CreateSupplierOrder_Handler,
+		},
+		{
+			MethodName: "GetSupplierOrder",
+			Handler:    _PartsService_GetSupplierOrder_Handler,
+		},
+		{
+			MethodName: "UpdateSupplierOrder",
+			Handler:    _PartsService_UpdateSupplierOrder_Handler,
+		},
+		{
+			MethodName: "ListSupplierOrders",
+			Handler:    _PartsService_ListSupplierOrders_Handler,
+		},
+		{
+			MethodName: "CancelSupplierOrder",
+			Handler:    _PartsService_CancelSupplierOrder_Handler,
+		},
+		{
+			MethodName: "CreateReceiptFromSupplierOrder",
+			Handler:    _PartsService_CreateReceiptFromSupplierOrder_Handler,
+		},
+		{
+			MethodName: "CreateCustomerOrder",
+			Handler:    _PartsService_CreateCustomerOrder_Handler,
+		},
+		{
+			MethodName: "GetCustomerOrder",
+			Handler:    _PartsService_GetCustomerOrder_Handler,
+		},
+		{
+			MethodName: "UpdateCustomerOrder",
+			Handler:    _PartsService_UpdateCustomerOrder_Handler,
+		},
+		{
+			MethodName: "ListCustomerOrders",
+			Handler:    _PartsService_ListCustomerOrders_Handler,
+		},
+		{
+			MethodName: "CancelCustomerOrder",
+			Handler:    _PartsService_CancelCustomerOrder_Handler,
+		},
+		{
+			MethodName: "CreateSaleFromCustomerOrder",
+			Handler:    _PartsService_CreateSaleFromCustomerOrder_Handler,
+		},
+		{
+			MethodName: "CreateWorkOrderFromSupplierOrder",
+			Handler:    _PartsService_CreateWorkOrderFromSupplierOrder_Handler,
+		},
+		{
+			MethodName: "CreateWorkOrderFromCustomerOrder",
+			Handler:    _PartsService_CreateWorkOrderFromCustomerOrder_Handler,
+		},
+		{
+			MethodName: "FulfillOrderFromWorkOrder",
+			Handler:    _PartsService_FulfillOrderFromWorkOrder_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

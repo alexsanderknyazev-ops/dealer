@@ -23,6 +23,7 @@ export type MovementDocumentLine = {
   part_name: string
   part_sku: string
   warehouse_name: string
+  unit_cost: string
 }
 
 export type MovementDocumentLineInput = {
@@ -30,6 +31,7 @@ export type MovementDocumentLineInput = {
   warehouse_id: string
   destination_warehouse_id?: string
   quantity: number
+  unit_cost?: string
   notes?: string
   sort_order?: number
 }
@@ -42,9 +44,15 @@ export type MovementDocument = {
   reference_type: string
   reference_id: string
   reference_label: string
+  customer_id: string
   customer_name: string
+  vehicle_id: string
   vehicle_vin: string
   vehicle_label: string
+  supplier_id: string
+  supplier_name: string
+  receipt_warehouse_id: string
+  receipt_warehouse_name: string
   parent_document_id: string
   parent_document_number: string
   notes: string
@@ -60,6 +68,11 @@ export type MovementDocument = {
 
 export type MovementDocumentForm = {
   movement_type: string
+  customer_id?: string
+  vehicle_id?: string
+  vehicle_vin?: string
+  supplier_id?: string
+  receipt_warehouse_id?: string
   notes?: string
   lines: MovementDocumentLineInput[]
 }
@@ -140,12 +153,18 @@ export async function createMovementDocument(
     headers: getAuthHeaders(),
     body: JSON.stringify({
       movement_type: payload.movement_type,
+      customer_id: payload.customer_id || '',
+      vehicle_id: payload.vehicle_id || '',
+      vehicle_vin: payload.vehicle_vin || '',
+      supplier_id: payload.supplier_id || '',
+      receipt_warehouse_id: payload.receipt_warehouse_id || '',
       notes: payload.notes || '',
       lines: payload.lines.map((l, i) => ({
         part_id: l.part_id,
-        warehouse_id: l.warehouse_id,
+        warehouse_id: l.warehouse_id || payload.receipt_warehouse_id || '',
         destination_warehouse_id: l.destination_warehouse_id || '',
         quantity: l.quantity,
+        unit_cost: l.unit_cost || '',
         notes: l.notes || '',
         sort_order: l.sort_order ?? i,
       })),
@@ -165,13 +184,20 @@ export async function updateMovementDocument(
     headers: getAuthHeaders(),
     body: JSON.stringify({
       movement_type: payload.movement_type,
+      customer_id: payload.customer_id || '',
+      vehicle_id: payload.vehicle_id || '',
+      vehicle_vin: payload.vehicle_vin || '',
+      clear_vehicle: !payload.vehicle_id && !payload.vehicle_vin,
+      supplier_id: payload.supplier_id || '',
+      receipt_warehouse_id: payload.receipt_warehouse_id || '',
       notes: payload.notes || '',
       replace_lines: true,
       lines: payload.lines.map((l, i) => ({
         part_id: l.part_id,
-        warehouse_id: l.warehouse_id,
+        warehouse_id: l.warehouse_id || payload.receipt_warehouse_id || '',
         destination_warehouse_id: l.destination_warehouse_id || '',
         quantity: l.quantity,
+        unit_cost: l.unit_cost || '',
         notes: l.notes || '',
         sort_order: l.sort_order ?? i,
       })),

@@ -46,6 +46,10 @@ func main() {
 	stockRepo := repository.NewPartStockRepository(pool)
 	movementRepo := repository.NewStockMovementRepository(pool)
 	movementDocRepo := repository.NewMovementDocumentRepository(pool)
+	refRepo := repository.NewReferenceRepository(pool)
+	supplierRepo := repository.NewSupplierRepository(pool)
+	supplierOrderRepo := repository.NewSupplierOrderRepository(pool)
+	customerOrderRepo := repository.NewCustomerOrderRepository(pool)
 	var brands service.BrandChecker
 	if cfg.BrandsGRPCAddr != "" {
 		dialCtx, dialCancel := context.WithTimeout(ctx, 10*time.Second)
@@ -111,7 +115,7 @@ func main() {
 	} else {
 		logger.Warn("EMPLOYEES_GRPC_ADDR not set; movement document employee names disabled")
 	}
-	svc := service.NewPartService(repo, folderRepo, stockRepo, movementRepo, movementDocRepo, workOrders, brands, dealerPoints)
+	svc := service.NewPartService(repo, folderRepo, stockRepo, movementRepo, movementDocRepo, workOrders, brands, dealerPoints, refRepo, supplierRepo, supplierOrderRepo, customerOrderRepo)
 
 	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
 		JWTSecret:  cfg.JWTSecret,

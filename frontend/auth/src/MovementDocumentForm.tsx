@@ -6,6 +6,9 @@ import * as api from './movementDocumentsApi'
 import * as partsApi from './partsApi'
 import type { Warehouse } from './dealerPointsApi'
 import * as dealerPointsApi from './dealerPointsApi'
+import * as customersApi from './customersApi'
+import * as vehiclesApi from './vehiclesApi'
+import * as suppliersApi from './suppliersApi'
 import { useAuth } from './auth'
 import { FormPage } from '@/components/common/FormPage'
 import { FormField } from '@/components/common/FormField'
@@ -23,6 +26,7 @@ const emptyLine = (): MovementDocumentLineInput => ({
   warehouse_id: '',
   destination_warehouse_id: '',
   quantity: 1,
+  unit_cost: '',
 })
 
 const MOVEMENT_DEST_LABEL: Record<string, string> = {
@@ -30,6 +34,8 @@ const MOVEMENT_DEST_LABEL: Record<string, string> = {
   to_production: 'Производство',
   work_order_issue: 'В работу (заказ-наряд)',
   from_production: 'Склад (возврат)',
+  sale: 'Клиенту (реализация)',
+  receipt: 'Склад (поступление)',
 }
 
 export function MovementDocumentForm() {
@@ -42,6 +48,9 @@ export function MovementDocumentForm() {
   const [submitting, setSubmitting] = useState(false)
   const [parts, setParts] = useState<partsApi.Part[]>([])
   const [warehouses, setWarehouses] = useState<Warehouse[]>([])
+  const [customers, setCustomers] = useState<customersApi.Customer[]>([])
+  const [suppliers, setSuppliers] = useState<suppliersApi.Supplier[]>([])
+  const [vehicleHint, setVehicleHint] = useState<string | null>(null)
   const [stockByLine, setStockByLine] = useState<Record<number, number | null>>({})
   const [form, setForm] = useState<FormType>({
     movement_type: 'transfer',
@@ -50,11 +59,37 @@ export function MovementDocumentForm() {
 
   const needsDestination = form.movement_type === 'transfer'
   const isFromProduction = form.movement_type === 'from_production'
+  const isSale = form.movement_type === 'sale'
+  const isReceipt = form.movement_type === 'receipt'
 
   useEffect(() => {
     partsApi.listParts({ limit: 500 }).then((r) => setParts(r.parts)).catch(() => {})
     dealerPointsApi.listWarehouses({ limit: 500 }).then((r) => setWarehouses(r.warehouses)).catch(() => {})
+    customersApi.listCustomers({ limit: 500 }).then((r) => setCustomers(r.customers)).catch(() => {})
+    suppliersApi.listSuppliers({ limit: 500 }).then((r) => setSuppliers(r.suppliers)).catch(() => {})
   }, [])
+
+  async function resolveVehicleVin(vin: string) {
+    const trimmed = vin.trim()
+    if (!trimmed) {
+      setForm((f) => ({ ...f, vehicle_id: '', vehicle_vin: '' }))
+      setVehicleHint(null)
+      return
+    }
+    try {
+      const { vehicles } = await vehiclesApi.listVehicles({ limit: 10, search: trimmed })
+      const exact = vehicles.find((v) => v.vin.toLowerCase() === trimmed.toLowerCase())
+      if (!exact) {
+        setForm((f) => ({ ...f, vehicle_id: '', vehicle_vin: trimmed }))
+        setVehicleHint('Автомобиль с таким VIN не найден')
+        return
+      }
+      setForm((f) => ({ ...f, vehicle_id: exact.id, vehicle_vin: exact.vin }))
+      setVehicleHint(`${exact.make} ${exact.model}${exact.year ? ` (${exact.year})` : ''}`)
+    } catch {
+      setVehicleHint('Не удалось найти автомобиль')
+    }
+  }
 
   const refreshLineStock = useCallback(async (lineIndex: number, partId: string, warehouseId: string) => {
     if (!partId || !warehouseId) {
@@ -81,6 +116,11 @@ export function MovementDocumentForm() {
         }
         setForm({
           movement_type: doc.movement_type,
+          customer_id: doc.customer_id || '',
+          vehicle_id: doc.vehicle_id || '',
+          vehicle_vin: doc.vehicle_vin || '',
+          supplier_id: doc.supplier_id || '',
+          receipt_warehouse_id: doc.receipt_warehouse_id || '',
           notes: doc.notes,
           lines: doc.lines?.length
             ? doc.lines.map((l) => ({
@@ -88,11 +128,13 @@ export function MovementDocumentForm() {
                 warehouse_id: l.warehouse_id,
                 destination_warehouse_id: l.destination_warehouse_id || '',
                 quantity: l.quantity,
+                unit_cost: l.unit_cost || '',
                 notes: l.notes,
                 sort_order: l.sort_order,
               }))
             : [emptyLine()],
         })
+        if (doc.vehicle_label) setVehicleHint(doc.vehicle_label)
         doc.lines?.forEach((l, i) => {
           if (l.part_id && l.warehouse_id) {
             void refreshLineStock(i, l.part_id, l.warehouse_id)
@@ -128,12 +170,35 @@ export function MovementDocumentForm() {
     setError(null)
     const payload: FormType = {
       ...form,
-      lines: form.lines.filter((l) => l.part_id && l.warehouse_id && l.quantity > 0),
+      lines: form.lines.filter((l) => l.part_id && l.quantity > 0 && (isReceipt || l.warehouse_id)),
+    }
+    if (isSale && !payload.customer_id) {
+      setError('Укажите клиента для реализации товара')
+      setSubmitting(false)
+      return
+    }
+    if (isReceipt) {
+      if (!payload.supplier_id) {
+        setError('Укажите поставщика')
+        setSubmitting(false)
+        return
+      }
+      if (!payload.receipt_warehouse_id) {
+        setError('Укажите склад поступления')
+        setSubmitting(false)
+        return
+      }
     }
     for (let i = 0; i < payload.lines.length; i++) {
       const l = payload.lines[i]
+      if (isReceipt && (!l.unit_cost || Number(l.unit_cost) <= 0)) {
+        setError(`Строка ${i + 1}: укажите входную стоимость`)
+        setSubmitting(false)
+        return
+      }
       const available = stockByLine[i]
       if (
+        !isReceipt &&
         form.movement_type !== 'from_production' &&
         available != null &&
         l.quantity > available
@@ -187,6 +252,8 @@ export function MovementDocumentForm() {
                 <option value="transfer">Между складами</option>
                 <option value="to_production">В производство</option>
                 <option value="work_order_issue">В работу</option>
+                <option value="sale">Реализация товара</option>
+                <option value="receipt">Поступление товара</option>
               </NativeSelect>
             )}
           </FormField>
@@ -197,6 +264,69 @@ export function MovementDocumentForm() {
             </p>
           </FormField>
         </div>
+
+        {isReceipt && (
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField label="Поставщик" required>
+              <NativeSelect
+                value={form.supplier_id || ''}
+                onChange={(e) => setForm({ ...form, supplier_id: e.target.value })}
+              >
+                <option value="">Выберите поставщика</option>
+                {suppliers.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                    {s.inn ? ` (ИНН ${s.inn})` : ''}
+                  </option>
+                ))}
+              </NativeSelect>
+            </FormField>
+            <FormField label="Склад поступления" required>
+              <NativeSelect
+                value={form.receipt_warehouse_id || ''}
+                onChange={(e) => setForm({ ...form, receipt_warehouse_id: e.target.value })}
+              >
+                <option value="">Выберите склад</option>
+                {warehouses.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.name}
+                  </option>
+                ))}
+              </NativeSelect>
+            </FormField>
+          </div>
+        )}
+
+        {isSale && (
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField label="Клиент" required>
+              <NativeSelect
+                value={form.customer_id || ''}
+                onChange={(e) => setForm({ ...form, customer_id: e.target.value })}
+              >
+                <option value="">Выберите клиента</option>
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                    {c.phone ? ` — ${c.phone}` : ''}
+                  </option>
+                ))}
+              </NativeSelect>
+            </FormField>
+            <FormField label="VIN (необязательно)">
+              <Input
+                value={form.vehicle_vin || ''}
+                placeholder="VIN автомобиля"
+                onChange={(e) => {
+                  setVehicleHint(null)
+                  setForm({ ...form, vehicle_vin: e.target.value, vehicle_id: '' })
+                }}
+                onBlur={(e) => void resolveVehicleVin(e.target.value)}
+              />
+              {vehicleHint && <p className="mt-1 text-xs text-muted-foreground">{vehicleHint}</p>}
+            </FormField>
+          </div>
+        )}
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -213,7 +343,7 @@ export function MovementDocumentForm() {
           <CardContent className="space-y-3">
             {(form.lines || []).map((line, i) => {
               const stock = stockByLine[i]
-              const overStock = stock != null && line.quantity > stock && !isFromProduction
+              const overStock = stock != null && line.quantity > stock && !isFromProduction && !isReceipt
               return (
                 <div key={i} className="space-y-2 rounded-md border p-3">
                   <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
@@ -234,17 +364,19 @@ export function MovementDocumentForm() {
                         </option>
                       ))}
                     </NativeSelect>
-                    <NativeSelect
-                      value={line.warehouse_id}
-                      onChange={(e) => updateLine(i, { warehouse_id: e.target.value })}
-                    >
-                      <option value="">{isFromProduction ? 'Склад (куда)' : 'Склад (откуда)'}</option>
-                      {warehouses.map((w) => (
-                        <option key={w.id} value={w.id}>
-                          {w.name}
-                        </option>
-                      ))}
-                    </NativeSelect>
+                    {!isReceipt && (
+                      <NativeSelect
+                        value={line.warehouse_id}
+                        onChange={(e) => updateLine(i, { warehouse_id: e.target.value })}
+                      >
+                        <option value="">{isFromProduction ? 'Склад (куда)' : 'Склад (откуда)'}</option>
+                        {warehouses.map((w) => (
+                          <option key={w.id} value={w.id}>
+                            {w.name}
+                          </option>
+                        ))}
+                      </NativeSelect>
+                    )}
                     {needsDestination ? (
                       <NativeSelect
                         value={line.destination_warehouse_id || ''}
@@ -259,11 +391,11 @@ export function MovementDocumentForm() {
                             </option>
                           ))}
                       </NativeSelect>
-                    ) : (
+                    ) : !isReceipt ? (
                       <div className="flex items-center rounded-md border bg-muted/40 px-3 text-sm text-muted-foreground">
                         {MOVEMENT_DEST_LABEL[form.movement_type]}
                       </div>
-                    )}
+                    ) : null}
                   </div>
                   <div className="grid gap-2 md:grid-cols-[minmax(120px,1fr)_auto_1fr_auto] md:items-center">
                     <div>
@@ -275,17 +407,27 @@ export function MovementDocumentForm() {
                         onChange={(e) => updateLine(i, { quantity: Number(e.target.value) || 0 })}
                         className={cn(overStock && 'border-destructive')}
                       />
-                      {line.part_id && line.warehouse_id && !isFromProduction && (
+                      {line.part_id && line.warehouse_id && !isFromProduction && !isReceipt && (
                         <p className={cn('mt-1 text-xs', overStock ? 'text-destructive' : 'text-muted-foreground')}>
                           Остаток на складе: {stock == null ? '…' : stock}
                         </p>
                       )}
                     </div>
+                    {isReceipt && (
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        placeholder="Входная цена"
+                        value={line.unit_cost || ''}
+                        onChange={(e) => updateLine(i, { unit_cost: e.target.value })}
+                      />
+                    )}
                     <Input
                       placeholder="Примечание"
                       value={line.notes || ''}
                       onChange={(e) => updateLine(i, { notes: e.target.value })}
-                      className="md:col-span-2"
+                      className={isReceipt ? '' : 'md:col-span-2'}
                     />
                     <Button
                       type="button"

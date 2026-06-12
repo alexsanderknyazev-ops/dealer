@@ -18,6 +18,12 @@ service ClientAccountService {
   rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {
     option (google.api.http) = { get: "/api/client/profile" response_body: "profile" };
   }
+  rpc ListClientNotifications(ListClientNotificationsRequest) returns (ListClientNotificationsResponse) {
+    option (google.api.http) = { get: "/api/client/notifications" };
+  }
+  rpc DismissClientNotification(DismissClientNotificationRequest) returns (DismissClientNotificationResponse) {
+    option (google.api.http) = { post: "/api/client/notifications/{id}/dismiss" body: "*" };
+  }
 }
 
 message AddVehicleRequest {
@@ -39,3 +45,26 @@ message GetProfileRequest {}
 message GetProfileResponse {
   ClientProfile profile = 1;
 }
+
+message ClientNotification {
+  string id = 1;
+  string kind = 2;
+  string source_type = 3;
+  string source_id = 4;
+  string title = 5;
+  string body = 6;
+  string status = 7;
+  int64 created_at = 8;
+}
+
+message ListClientNotificationsRequest {}
+
+message ListClientNotificationsResponse {
+  repeated ClientNotification notifications = 1;
+}
+
+message DismissClientNotificationRequest {
+  string id = 1;
+}
+
+message DismissClientNotificationResponse {}

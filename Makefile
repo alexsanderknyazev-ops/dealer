@@ -5,7 +5,7 @@ proto:
 	@which protoc-gen-go >/dev/null || (echo "go install google.golang.org/protobuf/cmd/protoc-gen-go@latest" && exit 1)
 	@which protoc-gen-go-grpc >/dev/null || (echo "go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest" && exit 1)
 	@which protoc-gen-grpc-gateway >/dev/null || (echo "go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest" && exit 1)
-	mkdir -p pkg/pb/auth/v1 pkg/pb/customers/v1 pkg/pb/vehicles/v1 pkg/pb/deals/v1 pkg/pb/parts/v1 pkg/pb/brands/v1 pkg/pb/dealerpoints/v1 pkg/pb/clients/v1 pkg/pb/clientauth/v1 pkg/pb/reviews/v1 pkg/pb/statistics/employee/v1 pkg/pb/statistics/client/v1 pkg/pb/workorders/v1 pkg/pb/works/v1 pkg/pb/employees/v1
+	mkdir -p pkg/pb/auth/v1 pkg/pb/customers/v1 pkg/pb/vehicles/v1 pkg/pb/deals/v1 pkg/pb/parts/v1 pkg/pb/brands/v1 pkg/pb/dealerpoints/v1 pkg/pb/clients/v1 pkg/pb/clientauth/v1 pkg/pb/reviews/v1 pkg/pb/statistics/employee/v1 pkg/pb/statistics/client/v1 pkg/pb/workorders/v1 pkg/pb/works/v1 pkg/pb/employees/v1 pkg/pb/appointments/v1
 	protoc -I api/proto --go_out=module=github.com/dealer/dealer:. \
 		--go-grpc_out=module=github.com/dealer/dealer:. \
 		--grpc-gateway_out=module=github.com/dealer/dealer:. \
@@ -14,7 +14,8 @@ proto:
 		api/proto/clientauth/v1/clientauth.proto api/proto/clientauth/v1/clientauth_public.proto api/proto/clientauth/v1/clientauth_session.proto \
 		api/proto/reviews/v1/reviews.proto api/proto/reviews/v1/employee_reviews.proto \
 		api/proto/statistics/employee/v1/employee_stats.proto api/proto/statistics/client/v1/client_stats.proto \
-		api/proto/workorders/v1/work_orders.proto api/proto/works/v1/works.proto api/proto/employees/v1/employees.proto
+		api/proto/workorders/v1/work_orders.proto api/proto/works/v1/works.proto api/proto/employees/v1/employees.proto \
+		api/proto/appointments/v1/repair_appointments.proto
 
 docker-up:
 	docker compose up -d
@@ -25,7 +26,7 @@ docker-down:
 # Применить миграции к БД (нужен запущенный Postgres, порт 5433 при Docker)
 migrate:
 	@: $${POSTGRES_DSN:?Set POSTGRES_DSN (see .env.example; copy .env from .env.example)}
-	@for f in migrations/000_schemas.up.sql migrations/001_users.up.sql migrations/002_roles.up.sql migrations/003_customers.up.sql migrations/004_vehicles.up.sql migrations/005_deals.up.sql migrations/006_parts.up.sql migrations/007_part_folders.up.sql migrations/008_brands.up.sql migrations/009_dealer_points.up.sql migrations/010_part_stock.up.sql migrations/011_clients.up.sql migrations/012_client_role.up.sql migrations/013_clientauth.up.sql migrations/014_reviews.up.sql migrations/015_employee_statistics.up.sql migrations/016_client_statistics.up.sql migrations/017_employee_reviews.up.sql migrations/018_work_orders.up.sql migrations/019_stock_movements.up.sql migrations/020_movement_documents.up.sql migrations/021_work_order_movement_doc.up.sql migrations/022_works.up.sql migrations/023_work_order_labor_work_id.up.sql migrations/024_employees.up.sql migrations/025_review_invitations.up.sql migrations/026_movement_document_statuses.up.sql migrations/027_work_folders.up.sql migrations/028_brand_labor_rates.up.sql migrations/029_production_extraction.up.sql migrations/030_movement_destination_warehouse.up.sql; do \
+	@for f in migrations/000_schemas.up.sql migrations/001_users.up.sql migrations/002_roles.up.sql migrations/003_customers.up.sql migrations/004_vehicles.up.sql migrations/005_deals.up.sql migrations/006_parts.up.sql migrations/007_part_folders.up.sql migrations/008_brands.up.sql migrations/009_dealer_points.up.sql migrations/010_part_stock.up.sql migrations/011_clients.up.sql migrations/012_client_role.up.sql migrations/013_clientauth.up.sql migrations/014_reviews.up.sql migrations/015_employee_statistics.up.sql migrations/016_client_statistics.up.sql migrations/017_employee_reviews.up.sql migrations/018_work_orders.up.sql migrations/019_stock_movements.up.sql migrations/020_movement_documents.up.sql migrations/021_work_order_movement_doc.up.sql migrations/022_works.up.sql migrations/023_work_order_labor_work_id.up.sql migrations/024_employees.up.sql migrations/025_review_invitations.up.sql migrations/026_movement_document_statuses.up.sql migrations/027_work_folders.up.sql migrations/028_brand_labor_rates.up.sql migrations/029_production_extraction.up.sql migrations/030_movement_destination_warehouse.up.sql migrations/031_goods_sale.up.sql migrations/032_review_invitations_movement_document.up.sql migrations/033_suppliers_and_receipt.up.sql migrations/034_part_orders.up.sql migrations/035_order_work_orders.up.sql migrations/036_client_order_notifications.up.sql migrations/037_repair_appointments.up.sql; do \
 		echo "Applying $$f..."; psql "$$POSTGRES_DSN" -f "$$f" || exit 1; \
 	done
 	@echo "Migrations done."
@@ -89,6 +90,9 @@ run-workorders:
 
 run-scheduler:
 	go run ./services/scheduler
+
+run-appointments:
+	go run ./services/employee/appointments
 
 # Тестовые клиенты, автомобили, запчасти (нужны миграции 001–006 и POSTGRES_DSN)
 seed-data:

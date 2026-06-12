@@ -41,10 +41,14 @@ func (w *Worker) tick(ctx context.Context) {
 		w.logger.Error("review invitation scheduler failed", "err", err)
 		return
 	}
-	if result.WorkOrdersCreated > 0 || result.DealsCreated > 0 {
-		w.logger.Info("review invitations created",
-			"work_orders", result.WorkOrdersCreated,
-			"deals", result.DealsCreated,
+	if result.WorkOrdersCreated > 0 || result.DealsCreated > 0 || result.GoodsSalesCreated > 0 ||
+		result.OrderReceiptsNotified > 0 || result.AppointmentRemindersSent > 0 {
+		w.logger.Info("scheduler tick",
+			"review_work_orders", result.WorkOrdersCreated,
+			"review_deals", result.DealsCreated,
+			"review_goods_sales", result.GoodsSalesCreated,
+			"order_receipt_notifications", result.OrderReceiptsNotified,
+			"appointment_reminders", result.AppointmentRemindersSent,
 		)
 	}
 }

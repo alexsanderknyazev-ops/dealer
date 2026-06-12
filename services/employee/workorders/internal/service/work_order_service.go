@@ -51,6 +51,7 @@ type CreateInput struct {
 	OpenedAt                                                            int64
 	Labor                                                               []LaborInput
 	Parts                                                               []PartInput
+	SourceOrderType, SourceOrderID                                      string
 }
 
 type UpdateInput struct {
@@ -85,6 +86,7 @@ type ReferenceChecker interface {
 	EmployeeExists(ctx context.Context, id uuid.UUID) (bool, error)
 	EmployeeFullName(ctx context.Context, id uuid.UUID) string
 	CreateMovementDocument(ctx context.Context, workOrderID uuid.UUID, orderNumber string, lines []domain.MovementDocumentLineInput, createdBy string) (string, error)
+	FulfillOrderFromWorkOrder(ctx context.Context, sourceOrderType, sourceOrderID string) error
 }
 
 type noopReferenceChecker struct{}
@@ -105,6 +107,7 @@ func (noopReferenceChecker) EmployeeFullName(context.Context, uuid.UUID) string 
 func (noopReferenceChecker) CreateMovementDocument(context.Context, uuid.UUID, string, []domain.MovementDocumentLineInput, string) (string, error) {
 	return "", errors.New("parts service unavailable")
 }
+func (noopReferenceChecker) FulfillOrderFromWorkOrder(context.Context, string, string) error { return nil }
 
 type WorkOrderService struct {
 	repo workOrderRepository
@@ -383,6 +386,8 @@ func (s *WorkOrderService) Create(ctx context.Context, in CreateInput) (*domain.
 		Diagnosis:        in.Diagnosis,
 		MileageKm:        in.MileageKm,
 		OpenedAt:         unixToTime(in.OpenedAt),
+		SourceOrderType:  strings.TrimSpace(in.SourceOrderType),
+		SourceOrderID:    parseOptionalUUID(in.SourceOrderID),
 		Notes:            in.Notes,
 		Labor:            labor,
 		Parts:            parts,
@@ -449,6 +454,7 @@ func (s *WorkOrderService) Update(ctx context.Context, id string, in UpdateInput
 	if in.RepairType != nil {
 		existing.RepairType = *in.RepairType
 	}
+	prevStatus := existing.Status
 	if in.Status != nil {
 		existing.Status = *in.Status
 	}
@@ -510,7 +516,16 @@ func (s *WorkOrderService) Update(ctx context.Context, id string, in UpdateInput
 	if err := s.repo.Update(ctx, existing, in.ReplaceLines); err != nil {
 		return nil, err
 	}
+	if in.Status != nil && isWorkOrderFulfillmentStatus(*in.Status) && !isWorkOrderFulfillmentStatus(prevStatus) {
+		if existing.SourceOrderType != "" && existing.SourceOrderID != nil {
+			_ = s.refs.FulfillOrderFromWorkOrder(ctx, existing.SourceOrderType, existing.SourceOrderID.String())
+		}
+	}
 	return existing, nil
+}
+
+func isWorkOrderFulfillmentStatus(status string) bool {
+	return status == domain.StatusClosed || status == domain.StatusPaid
 }
 
 func (s *WorkOrderService) Delete(ctx context.Context, id string) error {

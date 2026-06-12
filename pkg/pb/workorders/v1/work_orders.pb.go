@@ -318,6 +318,8 @@ type WorkOrder struct {
 	CustomerName           string                 `protobuf:"bytes,28,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
 	VehicleVin             string                 `protobuf:"bytes,29,opt,name=vehicle_vin,json=vehicleVin,proto3" json:"vehicle_vin,omitempty"`
 	VehicleLabel           string                 `protobuf:"bytes,30,opt,name=vehicle_label,json=vehicleLabel,proto3" json:"vehicle_label,omitempty"`
+	SourceOrderType        string                 `protobuf:"bytes,31,opt,name=source_order_type,json=sourceOrderType,proto3" json:"source_order_type,omitempty"`
+	SourceOrderId          string                 `protobuf:"bytes,32,opt,name=source_order_id,json=sourceOrderId,proto3" json:"source_order_id,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -562,6 +564,20 @@ func (x *WorkOrder) GetVehicleLabel() string {
 	return ""
 }
 
+func (x *WorkOrder) GetSourceOrderType() string {
+	if x != nil {
+		return x.SourceOrderType
+	}
+	return ""
+}
+
+func (x *WorkOrder) GetSourceOrderId() string {
+	if x != nil {
+		return x.SourceOrderId
+	}
+	return ""
+}
+
 type WorkOrderLaborInput struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	WorkId        string                 `protobuf:"bytes,1,opt,name=work_id,json=workId,proto3" json:"work_id,omitempty"`
@@ -746,6 +762,8 @@ type CreateWorkOrderRequest struct {
 	Notes            string                 `protobuf:"bytes,12,opt,name=notes,proto3" json:"notes,omitempty"`
 	Labor            []*WorkOrderLaborInput `protobuf:"bytes,13,rep,name=labor,proto3" json:"labor,omitempty"`
 	Parts            []*WorkOrderPartInput  `protobuf:"bytes,14,rep,name=parts,proto3" json:"parts,omitempty"`
+	SourceOrderType  string                 `protobuf:"bytes,15,opt,name=source_order_type,json=sourceOrderType,proto3" json:"source_order_type,omitempty"`
+	SourceOrderId    string                 `protobuf:"bytes,16,opt,name=source_order_id,json=sourceOrderId,proto3" json:"source_order_id,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -876,6 +894,20 @@ func (x *CreateWorkOrderRequest) GetParts() []*WorkOrderPartInput {
 		return x.Parts
 	}
 	return nil
+}
+
+func (x *CreateWorkOrderRequest) GetSourceOrderType() string {
+	if x != nil {
+		return x.SourceOrderType
+	}
+	return ""
+}
+
+func (x *CreateWorkOrderRequest) GetSourceOrderId() string {
+	if x != nil {
+		return x.SourceOrderId
+	}
+	return ""
 }
 
 type CreateWorkOrderResponse struct {
@@ -1672,7 +1704,7 @@ const file_workorders_v1_work_orders_proto_rawDesc = "" +
 	"\bpart_sku\x18\n" +
 	" \x01(\tR\apartSku\x12%\n" +
 	"\x0ewarehouse_name\x18\v \x01(\tR\rwarehouseName\x12\x1b\n" +
-	"\tpart_name\x18\f \x01(\tR\bpartName\"\xb3\b\n" +
+	"\tpart_name\x18\f \x01(\tR\bpartName\"\x87\t\n" +
 	"\tWorkOrder\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\forder_number\x18\x02 \x01(\tR\vorderNumber\x12\x1f\n" +
@@ -1714,7 +1746,9 @@ const file_workorders_v1_work_orders_proto_rawDesc = "" +
 	"\rcustomer_name\x18\x1c \x01(\tR\fcustomerName\x12\x1f\n" +
 	"\vvehicle_vin\x18\x1d \x01(\tR\n" +
 	"vehicleVin\x12#\n" +
-	"\rvehicle_label\x18\x1e \x01(\tR\fvehicleLabel\"\xcb\x01\n" +
+	"\rvehicle_label\x18\x1e \x01(\tR\fvehicleLabel\x12*\n" +
+	"\x11source_order_type\x18\x1f \x01(\tR\x0fsourceOrderType\x12&\n" +
+	"\x0fsource_order_id\x18  \x01(\tR\rsourceOrderId\"\xcb\x01\n" +
 	"\x13WorkOrderLaborInput\x12\x17\n" +
 	"\awork_id\x18\x01 \x01(\tR\x06workId\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1a\n" +
@@ -1733,7 +1767,7 @@ const file_workorders_v1_work_orders_proto_rawDesc = "" +
 	"\n" +
 	"unit_price\x18\x05 \x01(\tR\tunitPrice\x12\x1d\n" +
 	"\n" +
-	"sort_order\x18\x06 \x01(\x05R\tsortOrder\"\x8b\x04\n" +
+	"sort_order\x18\x06 \x01(\x05R\tsortOrder\"\xdf\x04\n" +
 	"\x16CreateWorkOrderRequest\x12\x1f\n" +
 	"\vcustomer_id\x18\x01 \x01(\tR\n" +
 	"customerId\x12\x1d\n" +
@@ -1753,7 +1787,9 @@ const file_workorders_v1_work_orders_proto_rawDesc = "" +
 	"\topened_at\x18\v \x01(\x03R\bopenedAt\x12\x14\n" +
 	"\x05notes\x18\f \x01(\tR\x05notes\x128\n" +
 	"\x05labor\x18\r \x03(\v2\".workorders.v1.WorkOrderLaborInputR\x05labor\x127\n" +
-	"\x05parts\x18\x0e \x03(\v2!.workorders.v1.WorkOrderPartInputR\x05parts\"R\n" +
+	"\x05parts\x18\x0e \x03(\v2!.workorders.v1.WorkOrderPartInputR\x05parts\x12*\n" +
+	"\x11source_order_type\x18\x0f \x01(\tR\x0fsourceOrderType\x12&\n" +
+	"\x0fsource_order_id\x18\x10 \x01(\tR\rsourceOrderId\"R\n" +
 	"\x17CreateWorkOrderResponse\x127\n" +
 	"\n" +
 	"work_order\x18\x01 \x01(\v2\x18.workorders.v1.WorkOrderR\tworkOrder\"%\n" +

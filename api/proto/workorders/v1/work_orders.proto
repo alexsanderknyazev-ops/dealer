@@ -90,6 +90,8 @@ message WorkOrder {
   string customer_name = 28;
   string vehicle_vin = 29;
   string vehicle_label = 30;
+  string source_order_type = 31;
+  string source_order_id = 32;
 }
 
 message WorkOrderLaborInput {
@@ -125,6 +127,8 @@ message CreateWorkOrderRequest {
   string notes = 12;
   repeated WorkOrderLaborInput labor = 13;
   repeated WorkOrderPartInput parts = 14;
+  string source_order_type = 15;
+  string source_order_id = 16;
 }
 
 message CreateWorkOrderResponse {

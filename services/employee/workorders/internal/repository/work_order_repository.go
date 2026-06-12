@@ -20,6 +20,13 @@ func NewWorkOrderRepository(pool *pgxpool.Pool) *WorkOrderRepository {
 	return &WorkOrderRepository{pool: pool}
 }
 
+func nullIfEmpty(s string) any {
+	if s == "" {
+		return nil
+	}
+	return s
+}
+
 func (r *WorkOrderRepository) NextOrderNumber(ctx context.Context) (string, error) {
 	var n int64
 	if err := r.pool.QueryRow(ctx, "SELECT nextval('work_orders_number_seq')").Scan(&n); err != nil {
@@ -39,14 +46,16 @@ func (r *WorkOrderRepository) Create(ctx context.Context, wo *domain.WorkOrder) 
 			id, order_number, customer_id, vehicle_id, dealer_point_id, warehouse_id,
 			repair_type, status, service_advisor_id, complaint, diagnosis, mileage_km,
 			labor_cost, parts_cost, total_cost, opened_at, closed_at, parts_issued, parts_issued_at,
-			movement_document_id, movement_document_status, notes, created_at, updated_at
-		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::numeric,$14::numeric,$15::numeric,$16,$17,$18,$19,$20,$21,$22,$23,$24)
+			movement_document_id, movement_document_status, source_order_type, source_order_id,
+			notes, created_at, updated_at
+		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::numeric,$14::numeric,$15::numeric,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)
 	`
 	_, err = tx.Exec(ctx, query,
 		wo.ID, wo.OrderNumber, wo.CustomerID, wo.VehicleID, wo.DealerPointID, wo.WarehouseID,
 		wo.RepairType, wo.Status, wo.ServiceAdvisorID, wo.Complaint, wo.Diagnosis, wo.MileageKm,
 		wo.LaborCost, wo.PartsCost, wo.TotalCost, wo.OpenedAt, wo.ClosedAt, wo.PartsIssued, wo.PartsIssuedAt,
-		wo.MovementDocumentID, wo.MovementDocumentStatus, wo.Notes, wo.CreatedAt, wo.UpdatedAt,
+		wo.MovementDocumentID, wo.MovementDocumentStatus, nullIfEmpty(wo.SourceOrderType), wo.SourceOrderID,
+		wo.Notes, wo.CreatedAt, wo.UpdatedAt,
 	)
 	if err != nil {
 		return err
@@ -92,7 +101,8 @@ func (r *WorkOrderRepository) scanHeader(row pgx.Row) (*domain.WorkOrder, error)
 		&wo.ID, &wo.OrderNumber, &wo.CustomerID, &wo.VehicleID, &wo.DealerPointID, &wo.WarehouseID,
 		&wo.RepairType, &wo.Status, &wo.ServiceAdvisorID, &wo.Complaint, &wo.Diagnosis, &wo.MileageKm,
 		&wo.LaborCost, &wo.PartsCost, &wo.TotalCost, &wo.OpenedAt, &wo.ClosedAt, &wo.PartsIssued, &wo.PartsIssuedAt,
-		&wo.MovementDocumentID, &wo.MovementDocumentStatus, &wo.Notes, &wo.CreatedAt, &wo.UpdatedAt,
+		&wo.MovementDocumentID, &wo.MovementDocumentStatus, &wo.SourceOrderType, &wo.SourceOrderID,
+		&wo.Notes, &wo.CreatedAt, &wo.UpdatedAt,
 	)
 	return &wo, err
 }
@@ -102,7 +112,7 @@ const headerSelect = `
 		repair_type, status, service_advisor_id, complaint, diagnosis, mileage_km,
 		labor_cost::text, parts_cost::text, total_cost::text, opened_at, closed_at,
 		parts_issued, parts_issued_at, movement_document_id, movement_document_status,
-		notes, created_at, updated_at
+		source_order_type, source_order_id, notes, created_at, updated_at
 	FROM work_orders
 `
 

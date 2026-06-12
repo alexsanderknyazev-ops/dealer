@@ -33,6 +33,15 @@ import { WorkOrderView } from './WorkOrderView'
 import { MovementDocuments } from './MovementDocuments'
 import { MovementDocumentView } from './MovementDocumentView'
 import { MovementDocumentForm } from './MovementDocumentForm'
+import { SupplierOrders } from './SupplierOrders'
+import { SupplierOrderForm } from './SupplierOrderForm'
+import { SupplierOrderView } from './SupplierOrderView'
+import { CustomerOrders } from './CustomerOrders'
+import { CustomerOrderForm } from './CustomerOrderForm'
+import { CustomerOrderView } from './CustomerOrderView'
+import { RepairAppointments } from './RepairAppointments'
+import { RepairAppointmentForm } from './RepairAppointmentForm'
+import { RepairAppointmentView } from './RepairAppointmentView'
 import { Works } from './Works'
 import { WorkForm } from './WorkForm'
 import { WorkView } from './WorkView'
@@ -116,6 +125,18 @@ export default function App() {
         <Route path="movement-documents/new" element={<RequireAuth><MovementDocumentForm /></RequireAuth>} />
         <Route path="movement-documents/:id/edit" element={<RequireAuth><MovementDocumentForm /></RequireAuth>} />
         <Route path="movement-documents/:id" element={<RequireAuth><MovementDocumentView /></RequireAuth>} />
+        <Route path="supplier-orders" element={<RequireAuth><SupplierOrders /></RequireAuth>} />
+        <Route path="supplier-orders/new" element={<RequireAuth><SupplierOrderForm /></RequireAuth>} />
+        <Route path="supplier-orders/:id/edit" element={<RequireAuth><SupplierOrderForm /></RequireAuth>} />
+        <Route path="supplier-orders/:id" element={<RequireAuth><SupplierOrderView /></RequireAuth>} />
+        <Route path="customer-orders" element={<RequireAuth><CustomerOrders /></RequireAuth>} />
+        <Route path="customer-orders/new" element={<RequireAuth><CustomerOrderForm /></RequireAuth>} />
+        <Route path="customer-orders/:id/edit" element={<RequireAuth><CustomerOrderForm /></RequireAuth>} />
+        <Route path="customer-orders/:id" element={<RequireAuth><CustomerOrderView /></RequireAuth>} />
+        <Route path="repair-appointments" element={<RequireAuth><RepairAppointments /></RequireAuth>} />
+        <Route path="repair-appointments/new" element={<RequireAuth><RepairAppointmentForm /></RequireAuth>} />
+        <Route path="repair-appointments/:id/edit" element={<RequireAuth><RepairAppointmentForm /></RequireAuth>} />
+        <Route path="repair-appointments/:id" element={<RequireAuth><RepairAppointmentView /></RequireAuth>} />
         <Route path="work-orders/:id" element={<RequireAuth><WorkOrderView /></RequireAuth>} />
         <Route path="login" element={<GuestOnly><Login /></GuestOnly>} />
         <Route path="register" element={<GuestOnly><Register /></GuestOnly>} />

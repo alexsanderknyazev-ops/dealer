@@ -24,6 +24,8 @@ const MOVEMENT_TYPE_LABEL: Record<string, string> = {
   transfer: 'Между складами',
   to_production: 'В производство',
   from_production: 'Извлечение (возврат)',
+  sale: 'Реализация товара',
+  receipt: 'Поступление товара',
 }
 
 const DEST_LABEL: Record<string, string> = {
@@ -31,6 +33,7 @@ const DEST_LABEL: Record<string, string> = {
   to_production: 'Производство',
   work_order_issue: 'В работу',
   from_production: 'Склад',
+  receipt: 'Склад',
 }
 
 export function MovementDocumentView() {
@@ -94,13 +97,13 @@ export function MovementDocumentView() {
   async function handleClose() {
     if (!id || !doc) return
     const fromProduction = doc.movement_type === 'from_production'
-    if (
-      !window.confirm(
-        fromProduction
-          ? 'Закрыть документ? Запчасти будут возвращены на склад, отменить операцию будет нельзя.'
-          : 'Закрыть документ? Запчасти будут списаны со склада, отменить операцию будет нельзя.',
-      )
-    ) {
+    const isReceipt = doc.movement_type === 'receipt'
+    const closeMsg = fromProduction
+      ? 'Закрыть документ? Запчасти будут возвращены на склад, отменить операцию будет нельзя.'
+      : isReceipt
+        ? 'Закрыть документ? Запчасти поступят на склад, отменить операцию будет нельзя.'
+        : 'Закрыть документ? Запчасти будут списаны со склада, отменить операцию будет нельзя.'
+    if (!window.confirm(closeMsg)) {
       return
     }
     setActing(true)
@@ -143,7 +146,11 @@ export function MovementDocumentView() {
     doc.movement_type !== 'from_production' &&
     ['work_order_issue', 'transfer', 'to_production'].includes(doc.movement_type)
   const closeLabel =
-    doc.movement_type === 'from_production' ? 'Закрыть (вернуть на склад)' : 'Закрыть (списать со склада)'
+    doc.movement_type === 'from_production'
+      ? 'Закрыть (вернуть на склад)'
+      : doc.movement_type === 'receipt'
+        ? 'Закрыть (оприходовать на склад)'
+        : 'Закрыть (списать со склада)'
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
@@ -211,6 +218,17 @@ export function MovementDocumentView() {
               </Link>
             </div>
           )}
+          {doc.movement_type === 'receipt' && doc.supplier_name && <div>Поставщик: {doc.supplier_name}</div>}
+          {doc.movement_type === 'receipt' && doc.receipt_warehouse_name && (
+            <div>Склад поступления: {doc.receipt_warehouse_name}</div>
+          )}
+          {doc.movement_type === 'sale' && doc.customer_name && <div>Клиент: {doc.customer_name}</div>}
+          {doc.movement_type === 'sale' && (doc.vehicle_vin || doc.vehicle_label) && (
+            <div>
+              Автомобиль: {doc.vehicle_label || '—'}
+              {doc.vehicle_vin ? ` (VIN: ${doc.vehicle_vin})` : ''}
+            </div>
+          )}
           {doc.reference_type === 'work_order' && doc.reference_id && (
             <div>
               Заказ-наряд:{' '}
@@ -224,6 +242,22 @@ export function MovementDocumentView() {
                   {doc.vehicle_vin ? ` (VIN: ${doc.vehicle_vin})` : ''}
                 </div>
               )}
+            </div>
+          )}
+          {doc.reference_type === 'supplier_order' && doc.reference_id && (
+            <div>
+              Заказ поставщику:{' '}
+              <Link className="text-primary underline" to={`/supplier-orders/${doc.reference_id}`}>
+                {doc.reference_label || doc.reference_id}
+              </Link>
+            </div>
+          )}
+          {doc.reference_type === 'customer_order' && doc.reference_id && (
+            <div>
+              Заказ покупателя:{' '}
+              <Link className="text-primary underline" to={`/customer-orders/${doc.reference_id}`}>
+                {doc.reference_label || doc.reference_id}
+              </Link>
             </div>
           )}
           {doc.reference_type === 'movement_document' && doc.reference_id && !doc.parent_document_id && (
@@ -255,10 +289,15 @@ export function MovementDocumentView() {
                     <TableRow>
                       <TableHead>Запчасть</TableHead>
                       <TableHead>Артикул</TableHead>
-                      <TableHead>Откуда</TableHead>
-                      <TableHead>Куда</TableHead>
+                      {doc.movement_type !== 'receipt' && <TableHead>Откуда</TableHead>}
+                      {doc.movement_type !== 'receipt' && <TableHead>Куда</TableHead>}
+                      {doc.movement_type === 'receipt' && <TableHead>Склад</TableHead>}
                       <TableHead>Кол-во</TableHead>
-                      <TableHead>Остаток до списания</TableHead>
+                      {doc.movement_type === 'receipt' ? (
+                        <TableHead>Входная цена</TableHead>
+                      ) : (
+                        <TableHead>Остаток до списания</TableHead>
+                      )}
                     </TableRow>
             </TableHeader>
             <TableBody>
@@ -266,17 +305,28 @@ export function MovementDocumentView() {
                 <TableRow key={line.id}>
                   <TableCell>{line.part_name || line.part_id}</TableCell>
                   <TableCell className="text-muted-foreground">{line.part_sku || '—'}</TableCell>
-                  <TableCell>{line.warehouse_name || line.warehouse_id}</TableCell>
-                  <TableCell>
-                    {line.destination_warehouse_name ||
-                      line.destination_warehouse_id ||
-                      DEST_LABEL[doc.movement_type] ||
-                      '—'}
-                  </TableCell>
+                  {doc.movement_type !== 'receipt' && (
+                    <TableCell>{line.warehouse_name || line.warehouse_id}</TableCell>
+                  )}
+                  {doc.movement_type !== 'receipt' && (
+                    <TableCell>
+                      {line.destination_warehouse_name ||
+                        line.destination_warehouse_id ||
+                        DEST_LABEL[doc.movement_type] ||
+                        '—'}
+                    </TableCell>
+                  )}
+                  {doc.movement_type === 'receipt' && (
+                    <TableCell>{doc.receipt_warehouse_name || line.warehouse_name || '—'}</TableCell>
+                  )}
                   <TableCell>{line.quantity}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {line.source_stock_quantity > 0 ? line.source_stock_quantity : '—'}
-                  </TableCell>
+                  {doc.movement_type === 'receipt' ? (
+                    <TableCell>{line.unit_cost || '—'}</TableCell>
+                  ) : (
+                    <TableCell className="text-muted-foreground">
+                      {line.source_stock_quantity > 0 ? line.source_stock_quantity : '—'}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

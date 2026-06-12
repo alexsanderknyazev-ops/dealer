@@ -270,6 +270,266 @@ func (x *GetProfileResponse) GetProfile() *ClientProfile {
 	return nil
 }
 
+type ClientNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Kind          string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
+	SourceType    string                 `protobuf:"bytes,3,opt,name=source_type,json=sourceType,proto3" json:"source_type,omitempty"`
+	SourceId      string                 `protobuf:"bytes,4,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	Title         string                 `protobuf:"bytes,5,opt,name=title,proto3" json:"title,omitempty"`
+	Body          string                 `protobuf:"bytes,6,opt,name=body,proto3" json:"body,omitempty"`
+	Status        string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClientNotification) Reset() {
+	*x = ClientNotification{}
+	mi := &file_clients_v1_account_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClientNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClientNotification) ProtoMessage() {}
+
+func (x *ClientNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_clients_v1_account_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClientNotification.ProtoReflect.Descriptor instead.
+func (*ClientNotification) Descriptor() ([]byte, []int) {
+	return file_clients_v1_account_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ClientNotification) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ClientNotification) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *ClientNotification) GetSourceType() string {
+	if x != nil {
+		return x.SourceType
+	}
+	return ""
+}
+
+func (x *ClientNotification) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
+func (x *ClientNotification) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *ClientNotification) GetBody() string {
+	if x != nil {
+		return x.Body
+	}
+	return ""
+}
+
+func (x *ClientNotification) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ClientNotification) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+type ListClientNotificationsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListClientNotificationsRequest) Reset() {
+	*x = ListClientNotificationsRequest{}
+	mi := &file_clients_v1_account_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListClientNotificationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListClientNotificationsRequest) ProtoMessage() {}
+
+func (x *ListClientNotificationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_clients_v1_account_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListClientNotificationsRequest.ProtoReflect.Descriptor instead.
+func (*ListClientNotificationsRequest) Descriptor() ([]byte, []int) {
+	return file_clients_v1_account_proto_rawDescGZIP(), []int{7}
+}
+
+type ListClientNotificationsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Notifications []*ClientNotification  `protobuf:"bytes,1,rep,name=notifications,proto3" json:"notifications,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListClientNotificationsResponse) Reset() {
+	*x = ListClientNotificationsResponse{}
+	mi := &file_clients_v1_account_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListClientNotificationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListClientNotificationsResponse) ProtoMessage() {}
+
+func (x *ListClientNotificationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_clients_v1_account_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListClientNotificationsResponse.ProtoReflect.Descriptor instead.
+func (*ListClientNotificationsResponse) Descriptor() ([]byte, []int) {
+	return file_clients_v1_account_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListClientNotificationsResponse) GetNotifications() []*ClientNotification {
+	if x != nil {
+		return x.Notifications
+	}
+	return nil
+}
+
+type DismissClientNotificationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DismissClientNotificationRequest) Reset() {
+	*x = DismissClientNotificationRequest{}
+	mi := &file_clients_v1_account_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DismissClientNotificationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DismissClientNotificationRequest) ProtoMessage() {}
+
+func (x *DismissClientNotificationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_clients_v1_account_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DismissClientNotificationRequest.ProtoReflect.Descriptor instead.
+func (*DismissClientNotificationRequest) Descriptor() ([]byte, []int) {
+	return file_clients_v1_account_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DismissClientNotificationRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DismissClientNotificationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DismissClientNotificationResponse) Reset() {
+	*x = DismissClientNotificationResponse{}
+	mi := &file_clients_v1_account_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DismissClientNotificationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DismissClientNotificationResponse) ProtoMessage() {}
+
+func (x *DismissClientNotificationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_clients_v1_account_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DismissClientNotificationResponse.ProtoReflect.Descriptor instead.
+func (*DismissClientNotificationResponse) Descriptor() ([]byte, []int) {
+	return file_clients_v1_account_proto_rawDescGZIP(), []int{10}
+}
+
 var File_clients_v1_account_proto protoreflect.FileDescriptor
 
 const file_clients_v1_account_proto_rawDesc = "" +
@@ -285,13 +545,32 @@ const file_clients_v1_account_proto_rawDesc = "" +
 	"\bvehicles\x18\x01 \x03(\v2\x19.clients.v1.ClientVehicleR\bvehicles\"\x13\n" +
 	"\x11GetProfileRequest\"I\n" +
 	"\x12GetProfileResponse\x123\n" +
-	"\aprofile\x18\x01 \x01(\v2\x19.clients.v1.ClientProfileR\aprofile2\xf7\x02\n" +
+	"\aprofile\x18\x01 \x01(\v2\x19.clients.v1.ClientProfileR\aprofile\"\xd7\x01\n" +
+	"\x12ClientNotification\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04kind\x18\x02 \x01(\tR\x04kind\x12\x1f\n" +
+	"\vsource_type\x18\x03 \x01(\tR\n" +
+	"sourceType\x12\x1b\n" +
+	"\tsource_id\x18\x04 \x01(\tR\bsourceId\x12\x14\n" +
+	"\x05title\x18\x05 \x01(\tR\x05title\x12\x12\n" +
+	"\x04body\x18\x06 \x01(\tR\x04body\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\b \x01(\x03R\tcreatedAt\" \n" +
+	"\x1eListClientNotificationsRequest\"g\n" +
+	"\x1fListClientNotificationsResponse\x12D\n" +
+	"\rnotifications\x18\x01 \x03(\v2\x1e.clients.v1.ClientNotificationR\rnotifications\"2\n" +
+	" DismissClientNotificationRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"#\n" +
+	"!DismissClientNotificationResponse2\xbd\x05\n" +
 	"\x14ClientAccountService\x12u\n" +
 	"\n" +
 	"AddVehicle\x12\x1d.clients.v1.AddVehicleRequest\x1a\x1e.clients.v1.AddVehicleResponse\"(\x82\xd3\xe4\x93\x02\":\x01*b\avehicle\"\x14/api/client/vehicles\x12u\n" +
 	"\x0eListMyVehicles\x12!.clients.v1.ListMyVehiclesRequest\x1a\".clients.v1.ListMyVehiclesResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/client/vehicles\x12q\n" +
 	"\n" +
-	"GetProfile\x12\x1d.clients.v1.GetProfileRequest\x1a\x1e.clients.v1.GetProfileResponse\"$\x82\xd3\xe4\x93\x02\x1eb\aprofile\x12\x13/api/client/profileB6Z4github.com/dealer/dealer/pkg/pb/clients/v1;clientsv1b\x06proto3"
+	"GetProfile\x12\x1d.clients.v1.GetProfileRequest\x1a\x1e.clients.v1.GetProfileResponse\"$\x82\xd3\xe4\x93\x02\x1eb\aprofile\x12\x13/api/client/profile\x12\x95\x01\n" +
+	"\x17ListClientNotifications\x12*.clients.v1.ListClientNotificationsRequest\x1a+.clients.v1.ListClientNotificationsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/client/notifications\x12\xab\x01\n" +
+	"\x19DismissClientNotification\x12,.clients.v1.DismissClientNotificationRequest\x1a-.clients.v1.DismissClientNotificationResponse\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/api/client/notifications/{id}/dismissB6Z4github.com/dealer/dealer/pkg/pb/clients/v1;clientsv1b\x06proto3"
 
 var (
 	file_clients_v1_account_proto_rawDescOnce sync.Once
@@ -305,32 +584,42 @@ func file_clients_v1_account_proto_rawDescGZIP() []byte {
 	return file_clients_v1_account_proto_rawDescData
 }
 
-var file_clients_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_clients_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_clients_v1_account_proto_goTypes = []any{
-	(*AddVehicleRequest)(nil),      // 0: clients.v1.AddVehicleRequest
-	(*AddVehicleResponse)(nil),     // 1: clients.v1.AddVehicleResponse
-	(*ListMyVehiclesRequest)(nil),  // 2: clients.v1.ListMyVehiclesRequest
-	(*ListMyVehiclesResponse)(nil), // 3: clients.v1.ListMyVehiclesResponse
-	(*GetProfileRequest)(nil),      // 4: clients.v1.GetProfileRequest
-	(*GetProfileResponse)(nil),     // 5: clients.v1.GetProfileResponse
-	(*ClientVehicle)(nil),          // 6: clients.v1.ClientVehicle
-	(*ClientProfile)(nil),          // 7: clients.v1.ClientProfile
+	(*AddVehicleRequest)(nil),                 // 0: clients.v1.AddVehicleRequest
+	(*AddVehicleResponse)(nil),                // 1: clients.v1.AddVehicleResponse
+	(*ListMyVehiclesRequest)(nil),             // 2: clients.v1.ListMyVehiclesRequest
+	(*ListMyVehiclesResponse)(nil),            // 3: clients.v1.ListMyVehiclesResponse
+	(*GetProfileRequest)(nil),                 // 4: clients.v1.GetProfileRequest
+	(*GetProfileResponse)(nil),                // 5: clients.v1.GetProfileResponse
+	(*ClientNotification)(nil),                // 6: clients.v1.ClientNotification
+	(*ListClientNotificationsRequest)(nil),    // 7: clients.v1.ListClientNotificationsRequest
+	(*ListClientNotificationsResponse)(nil),   // 8: clients.v1.ListClientNotificationsResponse
+	(*DismissClientNotificationRequest)(nil),  // 9: clients.v1.DismissClientNotificationRequest
+	(*DismissClientNotificationResponse)(nil), // 10: clients.v1.DismissClientNotificationResponse
+	(*ClientVehicle)(nil),                     // 11: clients.v1.ClientVehicle
+	(*ClientProfile)(nil),                     // 12: clients.v1.ClientProfile
 }
 var file_clients_v1_account_proto_depIdxs = []int32{
-	6, // 0: clients.v1.AddVehicleResponse.vehicle:type_name -> clients.v1.ClientVehicle
-	6, // 1: clients.v1.ListMyVehiclesResponse.vehicles:type_name -> clients.v1.ClientVehicle
-	7, // 2: clients.v1.GetProfileResponse.profile:type_name -> clients.v1.ClientProfile
-	0, // 3: clients.v1.ClientAccountService.AddVehicle:input_type -> clients.v1.AddVehicleRequest
-	2, // 4: clients.v1.ClientAccountService.ListMyVehicles:input_type -> clients.v1.ListMyVehiclesRequest
-	4, // 5: clients.v1.ClientAccountService.GetProfile:input_type -> clients.v1.GetProfileRequest
-	1, // 6: clients.v1.ClientAccountService.AddVehicle:output_type -> clients.v1.AddVehicleResponse
-	3, // 7: clients.v1.ClientAccountService.ListMyVehicles:output_type -> clients.v1.ListMyVehiclesResponse
-	5, // 8: clients.v1.ClientAccountService.GetProfile:output_type -> clients.v1.GetProfileResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	11, // 0: clients.v1.AddVehicleResponse.vehicle:type_name -> clients.v1.ClientVehicle
+	11, // 1: clients.v1.ListMyVehiclesResponse.vehicles:type_name -> clients.v1.ClientVehicle
+	12, // 2: clients.v1.GetProfileResponse.profile:type_name -> clients.v1.ClientProfile
+	6,  // 3: clients.v1.ListClientNotificationsResponse.notifications:type_name -> clients.v1.ClientNotification
+	0,  // 4: clients.v1.ClientAccountService.AddVehicle:input_type -> clients.v1.AddVehicleRequest
+	2,  // 5: clients.v1.ClientAccountService.ListMyVehicles:input_type -> clients.v1.ListMyVehiclesRequest
+	4,  // 6: clients.v1.ClientAccountService.GetProfile:input_type -> clients.v1.GetProfileRequest
+	7,  // 7: clients.v1.ClientAccountService.ListClientNotifications:input_type -> clients.v1.ListClientNotificationsRequest
+	9,  // 8: clients.v1.ClientAccountService.DismissClientNotification:input_type -> clients.v1.DismissClientNotificationRequest
+	1,  // 9: clients.v1.ClientAccountService.AddVehicle:output_type -> clients.v1.AddVehicleResponse
+	3,  // 10: clients.v1.ClientAccountService.ListMyVehicles:output_type -> clients.v1.ListMyVehiclesResponse
+	5,  // 11: clients.v1.ClientAccountService.GetProfile:output_type -> clients.v1.GetProfileResponse
+	8,  // 12: clients.v1.ClientAccountService.ListClientNotifications:output_type -> clients.v1.ListClientNotificationsResponse
+	10, // 13: clients.v1.ClientAccountService.DismissClientNotification:output_type -> clients.v1.DismissClientNotificationResponse
+	9,  // [9:14] is the sub-list for method output_type
+	4,  // [4:9] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_clients_v1_account_proto_init() }
@@ -345,7 +634,7 @@ func file_clients_v1_account_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_clients_v1_account_proto_rawDesc), len(file_clients_v1_account_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

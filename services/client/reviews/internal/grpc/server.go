@@ -53,6 +53,36 @@ func (s *Server) ListMyReviews(ctx context.Context, _ *reviewsv1.ListMyReviewsRe
 	return &reviewsv1.ListMyReviewsResponse{Reviews: out}, nil
 }
 
+func (s *Server) ListReviewInvitations(ctx context.Context, _ *reviewsv1.ListReviewInvitationsRequest) (*reviewsv1.ListReviewInvitationsResponse, error) {
+	userID, err := clientjwt.UserID(ctx, s.jwtSecret)
+	if err != nil {
+		return nil, err
+	}
+	list, err := s.svc.ListReviewInvitations(ctx, userID)
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	out := make([]*reviewsv1.ReviewInvitation, len(list))
+	for i, inv := range list {
+		out[i] = toInvitationProto(inv)
+	}
+	return &reviewsv1.ListReviewInvitationsResponse{Invitations: out}, nil
+}
+
+func (s *Server) DismissReviewInvitation(ctx context.Context, req *reviewsv1.DismissReviewInvitationRequest) (*reviewsv1.DismissReviewInvitationResponse, error) {
+	userID, err := clientjwt.UserID(ctx, s.jwtSecret)
+	if err != nil {
+		return nil, err
+	}
+	if req.Id == "" {
+		return nil, status.Error(codes.InvalidArgument, "id required")
+	}
+	if err := s.svc.DismissReviewInvitation(ctx, userID, req.Id); err != nil {
+		return nil, mapErr(err)
+	}
+	return &reviewsv1.DismissReviewInvitationResponse{}, nil
+}
+
 func (s *Server) GetReview(ctx context.Context, req *reviewsv1.GetReviewRequest) (*reviewsv1.GetReviewResponse, error) {
 	userID, err := clientjwt.UserID(ctx, s.jwtSecret)
 	if err != nil {
@@ -72,8 +102,8 @@ func mapErr(err error) error {
 	switch {
 	case errors.Is(err, service.ErrNotOwner):
 		return status.Error(codes.PermissionDenied, "vehicle not linked to your account")
-	case errors.Is(err, service.ErrReviewNotFound):
-		return status.Error(codes.NotFound, "review not found")
+	case errors.Is(err, service.ErrReviewNotFound), errors.Is(err, service.ErrInvitationNotFound):
+		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, service.ErrDuplicateReview):
 		return status.Error(codes.AlreadyExists, "review already exists for this vehicle")
 	case errors.Is(err, service.ErrInvalidRating):
@@ -82,6 +112,23 @@ func mapErr(err error) error {
 		return status.Error(codes.FailedPrecondition, "vehicle has no dealer point")
 	default:
 		return status.Error(codes.Internal, err.Error())
+	}
+}
+
+func toInvitationProto(inv *domain.ReviewInvitation) *reviewsv1.ReviewInvitation {
+	if inv == nil {
+		return nil
+	}
+	return &reviewsv1.ReviewInvitation{
+		Id:            inv.ID.String(),
+		ClientId:      inv.ClientID.String(),
+		VehicleId:     inv.VehicleID.String(),
+		DealerPointId: inv.DealerPointID.String(),
+		SourceType:    inv.SourceType,
+		SourceId:      inv.SourceID.String(),
+		ServiceKind:   inv.ServiceKind,
+		Status:        inv.Status,
+		CreatedAt:     inv.CreatedAt.Unix(),
 	}
 }
 

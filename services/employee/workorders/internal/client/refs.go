@@ -240,6 +240,64 @@ func (c *ReferenceChecker) PartExists(ctx context.Context, id uuid.UUID) (bool, 
 	return true, nil
 }
 
+func (c *ReferenceChecker) CustomerName(ctx context.Context, id uuid.UUID) string {
+	if c.customers == nil {
+		return ""
+	}
+	resp, err := c.customers.GetCustomer(grpclient.OutgoingContext(ctx), &customersv1.GetCustomerRequest{Id: id.String()})
+	if err != nil || resp.Customer == nil {
+		return ""
+	}
+	return resp.Customer.Name
+}
+
+func (c *ReferenceChecker) VehicleDisplay(ctx context.Context, id uuid.UUID) (vin, label string) {
+	if c.vehicles == nil {
+		return "", ""
+	}
+	resp, err := c.vehicles.GetVehicle(grpclient.OutgoingContext(ctx), &vehiclesv1.GetVehicleRequest{Id: id.String()})
+	if err != nil || resp.Vehicle == nil {
+		return "", ""
+	}
+	v := resp.Vehicle
+	vin = v.Vin
+	label = fmt.Sprintf("%s %s %d", v.Make, v.Model, v.Year)
+	return vin, label
+}
+
+func (c *ReferenceChecker) WorkDisplay(ctx context.Context, id uuid.UUID) (code, name, laborHours string) {
+	if c.works == nil {
+		return "", "", ""
+	}
+	resp, err := c.works.GetWork(grpclient.OutgoingContext(ctx), &worksv1.GetWorkRequest{Id: id.String()})
+	if err != nil || resp.Work == nil {
+		return "", "", ""
+	}
+	return resp.Work.Code, resp.Work.Name, resp.Work.LaborHours
+}
+
+func (c *ReferenceChecker) PartDisplay(ctx context.Context, id uuid.UUID) (name, sku string) {
+	if c.parts == nil {
+		return "", ""
+	}
+	resp, err := c.parts.GetPart(grpclient.OutgoingContext(ctx), &partsv1.GetPartRequest{Id: id.String()})
+	if err != nil || resp.Part == nil {
+		return "", ""
+	}
+	return resp.Part.Name, resp.Part.Sku
+}
+
+func (c *ReferenceChecker) WarehouseName(ctx context.Context, id uuid.UUID) string {
+	if c.dealerPoints == nil {
+		return ""
+	}
+	resp, err := c.dealerPoints.GetWarehouse(grpclient.OutgoingContext(ctx), &dealerpointsv1.GetWarehouseRequest{Id: id.String()})
+	if err != nil || resp.Warehouse == nil {
+		return ""
+	}
+	return resp.Warehouse.Name
+}
+
 func (c *ReferenceChecker) CreateMovementDocument(
 	ctx context.Context,
 	workOrderID uuid.UUID,

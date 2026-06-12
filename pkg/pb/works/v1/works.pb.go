@@ -22,6 +22,538 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type WorkFolder struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	ParentId      string                 `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkFolder) Reset() {
+	*x = WorkFolder{}
+	mi := &file_works_v1_works_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkFolder) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkFolder) ProtoMessage() {}
+
+func (x *WorkFolder) ProtoReflect() protoreflect.Message {
+	mi := &file_works_v1_works_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkFolder.ProtoReflect.Descriptor instead.
+func (*WorkFolder) Descriptor() ([]byte, []int) {
+	return file_works_v1_works_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *WorkFolder) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *WorkFolder) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *WorkFolder) GetParentId() string {
+	if x != nil {
+		return x.ParentId
+	}
+	return ""
+}
+
+func (x *WorkFolder) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *WorkFolder) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+type CreateFolderRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ParentId      string                 `protobuf:"bytes,2,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateFolderRequest) Reset() {
+	*x = CreateFolderRequest{}
+	mi := &file_works_v1_works_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateFolderRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateFolderRequest) ProtoMessage() {}
+
+func (x *CreateFolderRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_works_v1_works_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateFolderRequest.ProtoReflect.Descriptor instead.
+func (*CreateFolderRequest) Descriptor() ([]byte, []int) {
+	return file_works_v1_works_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *CreateFolderRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateFolderRequest) GetParentId() string {
+	if x != nil {
+		return x.ParentId
+	}
+	return ""
+}
+
+type CreateFolderResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Folder        *WorkFolder            `protobuf:"bytes,1,opt,name=folder,proto3" json:"folder,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateFolderResponse) Reset() {
+	*x = CreateFolderResponse{}
+	mi := &file_works_v1_works_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateFolderResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateFolderResponse) ProtoMessage() {}
+
+func (x *CreateFolderResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_works_v1_works_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateFolderResponse.ProtoReflect.Descriptor instead.
+func (*CreateFolderResponse) Descriptor() ([]byte, []int) {
+	return file_works_v1_works_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *CreateFolderResponse) GetFolder() *WorkFolder {
+	if x != nil {
+		return x.Folder
+	}
+	return nil
+}
+
+type GetFolderRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFolderRequest) Reset() {
+	*x = GetFolderRequest{}
+	mi := &file_works_v1_works_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFolderRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFolderRequest) ProtoMessage() {}
+
+func (x *GetFolderRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_works_v1_works_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFolderRequest.ProtoReflect.Descriptor instead.
+func (*GetFolderRequest) Descriptor() ([]byte, []int) {
+	return file_works_v1_works_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetFolderRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetFolderResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Folder        *WorkFolder            `protobuf:"bytes,1,opt,name=folder,proto3" json:"folder,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFolderResponse) Reset() {
+	*x = GetFolderResponse{}
+	mi := &file_works_v1_works_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFolderResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFolderResponse) ProtoMessage() {}
+
+func (x *GetFolderResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_works_v1_works_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFolderResponse.ProtoReflect.Descriptor instead.
+func (*GetFolderResponse) Descriptor() ([]byte, []int) {
+	return file_works_v1_works_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetFolderResponse) GetFolder() *WorkFolder {
+	if x != nil {
+		return x.Folder
+	}
+	return nil
+}
+
+type ListFoldersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ParentId      string                 `protobuf:"bytes,1,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListFoldersRequest) Reset() {
+	*x = ListFoldersRequest{}
+	mi := &file_works_v1_works_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListFoldersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListFoldersRequest) ProtoMessage() {}
+
+func (x *ListFoldersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_works_v1_works_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListFoldersRequest.ProtoReflect.Descriptor instead.
+func (*ListFoldersRequest) Descriptor() ([]byte, []int) {
+	return file_works_v1_works_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ListFoldersRequest) GetParentId() string {
+	if x != nil {
+		return x.ParentId
+	}
+	return ""
+}
+
+type ListFoldersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Folders       []*WorkFolder          `protobuf:"bytes,1,rep,name=folders,proto3" json:"folders,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListFoldersResponse) Reset() {
+	*x = ListFoldersResponse{}
+	mi := &file_works_v1_works_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListFoldersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListFoldersResponse) ProtoMessage() {}
+
+func (x *ListFoldersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_works_v1_works_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListFoldersResponse.ProtoReflect.Descriptor instead.
+func (*ListFoldersResponse) Descriptor() ([]byte, []int) {
+	return file_works_v1_works_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ListFoldersResponse) GetFolders() []*WorkFolder {
+	if x != nil {
+		return x.Folders
+	}
+	return nil
+}
+
+type UpdateFolderRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          *string                `protobuf:"bytes,2,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	ParentId      *string                `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateFolderRequest) Reset() {
+	*x = UpdateFolderRequest{}
+	mi := &file_works_v1_works_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateFolderRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateFolderRequest) ProtoMessage() {}
+
+func (x *UpdateFolderRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_works_v1_works_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateFolderRequest.ProtoReflect.Descriptor instead.
+func (*UpdateFolderRequest) Descriptor() ([]byte, []int) {
+	return file_works_v1_works_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UpdateFolderRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateFolderRequest) GetName() string {
+	if x != nil && x.Name != nil {
+		return *x.Name
+	}
+	return ""
+}
+
+func (x *UpdateFolderRequest) GetParentId() string {
+	if x != nil && x.ParentId != nil {
+		return *x.ParentId
+	}
+	return ""
+}
+
+type UpdateFolderResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Folder        *WorkFolder            `protobuf:"bytes,1,opt,name=folder,proto3" json:"folder,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateFolderResponse) Reset() {
+	*x = UpdateFolderResponse{}
+	mi := &file_works_v1_works_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateFolderResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateFolderResponse) ProtoMessage() {}
+
+func (x *UpdateFolderResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_works_v1_works_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateFolderResponse.ProtoReflect.Descriptor instead.
+func (*UpdateFolderResponse) Descriptor() ([]byte, []int) {
+	return file_works_v1_works_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *UpdateFolderResponse) GetFolder() *WorkFolder {
+	if x != nil {
+		return x.Folder
+	}
+	return nil
+}
+
+type DeleteFolderRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteFolderRequest) Reset() {
+	*x = DeleteFolderRequest{}
+	mi := &file_works_v1_works_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteFolderRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteFolderRequest) ProtoMessage() {}
+
+func (x *DeleteFolderRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_works_v1_works_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteFolderRequest.ProtoReflect.Descriptor instead.
+func (*DeleteFolderRequest) Descriptor() ([]byte, []int) {
+	return file_works_v1_works_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DeleteFolderRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DeleteFolderResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteFolderResponse) Reset() {
+	*x = DeleteFolderResponse{}
+	mi := &file_works_v1_works_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteFolderResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteFolderResponse) ProtoMessage() {}
+
+func (x *DeleteFolderResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_works_v1_works_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteFolderResponse.ProtoReflect.Descriptor instead.
+func (*DeleteFolderResponse) Descriptor() ([]byte, []int) {
+	return file_works_v1_works_proto_rawDescGZIP(), []int{10}
+}
+
 type Work struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -33,13 +565,14 @@ type Work struct {
 	Notes         string                 `protobuf:"bytes,7,opt,name=notes,proto3" json:"notes,omitempty"`
 	CreatedAt     int64                  `protobuf:"varint,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     int64                  `protobuf:"varint,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	FolderId      string                 `protobuf:"bytes,10,opt,name=folder_id,json=folderId,proto3" json:"folder_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Work) Reset() {
 	*x = Work{}
-	mi := &file_works_v1_works_proto_msgTypes[0]
+	mi := &file_works_v1_works_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -51,7 +584,7 @@ func (x *Work) String() string {
 func (*Work) ProtoMessage() {}
 
 func (x *Work) ProtoReflect() protoreflect.Message {
-	mi := &file_works_v1_works_proto_msgTypes[0]
+	mi := &file_works_v1_works_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -64,7 +597,7 @@ func (x *Work) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Work.ProtoReflect.Descriptor instead.
 func (*Work) Descriptor() ([]byte, []int) {
-	return file_works_v1_works_proto_rawDescGZIP(), []int{0}
+	return file_works_v1_works_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Work) GetId() string {
@@ -130,6 +663,13 @@ func (x *Work) GetUpdatedAt() int64 {
 	return 0
 }
 
+func (x *Work) GetFolderId() string {
+	if x != nil {
+		return x.FolderId
+	}
+	return ""
+}
+
 type CreateWorkRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
@@ -138,13 +678,14 @@ type CreateWorkRequest struct {
 	LaborHours    string                 `protobuf:"bytes,4,opt,name=labor_hours,json=laborHours,proto3" json:"labor_hours,omitempty"`
 	UnitPrice     string                 `protobuf:"bytes,5,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
 	Notes         string                 `protobuf:"bytes,6,opt,name=notes,proto3" json:"notes,omitempty"`
+	FolderId      string                 `protobuf:"bytes,7,opt,name=folder_id,json=folderId,proto3" json:"folder_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateWorkRequest) Reset() {
 	*x = CreateWorkRequest{}
-	mi := &file_works_v1_works_proto_msgTypes[1]
+	mi := &file_works_v1_works_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -156,7 +697,7 @@ func (x *CreateWorkRequest) String() string {
 func (*CreateWorkRequest) ProtoMessage() {}
 
 func (x *CreateWorkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_works_v1_works_proto_msgTypes[1]
+	mi := &file_works_v1_works_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -169,7 +710,7 @@ func (x *CreateWorkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkRequest.ProtoReflect.Descriptor instead.
 func (*CreateWorkRequest) Descriptor() ([]byte, []int) {
-	return file_works_v1_works_proto_rawDescGZIP(), []int{1}
+	return file_works_v1_works_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CreateWorkRequest) GetCode() string {
@@ -214,6 +755,13 @@ func (x *CreateWorkRequest) GetNotes() string {
 	return ""
 }
 
+func (x *CreateWorkRequest) GetFolderId() string {
+	if x != nil {
+		return x.FolderId
+	}
+	return ""
+}
+
 type CreateWorkResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Work          *Work                  `protobuf:"bytes,1,opt,name=work,proto3" json:"work,omitempty"`
@@ -223,7 +771,7 @@ type CreateWorkResponse struct {
 
 func (x *CreateWorkResponse) Reset() {
 	*x = CreateWorkResponse{}
-	mi := &file_works_v1_works_proto_msgTypes[2]
+	mi := &file_works_v1_works_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -235,7 +783,7 @@ func (x *CreateWorkResponse) String() string {
 func (*CreateWorkResponse) ProtoMessage() {}
 
 func (x *CreateWorkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_works_v1_works_proto_msgTypes[2]
+	mi := &file_works_v1_works_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -248,7 +796,7 @@ func (x *CreateWorkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkResponse.ProtoReflect.Descriptor instead.
 func (*CreateWorkResponse) Descriptor() ([]byte, []int) {
-	return file_works_v1_works_proto_rawDescGZIP(), []int{2}
+	return file_works_v1_works_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CreateWorkResponse) GetWork() *Work {
@@ -267,7 +815,7 @@ type GetWorkRequest struct {
 
 func (x *GetWorkRequest) Reset() {
 	*x = GetWorkRequest{}
-	mi := &file_works_v1_works_proto_msgTypes[3]
+	mi := &file_works_v1_works_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -279,7 +827,7 @@ func (x *GetWorkRequest) String() string {
 func (*GetWorkRequest) ProtoMessage() {}
 
 func (x *GetWorkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_works_v1_works_proto_msgTypes[3]
+	mi := &file_works_v1_works_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -292,7 +840,7 @@ func (x *GetWorkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWorkRequest.ProtoReflect.Descriptor instead.
 func (*GetWorkRequest) Descriptor() ([]byte, []int) {
-	return file_works_v1_works_proto_rawDescGZIP(), []int{3}
+	return file_works_v1_works_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetWorkRequest) GetId() string {
@@ -311,7 +859,7 @@ type GetWorkResponse struct {
 
 func (x *GetWorkResponse) Reset() {
 	*x = GetWorkResponse{}
-	mi := &file_works_v1_works_proto_msgTypes[4]
+	mi := &file_works_v1_works_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -323,7 +871,7 @@ func (x *GetWorkResponse) String() string {
 func (*GetWorkResponse) ProtoMessage() {}
 
 func (x *GetWorkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_works_v1_works_proto_msgTypes[4]
+	mi := &file_works_v1_works_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -336,7 +884,7 @@ func (x *GetWorkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWorkResponse.ProtoReflect.Descriptor instead.
 func (*GetWorkResponse) Descriptor() ([]byte, []int) {
-	return file_works_v1_works_proto_rawDescGZIP(), []int{4}
+	return file_works_v1_works_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetWorkResponse) GetWork() *Work {
@@ -352,13 +900,14 @@ type ListWorksRequest struct {
 	Offset        int32                  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
 	Search        string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
 	Category      string                 `protobuf:"bytes,4,opt,name=category,proto3" json:"category,omitempty"`
+	FolderId      string                 `protobuf:"bytes,5,opt,name=folder_id,json=folderId,proto3" json:"folder_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListWorksRequest) Reset() {
 	*x = ListWorksRequest{}
-	mi := &file_works_v1_works_proto_msgTypes[5]
+	mi := &file_works_v1_works_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -370,7 +919,7 @@ func (x *ListWorksRequest) String() string {
 func (*ListWorksRequest) ProtoMessage() {}
 
 func (x *ListWorksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_works_v1_works_proto_msgTypes[5]
+	mi := &file_works_v1_works_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -383,7 +932,7 @@ func (x *ListWorksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorksRequest.ProtoReflect.Descriptor instead.
 func (*ListWorksRequest) Descriptor() ([]byte, []int) {
-	return file_works_v1_works_proto_rawDescGZIP(), []int{5}
+	return file_works_v1_works_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListWorksRequest) GetLimit() int32 {
@@ -414,6 +963,13 @@ func (x *ListWorksRequest) GetCategory() string {
 	return ""
 }
 
+func (x *ListWorksRequest) GetFolderId() string {
+	if x != nil {
+		return x.FolderId
+	}
+	return ""
+}
+
 type ListWorksResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Works         []*Work                `protobuf:"bytes,1,rep,name=works,proto3" json:"works,omitempty"`
@@ -424,7 +980,7 @@ type ListWorksResponse struct {
 
 func (x *ListWorksResponse) Reset() {
 	*x = ListWorksResponse{}
-	mi := &file_works_v1_works_proto_msgTypes[6]
+	mi := &file_works_v1_works_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -436,7 +992,7 @@ func (x *ListWorksResponse) String() string {
 func (*ListWorksResponse) ProtoMessage() {}
 
 func (x *ListWorksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_works_v1_works_proto_msgTypes[6]
+	mi := &file_works_v1_works_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -449,7 +1005,7 @@ func (x *ListWorksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorksResponse.ProtoReflect.Descriptor instead.
 func (*ListWorksResponse) Descriptor() ([]byte, []int) {
-	return file_works_v1_works_proto_rawDescGZIP(), []int{6}
+	return file_works_v1_works_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListWorksResponse) GetWorks() []*Work {
@@ -475,13 +1031,14 @@ type UpdateWorkRequest struct {
 	LaborHours    *string                `protobuf:"bytes,5,opt,name=labor_hours,json=laborHours,proto3,oneof" json:"labor_hours,omitempty"`
 	UnitPrice     *string                `protobuf:"bytes,6,opt,name=unit_price,json=unitPrice,proto3,oneof" json:"unit_price,omitempty"`
 	Notes         *string                `protobuf:"bytes,7,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	FolderId      *string                `protobuf:"bytes,8,opt,name=folder_id,json=folderId,proto3,oneof" json:"folder_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateWorkRequest) Reset() {
 	*x = UpdateWorkRequest{}
-	mi := &file_works_v1_works_proto_msgTypes[7]
+	mi := &file_works_v1_works_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -493,7 +1050,7 @@ func (x *UpdateWorkRequest) String() string {
 func (*UpdateWorkRequest) ProtoMessage() {}
 
 func (x *UpdateWorkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_works_v1_works_proto_msgTypes[7]
+	mi := &file_works_v1_works_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -506,7 +1063,7 @@ func (x *UpdateWorkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWorkRequest.ProtoReflect.Descriptor instead.
 func (*UpdateWorkRequest) Descriptor() ([]byte, []int) {
-	return file_works_v1_works_proto_rawDescGZIP(), []int{7}
+	return file_works_v1_works_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UpdateWorkRequest) GetId() string {
@@ -558,6 +1115,13 @@ func (x *UpdateWorkRequest) GetNotes() string {
 	return ""
 }
 
+func (x *UpdateWorkRequest) GetFolderId() string {
+	if x != nil && x.FolderId != nil {
+		return *x.FolderId
+	}
+	return ""
+}
+
 type UpdateWorkResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Work          *Work                  `protobuf:"bytes,1,opt,name=work,proto3" json:"work,omitempty"`
@@ -567,7 +1131,7 @@ type UpdateWorkResponse struct {
 
 func (x *UpdateWorkResponse) Reset() {
 	*x = UpdateWorkResponse{}
-	mi := &file_works_v1_works_proto_msgTypes[8]
+	mi := &file_works_v1_works_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -579,7 +1143,7 @@ func (x *UpdateWorkResponse) String() string {
 func (*UpdateWorkResponse) ProtoMessage() {}
 
 func (x *UpdateWorkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_works_v1_works_proto_msgTypes[8]
+	mi := &file_works_v1_works_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -592,7 +1156,7 @@ func (x *UpdateWorkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWorkResponse.ProtoReflect.Descriptor instead.
 func (*UpdateWorkResponse) Descriptor() ([]byte, []int) {
-	return file_works_v1_works_proto_rawDescGZIP(), []int{8}
+	return file_works_v1_works_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *UpdateWorkResponse) GetWork() *Work {
@@ -611,7 +1175,7 @@ type DeleteWorkRequest struct {
 
 func (x *DeleteWorkRequest) Reset() {
 	*x = DeleteWorkRequest{}
-	mi := &file_works_v1_works_proto_msgTypes[9]
+	mi := &file_works_v1_works_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -623,7 +1187,7 @@ func (x *DeleteWorkRequest) String() string {
 func (*DeleteWorkRequest) ProtoMessage() {}
 
 func (x *DeleteWorkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_works_v1_works_proto_msgTypes[9]
+	mi := &file_works_v1_works_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -636,7 +1200,7 @@ func (x *DeleteWorkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteWorkRequest.ProtoReflect.Descriptor instead.
 func (*DeleteWorkRequest) Descriptor() ([]byte, []int) {
-	return file_works_v1_works_proto_rawDescGZIP(), []int{9}
+	return file_works_v1_works_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *DeleteWorkRequest) GetId() string {
@@ -654,7 +1218,7 @@ type DeleteWorkResponse struct {
 
 func (x *DeleteWorkResponse) Reset() {
 	*x = DeleteWorkResponse{}
-	mi := &file_works_v1_works_proto_msgTypes[10]
+	mi := &file_works_v1_works_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -666,7 +1230,7 @@ func (x *DeleteWorkResponse) String() string {
 func (*DeleteWorkResponse) ProtoMessage() {}
 
 func (x *DeleteWorkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_works_v1_works_proto_msgTypes[10]
+	mi := &file_works_v1_works_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -679,14 +1243,48 @@ func (x *DeleteWorkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteWorkResponse.ProtoReflect.Descriptor instead.
 func (*DeleteWorkResponse) Descriptor() ([]byte, []int) {
-	return file_works_v1_works_proto_rawDescGZIP(), []int{10}
+	return file_works_v1_works_proto_rawDescGZIP(), []int{21}
 }
 
 var File_works_v1_works_proto protoreflect.FileDescriptor
 
 const file_works_v1_works_proto_rawDesc = "" +
 	"\n" +
-	"\x14works/v1/works.proto\x12\bworks.v1\x1a\x1cgoogle/api/annotations.proto\"\xee\x01\n" +
+	"\x14works/v1/works.proto\x12\bworks.v1\x1a\x1cgoogle/api/annotations.proto\"\x8b\x01\n" +
+	"\n" +
+	"WorkFolder\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
+	"\tparent_id\x18\x03 \x01(\tR\bparentId\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x04 \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\"F\n" +
+	"\x13CreateFolderRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1b\n" +
+	"\tparent_id\x18\x02 \x01(\tR\bparentId\"D\n" +
+	"\x14CreateFolderResponse\x12,\n" +
+	"\x06folder\x18\x01 \x01(\v2\x14.works.v1.WorkFolderR\x06folder\"\"\n" +
+	"\x10GetFolderRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"A\n" +
+	"\x11GetFolderResponse\x12,\n" +
+	"\x06folder\x18\x01 \x01(\v2\x14.works.v1.WorkFolderR\x06folder\"1\n" +
+	"\x12ListFoldersRequest\x12\x1b\n" +
+	"\tparent_id\x18\x01 \x01(\tR\bparentId\"E\n" +
+	"\x13ListFoldersResponse\x12.\n" +
+	"\afolders\x18\x01 \x03(\v2\x14.works.v1.WorkFolderR\afolders\"w\n" +
+	"\x13UpdateFolderRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12 \n" +
+	"\tparent_id\x18\x03 \x01(\tH\x01R\bparentId\x88\x01\x01B\a\n" +
+	"\x05_nameB\f\n" +
+	"\n" +
+	"_parent_id\"D\n" +
+	"\x14UpdateFolderResponse\x12,\n" +
+	"\x06folder\x18\x01 \x01(\v2\x14.works.v1.WorkFolderR\x06folder\"%\n" +
+	"\x13DeleteFolderRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x16\n" +
+	"\x14DeleteFolderResponse\"\x8b\x02\n" +
 	"\x04Work\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
@@ -700,7 +1298,9 @@ const file_works_v1_works_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\x03R\tupdatedAt\"\xad\x01\n" +
+	"updated_at\x18\t \x01(\x03R\tupdatedAt\x12\x1b\n" +
+	"\tfolder_id\x18\n" +
+	" \x01(\tR\bfolderId\"\xca\x01\n" +
 	"\x11CreateWorkRequest\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
@@ -709,21 +1309,23 @@ const file_works_v1_works_proto_rawDesc = "" +
 	"laborHours\x12\x1d\n" +
 	"\n" +
 	"unit_price\x18\x05 \x01(\tR\tunitPrice\x12\x14\n" +
-	"\x05notes\x18\x06 \x01(\tR\x05notes\"8\n" +
+	"\x05notes\x18\x06 \x01(\tR\x05notes\x12\x1b\n" +
+	"\tfolder_id\x18\a \x01(\tR\bfolderId\"8\n" +
 	"\x12CreateWorkResponse\x12\"\n" +
 	"\x04work\x18\x01 \x01(\v2\x0e.works.v1.WorkR\x04work\" \n" +
 	"\x0eGetWorkRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"5\n" +
 	"\x0fGetWorkResponse\x12\"\n" +
-	"\x04work\x18\x01 \x01(\v2\x0e.works.v1.WorkR\x04work\"t\n" +
+	"\x04work\x18\x01 \x01(\v2\x0e.works.v1.WorkR\x04work\"\x91\x01\n" +
 	"\x10ListWorksRequest\x12\x14\n" +
 	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x02 \x01(\x05R\x06offset\x12\x16\n" +
 	"\x06search\x18\x03 \x01(\tR\x06search\x12\x1a\n" +
-	"\bcategory\x18\x04 \x01(\tR\bcategory\"O\n" +
+	"\bcategory\x18\x04 \x01(\tR\bcategory\x12\x1b\n" +
+	"\tfolder_id\x18\x05 \x01(\tR\bfolderId\"O\n" +
 	"\x11ListWorksResponse\x12$\n" +
 	"\x05works\x18\x01 \x03(\v2\x0e.works.v1.WorkR\x05works\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x05R\x05total\"\xa3\x02\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\"\xd3\x02\n" +
 	"\x11UpdateWorkRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\x04code\x18\x02 \x01(\tH\x00R\x04code\x88\x01\x01\x12\x17\n" +
@@ -733,18 +1335,21 @@ const file_works_v1_works_proto_rawDesc = "" +
 	"laborHours\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"unit_price\x18\x06 \x01(\tH\x04R\tunitPrice\x88\x01\x01\x12\x19\n" +
-	"\x05notes\x18\a \x01(\tH\x05R\x05notes\x88\x01\x01B\a\n" +
+	"\x05notes\x18\a \x01(\tH\x05R\x05notes\x88\x01\x01\x12 \n" +
+	"\tfolder_id\x18\b \x01(\tH\x06R\bfolderId\x88\x01\x01B\a\n" +
 	"\x05_codeB\a\n" +
 	"\x05_nameB\v\n" +
 	"\t_categoryB\x0e\n" +
 	"\f_labor_hoursB\r\n" +
 	"\v_unit_priceB\b\n" +
-	"\x06_notes\"8\n" +
+	"\x06_notesB\f\n" +
+	"\n" +
+	"_folder_id\"8\n" +
 	"\x12UpdateWorkResponse\x12\"\n" +
 	"\x04work\x18\x01 \x01(\v2\x0e.works.v1.WorkR\x04work\"#\n" +
 	"\x11DeleteWorkRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
-	"\x12DeleteWorkResponse2\xfa\x03\n" +
+	"\x12DeleteWorkResponse2\xb2\b\n" +
 	"\fWorksService\x12d\n" +
 	"\n" +
 	"CreateWork\x12\x1b.works.v1.CreateWorkRequest\x1a\x1c.works.v1.CreateWorkResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*b\x04work\"\n" +
@@ -755,7 +1360,12 @@ const file_works_v1_works_proto_rawDesc = "" +
 	"\n" +
 	"UpdateWork\x12\x1b.works.v1.UpdateWorkRequest\x1a\x1c.works.v1.UpdateWorkResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*b\x04work\x1a\x0f/api/works/{id}\x12`\n" +
 	"\n" +
-	"DeleteWork\x12\x1b.works.v1.DeleteWorkRequest\x1a\x1c.works.v1.DeleteWorkResponse\"\x17\x82\xd3\xe4\x93\x02\x11*\x0f/api/works/{id}B2Z0github.com/dealer/dealer/pkg/pb/works/v1;worksv1b\x06proto3"
+	"DeleteWork\x12\x1b.works.v1.DeleteWorkRequest\x1a\x1c.works.v1.DeleteWorkResponse\"\x17\x82\xd3\xe4\x93\x02\x11*\x0f/api/works/{id}\x12t\n" +
+	"\fCreateFolder\x12\x1d.works.v1.CreateFolderRequest\x1a\x1e.works.v1.CreateFolderResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*b\x06folder\"\x12/api/works/folders\x12m\n" +
+	"\tGetFolder\x12\x1a.works.v1.GetFolderRequest\x1a\x1b.works.v1.GetFolderResponse\"'\x82\xd3\xe4\x93\x02!b\x06folder\x12\x17/api/works/folders/{id}\x12f\n" +
+	"\vListFolders\x12\x1c.works.v1.ListFoldersRequest\x1a\x1d.works.v1.ListFoldersResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/works/folders\x12y\n" +
+	"\fUpdateFolder\x12\x1d.works.v1.UpdateFolderRequest\x1a\x1e.works.v1.UpdateFolderResponse\"*\x82\xd3\xe4\x93\x02$:\x01*b\x06folder\x1a\x17/api/works/folders/{id}\x12n\n" +
+	"\fDeleteFolder\x12\x1d.works.v1.DeleteFolderRequest\x1a\x1e.works.v1.DeleteFolderResponse\"\x1f\x82\xd3\xe4\x93\x02\x19*\x17/api/works/folders/{id}B2Z0github.com/dealer/dealer/pkg/pb/works/v1;worksv1b\x06proto3"
 
 var (
 	file_works_v1_works_proto_rawDescOnce sync.Once
@@ -769,40 +1379,65 @@ func file_works_v1_works_proto_rawDescGZIP() []byte {
 	return file_works_v1_works_proto_rawDescData
 }
 
-var file_works_v1_works_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_works_v1_works_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_works_v1_works_proto_goTypes = []any{
-	(*Work)(nil),               // 0: works.v1.Work
-	(*CreateWorkRequest)(nil),  // 1: works.v1.CreateWorkRequest
-	(*CreateWorkResponse)(nil), // 2: works.v1.CreateWorkResponse
-	(*GetWorkRequest)(nil),     // 3: works.v1.GetWorkRequest
-	(*GetWorkResponse)(nil),    // 4: works.v1.GetWorkResponse
-	(*ListWorksRequest)(nil),   // 5: works.v1.ListWorksRequest
-	(*ListWorksResponse)(nil),  // 6: works.v1.ListWorksResponse
-	(*UpdateWorkRequest)(nil),  // 7: works.v1.UpdateWorkRequest
-	(*UpdateWorkResponse)(nil), // 8: works.v1.UpdateWorkResponse
-	(*DeleteWorkRequest)(nil),  // 9: works.v1.DeleteWorkRequest
-	(*DeleteWorkResponse)(nil), // 10: works.v1.DeleteWorkResponse
+	(*WorkFolder)(nil),           // 0: works.v1.WorkFolder
+	(*CreateFolderRequest)(nil),  // 1: works.v1.CreateFolderRequest
+	(*CreateFolderResponse)(nil), // 2: works.v1.CreateFolderResponse
+	(*GetFolderRequest)(nil),     // 3: works.v1.GetFolderRequest
+	(*GetFolderResponse)(nil),    // 4: works.v1.GetFolderResponse
+	(*ListFoldersRequest)(nil),   // 5: works.v1.ListFoldersRequest
+	(*ListFoldersResponse)(nil),  // 6: works.v1.ListFoldersResponse
+	(*UpdateFolderRequest)(nil),  // 7: works.v1.UpdateFolderRequest
+	(*UpdateFolderResponse)(nil), // 8: works.v1.UpdateFolderResponse
+	(*DeleteFolderRequest)(nil),  // 9: works.v1.DeleteFolderRequest
+	(*DeleteFolderResponse)(nil), // 10: works.v1.DeleteFolderResponse
+	(*Work)(nil),                 // 11: works.v1.Work
+	(*CreateWorkRequest)(nil),    // 12: works.v1.CreateWorkRequest
+	(*CreateWorkResponse)(nil),   // 13: works.v1.CreateWorkResponse
+	(*GetWorkRequest)(nil),       // 14: works.v1.GetWorkRequest
+	(*GetWorkResponse)(nil),      // 15: works.v1.GetWorkResponse
+	(*ListWorksRequest)(nil),     // 16: works.v1.ListWorksRequest
+	(*ListWorksResponse)(nil),    // 17: works.v1.ListWorksResponse
+	(*UpdateWorkRequest)(nil),    // 18: works.v1.UpdateWorkRequest
+	(*UpdateWorkResponse)(nil),   // 19: works.v1.UpdateWorkResponse
+	(*DeleteWorkRequest)(nil),    // 20: works.v1.DeleteWorkRequest
+	(*DeleteWorkResponse)(nil),   // 21: works.v1.DeleteWorkResponse
 }
 var file_works_v1_works_proto_depIdxs = []int32{
-	0,  // 0: works.v1.CreateWorkResponse.work:type_name -> works.v1.Work
-	0,  // 1: works.v1.GetWorkResponse.work:type_name -> works.v1.Work
-	0,  // 2: works.v1.ListWorksResponse.works:type_name -> works.v1.Work
-	0,  // 3: works.v1.UpdateWorkResponse.work:type_name -> works.v1.Work
-	1,  // 4: works.v1.WorksService.CreateWork:input_type -> works.v1.CreateWorkRequest
-	3,  // 5: works.v1.WorksService.GetWork:input_type -> works.v1.GetWorkRequest
-	5,  // 6: works.v1.WorksService.ListWorks:input_type -> works.v1.ListWorksRequest
-	7,  // 7: works.v1.WorksService.UpdateWork:input_type -> works.v1.UpdateWorkRequest
-	9,  // 8: works.v1.WorksService.DeleteWork:input_type -> works.v1.DeleteWorkRequest
-	2,  // 9: works.v1.WorksService.CreateWork:output_type -> works.v1.CreateWorkResponse
-	4,  // 10: works.v1.WorksService.GetWork:output_type -> works.v1.GetWorkResponse
-	6,  // 11: works.v1.WorksService.ListWorks:output_type -> works.v1.ListWorksResponse
-	8,  // 12: works.v1.WorksService.UpdateWork:output_type -> works.v1.UpdateWorkResponse
-	10, // 13: works.v1.WorksService.DeleteWork:output_type -> works.v1.DeleteWorkResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	0,  // 0: works.v1.CreateFolderResponse.folder:type_name -> works.v1.WorkFolder
+	0,  // 1: works.v1.GetFolderResponse.folder:type_name -> works.v1.WorkFolder
+	0,  // 2: works.v1.ListFoldersResponse.folders:type_name -> works.v1.WorkFolder
+	0,  // 3: works.v1.UpdateFolderResponse.folder:type_name -> works.v1.WorkFolder
+	11, // 4: works.v1.CreateWorkResponse.work:type_name -> works.v1.Work
+	11, // 5: works.v1.GetWorkResponse.work:type_name -> works.v1.Work
+	11, // 6: works.v1.ListWorksResponse.works:type_name -> works.v1.Work
+	11, // 7: works.v1.UpdateWorkResponse.work:type_name -> works.v1.Work
+	12, // 8: works.v1.WorksService.CreateWork:input_type -> works.v1.CreateWorkRequest
+	14, // 9: works.v1.WorksService.GetWork:input_type -> works.v1.GetWorkRequest
+	16, // 10: works.v1.WorksService.ListWorks:input_type -> works.v1.ListWorksRequest
+	18, // 11: works.v1.WorksService.UpdateWork:input_type -> works.v1.UpdateWorkRequest
+	20, // 12: works.v1.WorksService.DeleteWork:input_type -> works.v1.DeleteWorkRequest
+	1,  // 13: works.v1.WorksService.CreateFolder:input_type -> works.v1.CreateFolderRequest
+	3,  // 14: works.v1.WorksService.GetFolder:input_type -> works.v1.GetFolderRequest
+	5,  // 15: works.v1.WorksService.ListFolders:input_type -> works.v1.ListFoldersRequest
+	7,  // 16: works.v1.WorksService.UpdateFolder:input_type -> works.v1.UpdateFolderRequest
+	9,  // 17: works.v1.WorksService.DeleteFolder:input_type -> works.v1.DeleteFolderRequest
+	13, // 18: works.v1.WorksService.CreateWork:output_type -> works.v1.CreateWorkResponse
+	15, // 19: works.v1.WorksService.GetWork:output_type -> works.v1.GetWorkResponse
+	17, // 20: works.v1.WorksService.ListWorks:output_type -> works.v1.ListWorksResponse
+	19, // 21: works.v1.WorksService.UpdateWork:output_type -> works.v1.UpdateWorkResponse
+	21, // 22: works.v1.WorksService.DeleteWork:output_type -> works.v1.DeleteWorkResponse
+	2,  // 23: works.v1.WorksService.CreateFolder:output_type -> works.v1.CreateFolderResponse
+	4,  // 24: works.v1.WorksService.GetFolder:output_type -> works.v1.GetFolderResponse
+	6,  // 25: works.v1.WorksService.ListFolders:output_type -> works.v1.ListFoldersResponse
+	8,  // 26: works.v1.WorksService.UpdateFolder:output_type -> works.v1.UpdateFolderResponse
+	10, // 27: works.v1.WorksService.DeleteFolder:output_type -> works.v1.DeleteFolderResponse
+	18, // [18:28] is the sub-list for method output_type
+	8,  // [8:18] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_works_v1_works_proto_init() }
@@ -811,13 +1446,14 @@ func file_works_v1_works_proto_init() {
 		return
 	}
 	file_works_v1_works_proto_msgTypes[7].OneofWrappers = []any{}
+	file_works_v1_works_proto_msgTypes[18].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_works_v1_works_proto_rawDesc), len(file_works_v1_works_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

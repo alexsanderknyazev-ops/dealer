@@ -695,6 +695,9 @@ type MovementDocumentLine struct {
 	ReferenceLineId string                 `protobuf:"bytes,5,opt,name=reference_line_id,json=referenceLineId,proto3" json:"reference_line_id,omitempty"`
 	Notes           string                 `protobuf:"bytes,6,opt,name=notes,proto3" json:"notes,omitempty"`
 	SortOrder       int32                  `protobuf:"varint,7,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	PartName        string                 `protobuf:"bytes,8,opt,name=part_name,json=partName,proto3" json:"part_name,omitempty"`
+	PartSku         string                 `protobuf:"bytes,9,opt,name=part_sku,json=partSku,proto3" json:"part_sku,omitempty"`
+	WarehouseName   string                 `protobuf:"bytes,10,opt,name=warehouse_name,json=warehouseName,proto3" json:"warehouse_name,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -776,6 +779,27 @@ func (x *MovementDocumentLine) GetSortOrder() int32 {
 		return x.SortOrder
 	}
 	return 0
+}
+
+func (x *MovementDocumentLine) GetPartName() string {
+	if x != nil {
+		return x.PartName
+	}
+	return ""
+}
+
+func (x *MovementDocumentLine) GetPartSku() string {
+	if x != nil {
+		return x.PartSku
+	}
+	return ""
+}
+
+func (x *MovementDocumentLine) GetWarehouseName() string {
+	if x != nil {
+		return x.WarehouseName
+	}
+	return ""
 }
 
 type MovementDocumentLineInput struct {
@@ -879,6 +903,10 @@ type MovementDocument struct {
 	Lines           []*MovementDocumentLine `protobuf:"bytes,13,rep,name=lines,proto3" json:"lines,omitempty"`
 	CreatedByName   string                  `protobuf:"bytes,14,opt,name=created_by_name,json=createdByName,proto3" json:"created_by_name,omitempty"`
 	ConfirmedByName string                  `protobuf:"bytes,15,opt,name=confirmed_by_name,json=confirmedByName,proto3" json:"confirmed_by_name,omitempty"`
+	ReferenceLabel  string                  `protobuf:"bytes,16,opt,name=reference_label,json=referenceLabel,proto3" json:"reference_label,omitempty"`
+	CustomerName    string                  `protobuf:"bytes,17,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
+	VehicleVin      string                  `protobuf:"bytes,18,opt,name=vehicle_vin,json=vehicleVin,proto3" json:"vehicle_vin,omitempty"`
+	VehicleLabel    string                  `protobuf:"bytes,19,opt,name=vehicle_label,json=vehicleLabel,proto3" json:"vehicle_label,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1018,6 +1046,154 @@ func (x *MovementDocument) GetConfirmedByName() string {
 	return ""
 }
 
+func (x *MovementDocument) GetReferenceLabel() string {
+	if x != nil {
+		return x.ReferenceLabel
+	}
+	return ""
+}
+
+func (x *MovementDocument) GetCustomerName() string {
+	if x != nil {
+		return x.CustomerName
+	}
+	return ""
+}
+
+func (x *MovementDocument) GetVehicleVin() string {
+	if x != nil {
+		return x.VehicleVin
+	}
+	return ""
+}
+
+func (x *MovementDocument) GetVehicleLabel() string {
+	if x != nil {
+		return x.VehicleLabel
+	}
+	return ""
+}
+
+type UpdateMovementDocumentRequest struct {
+	state         protoimpl.MessageState       `protogen:"open.v1"`
+	Id            string                       `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	MovementType  *string                      `protobuf:"bytes,2,opt,name=movement_type,json=movementType,proto3,oneof" json:"movement_type,omitempty"`
+	Notes         *string                      `protobuf:"bytes,3,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	Lines         []*MovementDocumentLineInput `protobuf:"bytes,4,rep,name=lines,proto3" json:"lines,omitempty"`
+	ReplaceLines  bool                         `protobuf:"varint,5,opt,name=replace_lines,json=replaceLines,proto3" json:"replace_lines,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateMovementDocumentRequest) Reset() {
+	*x = UpdateMovementDocumentRequest{}
+	mi := &file_parts_v1_parts_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateMovementDocumentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateMovementDocumentRequest) ProtoMessage() {}
+
+func (x *UpdateMovementDocumentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parts_v1_parts_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateMovementDocumentRequest.ProtoReflect.Descriptor instead.
+func (*UpdateMovementDocumentRequest) Descriptor() ([]byte, []int) {
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *UpdateMovementDocumentRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateMovementDocumentRequest) GetMovementType() string {
+	if x != nil && x.MovementType != nil {
+		return *x.MovementType
+	}
+	return ""
+}
+
+func (x *UpdateMovementDocumentRequest) GetNotes() string {
+	if x != nil && x.Notes != nil {
+		return *x.Notes
+	}
+	return ""
+}
+
+func (x *UpdateMovementDocumentRequest) GetLines() []*MovementDocumentLineInput {
+	if x != nil {
+		return x.Lines
+	}
+	return nil
+}
+
+func (x *UpdateMovementDocumentRequest) GetReplaceLines() bool {
+	if x != nil {
+		return x.ReplaceLines
+	}
+	return false
+}
+
+type UpdateMovementDocumentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Document      *MovementDocument      `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateMovementDocumentResponse) Reset() {
+	*x = UpdateMovementDocumentResponse{}
+	mi := &file_parts_v1_parts_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateMovementDocumentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateMovementDocumentResponse) ProtoMessage() {}
+
+func (x *UpdateMovementDocumentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parts_v1_parts_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateMovementDocumentResponse.ProtoReflect.Descriptor instead.
+func (*UpdateMovementDocumentResponse) Descriptor() ([]byte, []int) {
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UpdateMovementDocumentResponse) GetDocument() *MovementDocument {
+	if x != nil {
+		return x.Document
+	}
+	return nil
+}
+
 type CreateMovementDocumentRequest struct {
 	state         protoimpl.MessageState       `protogen:"open.v1"`
 	MovementType  string                       `protobuf:"bytes,1,opt,name=movement_type,json=movementType,proto3" json:"movement_type,omitempty"`
@@ -1032,7 +1208,7 @@ type CreateMovementDocumentRequest struct {
 
 func (x *CreateMovementDocumentRequest) Reset() {
 	*x = CreateMovementDocumentRequest{}
-	mi := &file_parts_v1_parts_proto_msgTypes[15]
+	mi := &file_parts_v1_parts_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1044,7 +1220,7 @@ func (x *CreateMovementDocumentRequest) String() string {
 func (*CreateMovementDocumentRequest) ProtoMessage() {}
 
 func (x *CreateMovementDocumentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[15]
+	mi := &file_parts_v1_parts_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1057,7 +1233,7 @@ func (x *CreateMovementDocumentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMovementDocumentRequest.ProtoReflect.Descriptor instead.
 func (*CreateMovementDocumentRequest) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{15}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *CreateMovementDocumentRequest) GetMovementType() string {
@@ -1111,7 +1287,7 @@ type CreateMovementDocumentResponse struct {
 
 func (x *CreateMovementDocumentResponse) Reset() {
 	*x = CreateMovementDocumentResponse{}
-	mi := &file_parts_v1_parts_proto_msgTypes[16]
+	mi := &file_parts_v1_parts_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1123,7 +1299,7 @@ func (x *CreateMovementDocumentResponse) String() string {
 func (*CreateMovementDocumentResponse) ProtoMessage() {}
 
 func (x *CreateMovementDocumentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[16]
+	mi := &file_parts_v1_parts_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1136,7 +1312,7 @@ func (x *CreateMovementDocumentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMovementDocumentResponse.ProtoReflect.Descriptor instead.
 func (*CreateMovementDocumentResponse) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{16}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CreateMovementDocumentResponse) GetDocument() *MovementDocument {
@@ -1155,7 +1331,7 @@ type GetMovementDocumentRequest struct {
 
 func (x *GetMovementDocumentRequest) Reset() {
 	*x = GetMovementDocumentRequest{}
-	mi := &file_parts_v1_parts_proto_msgTypes[17]
+	mi := &file_parts_v1_parts_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1167,7 +1343,7 @@ func (x *GetMovementDocumentRequest) String() string {
 func (*GetMovementDocumentRequest) ProtoMessage() {}
 
 func (x *GetMovementDocumentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[17]
+	mi := &file_parts_v1_parts_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1180,7 +1356,7 @@ func (x *GetMovementDocumentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMovementDocumentRequest.ProtoReflect.Descriptor instead.
 func (*GetMovementDocumentRequest) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{17}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetMovementDocumentRequest) GetId() string {
@@ -1199,7 +1375,7 @@ type GetMovementDocumentResponse struct {
 
 func (x *GetMovementDocumentResponse) Reset() {
 	*x = GetMovementDocumentResponse{}
-	mi := &file_parts_v1_parts_proto_msgTypes[18]
+	mi := &file_parts_v1_parts_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1211,7 +1387,7 @@ func (x *GetMovementDocumentResponse) String() string {
 func (*GetMovementDocumentResponse) ProtoMessage() {}
 
 func (x *GetMovementDocumentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[18]
+	mi := &file_parts_v1_parts_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1224,7 +1400,7 @@ func (x *GetMovementDocumentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMovementDocumentResponse.ProtoReflect.Descriptor instead.
 func (*GetMovementDocumentResponse) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{18}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetMovementDocumentResponse) GetDocument() *MovementDocument {
@@ -1247,7 +1423,7 @@ type ListMovementDocumentsRequest struct {
 
 func (x *ListMovementDocumentsRequest) Reset() {
 	*x = ListMovementDocumentsRequest{}
-	mi := &file_parts_v1_parts_proto_msgTypes[19]
+	mi := &file_parts_v1_parts_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1259,7 +1435,7 @@ func (x *ListMovementDocumentsRequest) String() string {
 func (*ListMovementDocumentsRequest) ProtoMessage() {}
 
 func (x *ListMovementDocumentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[19]
+	mi := &file_parts_v1_parts_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1272,7 +1448,7 @@ func (x *ListMovementDocumentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMovementDocumentsRequest.ProtoReflect.Descriptor instead.
 func (*ListMovementDocumentsRequest) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{19}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListMovementDocumentsRequest) GetLimit() int32 {
@@ -1320,7 +1496,7 @@ type ListMovementDocumentsResponse struct {
 
 func (x *ListMovementDocumentsResponse) Reset() {
 	*x = ListMovementDocumentsResponse{}
-	mi := &file_parts_v1_parts_proto_msgTypes[20]
+	mi := &file_parts_v1_parts_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1332,7 +1508,7 @@ func (x *ListMovementDocumentsResponse) String() string {
 func (*ListMovementDocumentsResponse) ProtoMessage() {}
 
 func (x *ListMovementDocumentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[20]
+	mi := &file_parts_v1_parts_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1345,7 +1521,7 @@ func (x *ListMovementDocumentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMovementDocumentsResponse.ProtoReflect.Descriptor instead.
 func (*ListMovementDocumentsResponse) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{20}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListMovementDocumentsResponse) GetDocuments() []*MovementDocument {
@@ -1362,6 +1538,190 @@ func (x *ListMovementDocumentsResponse) GetTotal() int32 {
 	return 0
 }
 
+type StartMovementDocumentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartMovementDocumentRequest) Reset() {
+	*x = StartMovementDocumentRequest{}
+	mi := &file_parts_v1_parts_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartMovementDocumentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartMovementDocumentRequest) ProtoMessage() {}
+
+func (x *StartMovementDocumentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parts_v1_parts_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartMovementDocumentRequest.ProtoReflect.Descriptor instead.
+func (*StartMovementDocumentRequest) Descriptor() ([]byte, []int) {
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *StartMovementDocumentRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type StartMovementDocumentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Document      *MovementDocument      `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartMovementDocumentResponse) Reset() {
+	*x = StartMovementDocumentResponse{}
+	mi := &file_parts_v1_parts_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartMovementDocumentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartMovementDocumentResponse) ProtoMessage() {}
+
+func (x *StartMovementDocumentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parts_v1_parts_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartMovementDocumentResponse.ProtoReflect.Descriptor instead.
+func (*StartMovementDocumentResponse) Descriptor() ([]byte, []int) {
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *StartMovementDocumentResponse) GetDocument() *MovementDocument {
+	if x != nil {
+		return x.Document
+	}
+	return nil
+}
+
+type CloseMovementDocumentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ClosedBy      string                 `protobuf:"bytes,2,opt,name=closed_by,json=closedBy,proto3" json:"closed_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CloseMovementDocumentRequest) Reset() {
+	*x = CloseMovementDocumentRequest{}
+	mi := &file_parts_v1_parts_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CloseMovementDocumentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CloseMovementDocumentRequest) ProtoMessage() {}
+
+func (x *CloseMovementDocumentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parts_v1_parts_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CloseMovementDocumentRequest.ProtoReflect.Descriptor instead.
+func (*CloseMovementDocumentRequest) Descriptor() ([]byte, []int) {
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *CloseMovementDocumentRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CloseMovementDocumentRequest) GetClosedBy() string {
+	if x != nil {
+		return x.ClosedBy
+	}
+	return ""
+}
+
+type CloseMovementDocumentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Document      *MovementDocument      `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CloseMovementDocumentResponse) Reset() {
+	*x = CloseMovementDocumentResponse{}
+	mi := &file_parts_v1_parts_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CloseMovementDocumentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CloseMovementDocumentResponse) ProtoMessage() {}
+
+func (x *CloseMovementDocumentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parts_v1_parts_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CloseMovementDocumentResponse.ProtoReflect.Descriptor instead.
+func (*CloseMovementDocumentResponse) Descriptor() ([]byte, []int) {
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *CloseMovementDocumentResponse) GetDocument() *MovementDocument {
+	if x != nil {
+		return x.Document
+	}
+	return nil
+}
+
 type ConfirmMovementDocumentRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1372,7 +1732,7 @@ type ConfirmMovementDocumentRequest struct {
 
 func (x *ConfirmMovementDocumentRequest) Reset() {
 	*x = ConfirmMovementDocumentRequest{}
-	mi := &file_parts_v1_parts_proto_msgTypes[21]
+	mi := &file_parts_v1_parts_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1384,7 +1744,7 @@ func (x *ConfirmMovementDocumentRequest) String() string {
 func (*ConfirmMovementDocumentRequest) ProtoMessage() {}
 
 func (x *ConfirmMovementDocumentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[21]
+	mi := &file_parts_v1_parts_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1397,7 +1757,7 @@ func (x *ConfirmMovementDocumentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmMovementDocumentRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmMovementDocumentRequest) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{21}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ConfirmMovementDocumentRequest) GetId() string {
@@ -1423,7 +1783,7 @@ type ConfirmMovementDocumentResponse struct {
 
 func (x *ConfirmMovementDocumentResponse) Reset() {
 	*x = ConfirmMovementDocumentResponse{}
-	mi := &file_parts_v1_parts_proto_msgTypes[22]
+	mi := &file_parts_v1_parts_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1435,7 +1795,7 @@ func (x *ConfirmMovementDocumentResponse) String() string {
 func (*ConfirmMovementDocumentResponse) ProtoMessage() {}
 
 func (x *ConfirmMovementDocumentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[22]
+	mi := &file_parts_v1_parts_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1448,7 +1808,7 @@ func (x *ConfirmMovementDocumentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmMovementDocumentResponse.ProtoReflect.Descriptor instead.
 func (*ConfirmMovementDocumentResponse) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{22}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ConfirmMovementDocumentResponse) GetDocument() *MovementDocument {
@@ -1468,7 +1828,7 @@ type CancelMovementDocumentRequest struct {
 
 func (x *CancelMovementDocumentRequest) Reset() {
 	*x = CancelMovementDocumentRequest{}
-	mi := &file_parts_v1_parts_proto_msgTypes[23]
+	mi := &file_parts_v1_parts_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1480,7 +1840,7 @@ func (x *CancelMovementDocumentRequest) String() string {
 func (*CancelMovementDocumentRequest) ProtoMessage() {}
 
 func (x *CancelMovementDocumentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[23]
+	mi := &file_parts_v1_parts_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1493,7 +1853,7 @@ func (x *CancelMovementDocumentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelMovementDocumentRequest.ProtoReflect.Descriptor instead.
 func (*CancelMovementDocumentRequest) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{23}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *CancelMovementDocumentRequest) GetId() string {
@@ -1519,7 +1879,7 @@ type CancelMovementDocumentResponse struct {
 
 func (x *CancelMovementDocumentResponse) Reset() {
 	*x = CancelMovementDocumentResponse{}
-	mi := &file_parts_v1_parts_proto_msgTypes[24]
+	mi := &file_parts_v1_parts_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1531,7 +1891,7 @@ func (x *CancelMovementDocumentResponse) String() string {
 func (*CancelMovementDocumentResponse) ProtoMessage() {}
 
 func (x *CancelMovementDocumentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[24]
+	mi := &file_parts_v1_parts_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1544,7 +1904,7 @@ func (x *CancelMovementDocumentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelMovementDocumentResponse.ProtoReflect.Descriptor instead.
 func (*CancelMovementDocumentResponse) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{24}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *CancelMovementDocumentResponse) GetDocument() *MovementDocument {
@@ -1578,7 +1938,7 @@ type Part struct {
 
 func (x *Part) Reset() {
 	*x = Part{}
-	mi := &file_parts_v1_parts_proto_msgTypes[25]
+	mi := &file_parts_v1_parts_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1590,7 +1950,7 @@ func (x *Part) String() string {
 func (*Part) ProtoMessage() {}
 
 func (x *Part) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[25]
+	mi := &file_parts_v1_parts_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1603,7 +1963,7 @@ func (x *Part) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Part.ProtoReflect.Descriptor instead.
 func (*Part) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{25}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *Part) GetId() string {
@@ -1739,7 +2099,7 @@ type CreatePartRequest struct {
 
 func (x *CreatePartRequest) Reset() {
 	*x = CreatePartRequest{}
-	mi := &file_parts_v1_parts_proto_msgTypes[26]
+	mi := &file_parts_v1_parts_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1751,7 +2111,7 @@ func (x *CreatePartRequest) String() string {
 func (*CreatePartRequest) ProtoMessage() {}
 
 func (x *CreatePartRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[26]
+	mi := &file_parts_v1_parts_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1764,7 +2124,7 @@ func (x *CreatePartRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePartRequest.ProtoReflect.Descriptor instead.
 func (*CreatePartRequest) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{26}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *CreatePartRequest) GetSku() string {
@@ -1867,7 +2227,7 @@ type CreatePartResponse struct {
 
 func (x *CreatePartResponse) Reset() {
 	*x = CreatePartResponse{}
-	mi := &file_parts_v1_parts_proto_msgTypes[27]
+	mi := &file_parts_v1_parts_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1879,7 +2239,7 @@ func (x *CreatePartResponse) String() string {
 func (*CreatePartResponse) ProtoMessage() {}
 
 func (x *CreatePartResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[27]
+	mi := &file_parts_v1_parts_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1892,7 +2252,7 @@ func (x *CreatePartResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePartResponse.ProtoReflect.Descriptor instead.
 func (*CreatePartResponse) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{27}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *CreatePartResponse) GetPart() *Part {
@@ -1911,7 +2271,7 @@ type GetPartRequest struct {
 
 func (x *GetPartRequest) Reset() {
 	*x = GetPartRequest{}
-	mi := &file_parts_v1_parts_proto_msgTypes[28]
+	mi := &file_parts_v1_parts_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1923,7 +2283,7 @@ func (x *GetPartRequest) String() string {
 func (*GetPartRequest) ProtoMessage() {}
 
 func (x *GetPartRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[28]
+	mi := &file_parts_v1_parts_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1936,7 +2296,7 @@ func (x *GetPartRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPartRequest.ProtoReflect.Descriptor instead.
 func (*GetPartRequest) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{28}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetPartRequest) GetId() string {
@@ -1955,7 +2315,7 @@ type GetPartResponse struct {
 
 func (x *GetPartResponse) Reset() {
 	*x = GetPartResponse{}
-	mi := &file_parts_v1_parts_proto_msgTypes[29]
+	mi := &file_parts_v1_parts_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1967,7 +2327,7 @@ func (x *GetPartResponse) String() string {
 func (*GetPartResponse) ProtoMessage() {}
 
 func (x *GetPartResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[29]
+	mi := &file_parts_v1_parts_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1980,7 +2340,7 @@ func (x *GetPartResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPartResponse.ProtoReflect.Descriptor instead.
 func (*GetPartResponse) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{29}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GetPartResponse) GetPart() *Part {
@@ -2007,7 +2367,7 @@ type ListPartsRequest struct {
 
 func (x *ListPartsRequest) Reset() {
 	*x = ListPartsRequest{}
-	mi := &file_parts_v1_parts_proto_msgTypes[30]
+	mi := &file_parts_v1_parts_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2019,7 +2379,7 @@ func (x *ListPartsRequest) String() string {
 func (*ListPartsRequest) ProtoMessage() {}
 
 func (x *ListPartsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[30]
+	mi := &file_parts_v1_parts_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2032,7 +2392,7 @@ func (x *ListPartsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPartsRequest.ProtoReflect.Descriptor instead.
 func (*ListPartsRequest) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{30}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListPartsRequest) GetLimit() int32 {
@@ -2108,7 +2468,7 @@ type ListPartsResponse struct {
 
 func (x *ListPartsResponse) Reset() {
 	*x = ListPartsResponse{}
-	mi := &file_parts_v1_parts_proto_msgTypes[31]
+	mi := &file_parts_v1_parts_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2120,7 +2480,7 @@ func (x *ListPartsResponse) String() string {
 func (*ListPartsResponse) ProtoMessage() {}
 
 func (x *ListPartsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[31]
+	mi := &file_parts_v1_parts_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2133,7 +2493,7 @@ func (x *ListPartsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPartsResponse.ProtoReflect.Descriptor instead.
 func (*ListPartsResponse) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{31}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ListPartsResponse) GetParts() []*Part {
@@ -2172,7 +2532,7 @@ type UpdatePartRequest struct {
 
 func (x *UpdatePartRequest) Reset() {
 	*x = UpdatePartRequest{}
-	mi := &file_parts_v1_parts_proto_msgTypes[32]
+	mi := &file_parts_v1_parts_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2184,7 +2544,7 @@ func (x *UpdatePartRequest) String() string {
 func (*UpdatePartRequest) ProtoMessage() {}
 
 func (x *UpdatePartRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[32]
+	mi := &file_parts_v1_parts_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2197,7 +2557,7 @@ func (x *UpdatePartRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePartRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePartRequest) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{32}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *UpdatePartRequest) GetId() string {
@@ -2307,7 +2667,7 @@ type UpdatePartResponse struct {
 
 func (x *UpdatePartResponse) Reset() {
 	*x = UpdatePartResponse{}
-	mi := &file_parts_v1_parts_proto_msgTypes[33]
+	mi := &file_parts_v1_parts_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2319,7 +2679,7 @@ func (x *UpdatePartResponse) String() string {
 func (*UpdatePartResponse) ProtoMessage() {}
 
 func (x *UpdatePartResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[33]
+	mi := &file_parts_v1_parts_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2332,7 +2692,7 @@ func (x *UpdatePartResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePartResponse.ProtoReflect.Descriptor instead.
 func (*UpdatePartResponse) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{33}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *UpdatePartResponse) GetPart() *Part {
@@ -2351,7 +2711,7 @@ type DeletePartRequest struct {
 
 func (x *DeletePartRequest) Reset() {
 	*x = DeletePartRequest{}
-	mi := &file_parts_v1_parts_proto_msgTypes[34]
+	mi := &file_parts_v1_parts_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2363,7 +2723,7 @@ func (x *DeletePartRequest) String() string {
 func (*DeletePartRequest) ProtoMessage() {}
 
 func (x *DeletePartRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[34]
+	mi := &file_parts_v1_parts_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2376,7 +2736,7 @@ func (x *DeletePartRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePartRequest.ProtoReflect.Descriptor instead.
 func (*DeletePartRequest) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{34}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *DeletePartRequest) GetId() string {
@@ -2394,7 +2754,7 @@ type DeletePartResponse struct {
 
 func (x *DeletePartResponse) Reset() {
 	*x = DeletePartResponse{}
-	mi := &file_parts_v1_parts_proto_msgTypes[35]
+	mi := &file_parts_v1_parts_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2406,7 +2766,7 @@ func (x *DeletePartResponse) String() string {
 func (*DeletePartResponse) ProtoMessage() {}
 
 func (x *DeletePartResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parts_v1_parts_proto_msgTypes[35]
+	mi := &file_parts_v1_parts_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2419,7 +2779,7 @@ func (x *DeletePartResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePartResponse.ProtoReflect.Descriptor instead.
 func (*DeletePartResponse) Descriptor() ([]byte, []int) {
-	return file_parts_v1_parts_proto_rawDescGZIP(), []int{35}
+	return file_parts_v1_parts_proto_rawDescGZIP(), []int{41}
 }
 
 var File_parts_v1_parts_proto protoreflect.FileDescriptor
@@ -2476,7 +2836,7 @@ const file_parts_v1_parts_proto_rawDesc = "" +
 	" \x01(\tR\tcreatedBy\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\v \x01(\x03R\tcreatedAt\x120\n" +
-	"\x14movement_document_id\x18\f \x01(\tR\x12movementDocumentId\"\xdf\x01\n" +
+	"\x14movement_document_id\x18\f \x01(\tR\x12movementDocumentId\"\xbe\x02\n" +
 	"\x14MovementDocumentLine\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\apart_id\x18\x02 \x01(\tR\x06partId\x12!\n" +
@@ -2485,7 +2845,11 @@ const file_parts_v1_parts_proto_rawDesc = "" +
 	"\x11reference_line_id\x18\x05 \x01(\tR\x0freferenceLineId\x12\x14\n" +
 	"\x05notes\x18\x06 \x01(\tR\x05notes\x12\x1d\n" +
 	"\n" +
-	"sort_order\x18\a \x01(\x05R\tsortOrder\"\xd4\x01\n" +
+	"sort_order\x18\a \x01(\x05R\tsortOrder\x12\x1b\n" +
+	"\tpart_name\x18\b \x01(\tR\bpartName\x12\x19\n" +
+	"\bpart_sku\x18\t \x01(\tR\apartSku\x12%\n" +
+	"\x0ewarehouse_name\x18\n" +
+	" \x01(\tR\rwarehouseName\"\xd4\x01\n" +
 	"\x19MovementDocumentLineInput\x12\x17\n" +
 	"\apart_id\x18\x01 \x01(\tR\x06partId\x12!\n" +
 	"\fwarehouse_id\x18\x02 \x01(\tR\vwarehouseId\x12\x1a\n" +
@@ -2493,7 +2857,7 @@ const file_parts_v1_parts_proto_rawDesc = "" +
 	"\x11reference_line_id\x18\x04 \x01(\tR\x0freferenceLineId\x12\x14\n" +
 	"\x05notes\x18\x05 \x01(\tR\x05notes\x12\x1d\n" +
 	"\n" +
-	"sort_order\x18\x06 \x01(\x05R\tsortOrder\"\x95\x04\n" +
+	"sort_order\x18\x06 \x01(\x05R\tsortOrder\"\xa9\x05\n" +
 	"\x10MovementDocument\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0fdocument_number\x18\x02 \x01(\tR\x0edocumentNumber\x12\x16\n" +
@@ -2513,7 +2877,22 @@ const file_parts_v1_parts_proto_rawDesc = "" +
 	"updated_at\x18\f \x01(\x03R\tupdatedAt\x124\n" +
 	"\x05lines\x18\r \x03(\v2\x1e.parts.v1.MovementDocumentLineR\x05lines\x12&\n" +
 	"\x0fcreated_by_name\x18\x0e \x01(\tR\rcreatedByName\x12*\n" +
-	"\x11confirmed_by_name\x18\x0f \x01(\tR\x0fconfirmedByName\"\xfe\x01\n" +
+	"\x11confirmed_by_name\x18\x0f \x01(\tR\x0fconfirmedByName\x12'\n" +
+	"\x0freference_label\x18\x10 \x01(\tR\x0ereferenceLabel\x12#\n" +
+	"\rcustomer_name\x18\x11 \x01(\tR\fcustomerName\x12\x1f\n" +
+	"\vvehicle_vin\x18\x12 \x01(\tR\n" +
+	"vehicleVin\x12#\n" +
+	"\rvehicle_label\x18\x13 \x01(\tR\fvehicleLabel\"\xf0\x01\n" +
+	"\x1dUpdateMovementDocumentRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12(\n" +
+	"\rmovement_type\x18\x02 \x01(\tH\x00R\fmovementType\x88\x01\x01\x12\x19\n" +
+	"\x05notes\x18\x03 \x01(\tH\x01R\x05notes\x88\x01\x01\x129\n" +
+	"\x05lines\x18\x04 \x03(\v2#.parts.v1.MovementDocumentLineInputR\x05lines\x12#\n" +
+	"\rreplace_lines\x18\x05 \x01(\bR\freplaceLinesB\x10\n" +
+	"\x0e_movement_typeB\b\n" +
+	"\x06_notes\"X\n" +
+	"\x1eUpdateMovementDocumentResponse\x126\n" +
+	"\bdocument\x18\x01 \x01(\v2\x1a.parts.v1.MovementDocumentR\bdocument\"\xfe\x01\n" +
 	"\x1dCreateMovementDocumentRequest\x12#\n" +
 	"\rmovement_type\x18\x01 \x01(\tR\fmovementType\x12%\n" +
 	"\x0ereference_type\x18\x02 \x01(\tR\rreferenceType\x12!\n" +
@@ -2536,7 +2915,16 @@ const file_parts_v1_parts_proto_rawDesc = "" +
 	"\freference_id\x18\x05 \x01(\tR\vreferenceId\"o\n" +
 	"\x1dListMovementDocumentsResponse\x128\n" +
 	"\tdocuments\x18\x01 \x03(\v2\x1a.parts.v1.MovementDocumentR\tdocuments\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x05R\x05total\"S\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\".\n" +
+	"\x1cStartMovementDocumentRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"W\n" +
+	"\x1dStartMovementDocumentResponse\x126\n" +
+	"\bdocument\x18\x01 \x01(\v2\x1a.parts.v1.MovementDocumentR\bdocument\"K\n" +
+	"\x1cCloseMovementDocumentRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\tclosed_by\x18\x02 \x01(\tR\bclosedBy\"W\n" +
+	"\x1dCloseMovementDocumentResponse\x126\n" +
+	"\bdocument\x18\x01 \x01(\v2\x1a.parts.v1.MovementDocumentR\bdocument\"S\n" +
 	"\x1eConfirmMovementDocumentRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\fconfirmed_by\x18\x02 \x01(\tR\vconfirmedBy\"Y\n" +
@@ -2636,7 +3024,7 @@ const file_parts_v1_parts_proto_rawDesc = "" +
 	"\x04part\x18\x01 \x01(\v2\x0e.parts.v1.PartR\x04part\"#\n" +
 	"\x11DeletePartRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
-	"\x12DeletePartResponse2\xc3\x0e\n" +
+	"\x12DeletePartResponse2\xac\x12\n" +
 	"\fPartsService\x12d\n" +
 	"\n" +
 	"CreatePart\x12\x1b.parts.v1.CreatePartRequest\x1a\x1c.parts.v1.CreatePartResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*b\x04part\"\n" +
@@ -2654,8 +3042,11 @@ const file_parts_v1_parts_proto_rawDesc = "" +
 	"\fUpdateFolder\x12\x1d.parts.v1.UpdateFolderRequest\x1a\x1e.parts.v1.UpdateFolderResponse\"*\x82\xd3\xe4\x93\x02$:\x01*b\x06folder\x1a\x17/api/parts/folders/{id}\x12n\n" +
 	"\fDeleteFolder\x12\x1d.parts.v1.DeleteFolderRequest\x1a\x1e.parts.v1.DeleteFolderResponse\"\x1f\x82\xd3\xe4\x93\x02\x19*\x17/api/parts/folders/{id}\x12\x99\x01\n" +
 	"\x16CreateMovementDocument\x12'.parts.v1.CreateMovementDocumentRequest\x1a(.parts.v1.CreateMovementDocumentResponse\",\x82\xd3\xe4\x93\x02&:\x01*b\bdocument\"\x17/api/movement-documents\x12\x92\x01\n" +
-	"\x13GetMovementDocument\x12$.parts.v1.GetMovementDocumentRequest\x1a%.parts.v1.GetMovementDocumentResponse\".\x82\xd3\xe4\x93\x02(b\bdocument\x12\x1c/api/movement-documents/{id}\x12\x89\x01\n" +
-	"\x15ListMovementDocuments\x12&.parts.v1.ListMovementDocumentsRequest\x1a'.parts.v1.ListMovementDocumentsResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/movement-documents\x12\xa9\x01\n" +
+	"\x13GetMovementDocument\x12$.parts.v1.GetMovementDocumentRequest\x1a%.parts.v1.GetMovementDocumentResponse\".\x82\xd3\xe4\x93\x02(b\bdocument\x12\x1c/api/movement-documents/{id}\x12\x9e\x01\n" +
+	"\x16UpdateMovementDocument\x12'.parts.v1.UpdateMovementDocumentRequest\x1a(.parts.v1.UpdateMovementDocumentResponse\"1\x82\xd3\xe4\x93\x02+:\x01*b\bdocument\x1a\x1c/api/movement-documents/{id}\x12\x89\x01\n" +
+	"\x15ListMovementDocuments\x12&.parts.v1.ListMovementDocumentsRequest\x1a'.parts.v1.ListMovementDocumentsResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/movement-documents\x12\xa1\x01\n" +
+	"\x15StartMovementDocument\x12&.parts.v1.StartMovementDocumentRequest\x1a'.parts.v1.StartMovementDocumentResponse\"7\x82\xd3\xe4\x93\x021:\x01*b\bdocument\"\"/api/movement-documents/{id}/start\x12\xa1\x01\n" +
+	"\x15CloseMovementDocument\x12&.parts.v1.CloseMovementDocumentRequest\x1a'.parts.v1.CloseMovementDocumentResponse\"7\x82\xd3\xe4\x93\x021:\x01*b\bdocument\"\"/api/movement-documents/{id}/close\x12\xa9\x01\n" +
 	"\x17ConfirmMovementDocument\x12(.parts.v1.ConfirmMovementDocumentRequest\x1a).parts.v1.ConfirmMovementDocumentResponse\"9\x82\xd3\xe4\x93\x023:\x01*b\bdocument\"$/api/movement-documents/{id}/confirm\x12\xa5\x01\n" +
 	"\x16CancelMovementDocument\x12'.parts.v1.CancelMovementDocumentRequest\x1a(.parts.v1.CancelMovementDocumentResponse\"8\x82\xd3\xe4\x93\x022:\x01*b\bdocument\"#/api/movement-documents/{id}/cancelB2Z0github.com/dealer/dealer/pkg/pb/parts/v1;partsv1b\x06proto3"
 
@@ -2671,7 +3062,7 @@ func file_parts_v1_parts_proto_rawDescGZIP() []byte {
 	return file_parts_v1_parts_proto_rawDescData
 }
 
-var file_parts_v1_parts_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
+var file_parts_v1_parts_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
 var file_parts_v1_parts_proto_goTypes = []any{
 	(*PartFolder)(nil),                      // 0: parts.v1.PartFolder
 	(*CreateFolderRequest)(nil),             // 1: parts.v1.CreateFolderRequest
@@ -2688,27 +3079,33 @@ var file_parts_v1_parts_proto_goTypes = []any{
 	(*MovementDocumentLine)(nil),            // 12: parts.v1.MovementDocumentLine
 	(*MovementDocumentLineInput)(nil),       // 13: parts.v1.MovementDocumentLineInput
 	(*MovementDocument)(nil),                // 14: parts.v1.MovementDocument
-	(*CreateMovementDocumentRequest)(nil),   // 15: parts.v1.CreateMovementDocumentRequest
-	(*CreateMovementDocumentResponse)(nil),  // 16: parts.v1.CreateMovementDocumentResponse
-	(*GetMovementDocumentRequest)(nil),      // 17: parts.v1.GetMovementDocumentRequest
-	(*GetMovementDocumentResponse)(nil),     // 18: parts.v1.GetMovementDocumentResponse
-	(*ListMovementDocumentsRequest)(nil),    // 19: parts.v1.ListMovementDocumentsRequest
-	(*ListMovementDocumentsResponse)(nil),   // 20: parts.v1.ListMovementDocumentsResponse
-	(*ConfirmMovementDocumentRequest)(nil),  // 21: parts.v1.ConfirmMovementDocumentRequest
-	(*ConfirmMovementDocumentResponse)(nil), // 22: parts.v1.ConfirmMovementDocumentResponse
-	(*CancelMovementDocumentRequest)(nil),   // 23: parts.v1.CancelMovementDocumentRequest
-	(*CancelMovementDocumentResponse)(nil),  // 24: parts.v1.CancelMovementDocumentResponse
-	(*Part)(nil),                            // 25: parts.v1.Part
-	(*CreatePartRequest)(nil),               // 26: parts.v1.CreatePartRequest
-	(*CreatePartResponse)(nil),              // 27: parts.v1.CreatePartResponse
-	(*GetPartRequest)(nil),                  // 28: parts.v1.GetPartRequest
-	(*GetPartResponse)(nil),                 // 29: parts.v1.GetPartResponse
-	(*ListPartsRequest)(nil),                // 30: parts.v1.ListPartsRequest
-	(*ListPartsResponse)(nil),               // 31: parts.v1.ListPartsResponse
-	(*UpdatePartRequest)(nil),               // 32: parts.v1.UpdatePartRequest
-	(*UpdatePartResponse)(nil),              // 33: parts.v1.UpdatePartResponse
-	(*DeletePartRequest)(nil),               // 34: parts.v1.DeletePartRequest
-	(*DeletePartResponse)(nil),              // 35: parts.v1.DeletePartResponse
+	(*UpdateMovementDocumentRequest)(nil),   // 15: parts.v1.UpdateMovementDocumentRequest
+	(*UpdateMovementDocumentResponse)(nil),  // 16: parts.v1.UpdateMovementDocumentResponse
+	(*CreateMovementDocumentRequest)(nil),   // 17: parts.v1.CreateMovementDocumentRequest
+	(*CreateMovementDocumentResponse)(nil),  // 18: parts.v1.CreateMovementDocumentResponse
+	(*GetMovementDocumentRequest)(nil),      // 19: parts.v1.GetMovementDocumentRequest
+	(*GetMovementDocumentResponse)(nil),     // 20: parts.v1.GetMovementDocumentResponse
+	(*ListMovementDocumentsRequest)(nil),    // 21: parts.v1.ListMovementDocumentsRequest
+	(*ListMovementDocumentsResponse)(nil),   // 22: parts.v1.ListMovementDocumentsResponse
+	(*StartMovementDocumentRequest)(nil),    // 23: parts.v1.StartMovementDocumentRequest
+	(*StartMovementDocumentResponse)(nil),   // 24: parts.v1.StartMovementDocumentResponse
+	(*CloseMovementDocumentRequest)(nil),    // 25: parts.v1.CloseMovementDocumentRequest
+	(*CloseMovementDocumentResponse)(nil),   // 26: parts.v1.CloseMovementDocumentResponse
+	(*ConfirmMovementDocumentRequest)(nil),  // 27: parts.v1.ConfirmMovementDocumentRequest
+	(*ConfirmMovementDocumentResponse)(nil), // 28: parts.v1.ConfirmMovementDocumentResponse
+	(*CancelMovementDocumentRequest)(nil),   // 29: parts.v1.CancelMovementDocumentRequest
+	(*CancelMovementDocumentResponse)(nil),  // 30: parts.v1.CancelMovementDocumentResponse
+	(*Part)(nil),                            // 31: parts.v1.Part
+	(*CreatePartRequest)(nil),               // 32: parts.v1.CreatePartRequest
+	(*CreatePartResponse)(nil),              // 33: parts.v1.CreatePartResponse
+	(*GetPartRequest)(nil),                  // 34: parts.v1.GetPartRequest
+	(*GetPartResponse)(nil),                 // 35: parts.v1.GetPartResponse
+	(*ListPartsRequest)(nil),                // 36: parts.v1.ListPartsRequest
+	(*ListPartsResponse)(nil),               // 37: parts.v1.ListPartsResponse
+	(*UpdatePartRequest)(nil),               // 38: parts.v1.UpdatePartRequest
+	(*UpdatePartResponse)(nil),              // 39: parts.v1.UpdatePartResponse
+	(*DeletePartRequest)(nil),               // 40: parts.v1.DeletePartRequest
+	(*DeletePartResponse)(nil),              // 41: parts.v1.DeletePartResponse
 }
 var file_parts_v1_parts_proto_depIdxs = []int32{
 	0,  // 0: parts.v1.CreateFolderResponse.folder:type_name -> parts.v1.PartFolder
@@ -2716,51 +3113,61 @@ var file_parts_v1_parts_proto_depIdxs = []int32{
 	0,  // 2: parts.v1.ListFoldersResponse.folders:type_name -> parts.v1.PartFolder
 	0,  // 3: parts.v1.UpdateFolderResponse.folder:type_name -> parts.v1.PartFolder
 	12, // 4: parts.v1.MovementDocument.lines:type_name -> parts.v1.MovementDocumentLine
-	13, // 5: parts.v1.CreateMovementDocumentRequest.lines:type_name -> parts.v1.MovementDocumentLineInput
-	14, // 6: parts.v1.CreateMovementDocumentResponse.document:type_name -> parts.v1.MovementDocument
-	14, // 7: parts.v1.GetMovementDocumentResponse.document:type_name -> parts.v1.MovementDocument
-	14, // 8: parts.v1.ListMovementDocumentsResponse.documents:type_name -> parts.v1.MovementDocument
-	14, // 9: parts.v1.ConfirmMovementDocumentResponse.document:type_name -> parts.v1.MovementDocument
-	14, // 10: parts.v1.CancelMovementDocumentResponse.document:type_name -> parts.v1.MovementDocument
-	25, // 11: parts.v1.CreatePartResponse.part:type_name -> parts.v1.Part
-	25, // 12: parts.v1.GetPartResponse.part:type_name -> parts.v1.Part
-	25, // 13: parts.v1.ListPartsResponse.parts:type_name -> parts.v1.Part
-	25, // 14: parts.v1.UpdatePartResponse.part:type_name -> parts.v1.Part
-	26, // 15: parts.v1.PartsService.CreatePart:input_type -> parts.v1.CreatePartRequest
-	28, // 16: parts.v1.PartsService.GetPart:input_type -> parts.v1.GetPartRequest
-	30, // 17: parts.v1.PartsService.ListParts:input_type -> parts.v1.ListPartsRequest
-	32, // 18: parts.v1.PartsService.UpdatePart:input_type -> parts.v1.UpdatePartRequest
-	34, // 19: parts.v1.PartsService.DeletePart:input_type -> parts.v1.DeletePartRequest
-	1,  // 20: parts.v1.PartsService.CreateFolder:input_type -> parts.v1.CreateFolderRequest
-	3,  // 21: parts.v1.PartsService.GetFolder:input_type -> parts.v1.GetFolderRequest
-	5,  // 22: parts.v1.PartsService.ListFolders:input_type -> parts.v1.ListFoldersRequest
-	7,  // 23: parts.v1.PartsService.UpdateFolder:input_type -> parts.v1.UpdateFolderRequest
-	9,  // 24: parts.v1.PartsService.DeleteFolder:input_type -> parts.v1.DeleteFolderRequest
-	15, // 25: parts.v1.PartsService.CreateMovementDocument:input_type -> parts.v1.CreateMovementDocumentRequest
-	17, // 26: parts.v1.PartsService.GetMovementDocument:input_type -> parts.v1.GetMovementDocumentRequest
-	19, // 27: parts.v1.PartsService.ListMovementDocuments:input_type -> parts.v1.ListMovementDocumentsRequest
-	21, // 28: parts.v1.PartsService.ConfirmMovementDocument:input_type -> parts.v1.ConfirmMovementDocumentRequest
-	23, // 29: parts.v1.PartsService.CancelMovementDocument:input_type -> parts.v1.CancelMovementDocumentRequest
-	27, // 30: parts.v1.PartsService.CreatePart:output_type -> parts.v1.CreatePartResponse
-	29, // 31: parts.v1.PartsService.GetPart:output_type -> parts.v1.GetPartResponse
-	31, // 32: parts.v1.PartsService.ListParts:output_type -> parts.v1.ListPartsResponse
-	33, // 33: parts.v1.PartsService.UpdatePart:output_type -> parts.v1.UpdatePartResponse
-	35, // 34: parts.v1.PartsService.DeletePart:output_type -> parts.v1.DeletePartResponse
-	2,  // 35: parts.v1.PartsService.CreateFolder:output_type -> parts.v1.CreateFolderResponse
-	4,  // 36: parts.v1.PartsService.GetFolder:output_type -> parts.v1.GetFolderResponse
-	6,  // 37: parts.v1.PartsService.ListFolders:output_type -> parts.v1.ListFoldersResponse
-	8,  // 38: parts.v1.PartsService.UpdateFolder:output_type -> parts.v1.UpdateFolderResponse
-	10, // 39: parts.v1.PartsService.DeleteFolder:output_type -> parts.v1.DeleteFolderResponse
-	16, // 40: parts.v1.PartsService.CreateMovementDocument:output_type -> parts.v1.CreateMovementDocumentResponse
-	18, // 41: parts.v1.PartsService.GetMovementDocument:output_type -> parts.v1.GetMovementDocumentResponse
-	20, // 42: parts.v1.PartsService.ListMovementDocuments:output_type -> parts.v1.ListMovementDocumentsResponse
-	22, // 43: parts.v1.PartsService.ConfirmMovementDocument:output_type -> parts.v1.ConfirmMovementDocumentResponse
-	24, // 44: parts.v1.PartsService.CancelMovementDocument:output_type -> parts.v1.CancelMovementDocumentResponse
-	30, // [30:45] is the sub-list for method output_type
-	15, // [15:30] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	13, // 5: parts.v1.UpdateMovementDocumentRequest.lines:type_name -> parts.v1.MovementDocumentLineInput
+	14, // 6: parts.v1.UpdateMovementDocumentResponse.document:type_name -> parts.v1.MovementDocument
+	13, // 7: parts.v1.CreateMovementDocumentRequest.lines:type_name -> parts.v1.MovementDocumentLineInput
+	14, // 8: parts.v1.CreateMovementDocumentResponse.document:type_name -> parts.v1.MovementDocument
+	14, // 9: parts.v1.GetMovementDocumentResponse.document:type_name -> parts.v1.MovementDocument
+	14, // 10: parts.v1.ListMovementDocumentsResponse.documents:type_name -> parts.v1.MovementDocument
+	14, // 11: parts.v1.StartMovementDocumentResponse.document:type_name -> parts.v1.MovementDocument
+	14, // 12: parts.v1.CloseMovementDocumentResponse.document:type_name -> parts.v1.MovementDocument
+	14, // 13: parts.v1.ConfirmMovementDocumentResponse.document:type_name -> parts.v1.MovementDocument
+	14, // 14: parts.v1.CancelMovementDocumentResponse.document:type_name -> parts.v1.MovementDocument
+	31, // 15: parts.v1.CreatePartResponse.part:type_name -> parts.v1.Part
+	31, // 16: parts.v1.GetPartResponse.part:type_name -> parts.v1.Part
+	31, // 17: parts.v1.ListPartsResponse.parts:type_name -> parts.v1.Part
+	31, // 18: parts.v1.UpdatePartResponse.part:type_name -> parts.v1.Part
+	32, // 19: parts.v1.PartsService.CreatePart:input_type -> parts.v1.CreatePartRequest
+	34, // 20: parts.v1.PartsService.GetPart:input_type -> parts.v1.GetPartRequest
+	36, // 21: parts.v1.PartsService.ListParts:input_type -> parts.v1.ListPartsRequest
+	38, // 22: parts.v1.PartsService.UpdatePart:input_type -> parts.v1.UpdatePartRequest
+	40, // 23: parts.v1.PartsService.DeletePart:input_type -> parts.v1.DeletePartRequest
+	1,  // 24: parts.v1.PartsService.CreateFolder:input_type -> parts.v1.CreateFolderRequest
+	3,  // 25: parts.v1.PartsService.GetFolder:input_type -> parts.v1.GetFolderRequest
+	5,  // 26: parts.v1.PartsService.ListFolders:input_type -> parts.v1.ListFoldersRequest
+	7,  // 27: parts.v1.PartsService.UpdateFolder:input_type -> parts.v1.UpdateFolderRequest
+	9,  // 28: parts.v1.PartsService.DeleteFolder:input_type -> parts.v1.DeleteFolderRequest
+	17, // 29: parts.v1.PartsService.CreateMovementDocument:input_type -> parts.v1.CreateMovementDocumentRequest
+	19, // 30: parts.v1.PartsService.GetMovementDocument:input_type -> parts.v1.GetMovementDocumentRequest
+	15, // 31: parts.v1.PartsService.UpdateMovementDocument:input_type -> parts.v1.UpdateMovementDocumentRequest
+	21, // 32: parts.v1.PartsService.ListMovementDocuments:input_type -> parts.v1.ListMovementDocumentsRequest
+	23, // 33: parts.v1.PartsService.StartMovementDocument:input_type -> parts.v1.StartMovementDocumentRequest
+	25, // 34: parts.v1.PartsService.CloseMovementDocument:input_type -> parts.v1.CloseMovementDocumentRequest
+	27, // 35: parts.v1.PartsService.ConfirmMovementDocument:input_type -> parts.v1.ConfirmMovementDocumentRequest
+	29, // 36: parts.v1.PartsService.CancelMovementDocument:input_type -> parts.v1.CancelMovementDocumentRequest
+	33, // 37: parts.v1.PartsService.CreatePart:output_type -> parts.v1.CreatePartResponse
+	35, // 38: parts.v1.PartsService.GetPart:output_type -> parts.v1.GetPartResponse
+	37, // 39: parts.v1.PartsService.ListParts:output_type -> parts.v1.ListPartsResponse
+	39, // 40: parts.v1.PartsService.UpdatePart:output_type -> parts.v1.UpdatePartResponse
+	41, // 41: parts.v1.PartsService.DeletePart:output_type -> parts.v1.DeletePartResponse
+	2,  // 42: parts.v1.PartsService.CreateFolder:output_type -> parts.v1.CreateFolderResponse
+	4,  // 43: parts.v1.PartsService.GetFolder:output_type -> parts.v1.GetFolderResponse
+	6,  // 44: parts.v1.PartsService.ListFolders:output_type -> parts.v1.ListFoldersResponse
+	8,  // 45: parts.v1.PartsService.UpdateFolder:output_type -> parts.v1.UpdateFolderResponse
+	10, // 46: parts.v1.PartsService.DeleteFolder:output_type -> parts.v1.DeleteFolderResponse
+	18, // 47: parts.v1.PartsService.CreateMovementDocument:output_type -> parts.v1.CreateMovementDocumentResponse
+	20, // 48: parts.v1.PartsService.GetMovementDocument:output_type -> parts.v1.GetMovementDocumentResponse
+	16, // 49: parts.v1.PartsService.UpdateMovementDocument:output_type -> parts.v1.UpdateMovementDocumentResponse
+	22, // 50: parts.v1.PartsService.ListMovementDocuments:output_type -> parts.v1.ListMovementDocumentsResponse
+	24, // 51: parts.v1.PartsService.StartMovementDocument:output_type -> parts.v1.StartMovementDocumentResponse
+	26, // 52: parts.v1.PartsService.CloseMovementDocument:output_type -> parts.v1.CloseMovementDocumentResponse
+	28, // 53: parts.v1.PartsService.ConfirmMovementDocument:output_type -> parts.v1.ConfirmMovementDocumentResponse
+	30, // 54: parts.v1.PartsService.CancelMovementDocument:output_type -> parts.v1.CancelMovementDocumentResponse
+	37, // [37:55] is the sub-list for method output_type
+	19, // [19:37] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_parts_v1_parts_proto_init() }
@@ -2769,14 +3176,15 @@ func file_parts_v1_parts_proto_init() {
 		return
 	}
 	file_parts_v1_parts_proto_msgTypes[7].OneofWrappers = []any{}
-	file_parts_v1_parts_proto_msgTypes[32].OneofWrappers = []any{}
+	file_parts_v1_parts_proto_msgTypes[15].OneofWrappers = []any{}
+	file_parts_v1_parts_proto_msgTypes[38].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parts_v1_parts_proto_rawDesc), len(file_parts_v1_parts_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   36,
+			NumMessages:   42,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

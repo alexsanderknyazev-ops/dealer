@@ -41,7 +41,8 @@ func main() {
 	defer pool.Close()
 
 	repo := repository.NewWorkRepository(pool)
-	svc := service.NewWorkService(repo)
+	folderRepo := repository.NewFolderRepository(pool)
+	svc := service.NewWorkService(repo, folderRepo)
 
 	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
 		JWTSecret:  cfg.JWTSecret,

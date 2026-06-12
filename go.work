@@ -41,3 +41,5 @@ use ./services/statistics/employee
 use ./services/statistics/client
 
 use ./services/errors-ingest
+
+use ./services/scheduler

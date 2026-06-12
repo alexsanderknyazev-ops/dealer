@@ -402,6 +402,274 @@ func (x *GetReviewResponse) GetReview() *Review {
 	return nil
 }
 
+type ReviewInvitation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ClientId      string                 `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	VehicleId     string                 `protobuf:"bytes,3,opt,name=vehicle_id,json=vehicleId,proto3" json:"vehicle_id,omitempty"`
+	DealerPointId string                 `protobuf:"bytes,4,opt,name=dealer_point_id,json=dealerPointId,proto3" json:"dealer_point_id,omitempty"`
+	SourceType    string                 `protobuf:"bytes,5,opt,name=source_type,json=sourceType,proto3" json:"source_type,omitempty"`
+	SourceId      string                 `protobuf:"bytes,6,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	ServiceKind   string                 `protobuf:"bytes,7,opt,name=service_kind,json=serviceKind,proto3" json:"service_kind,omitempty"`
+	Status        string                 `protobuf:"bytes,8,opt,name=status,proto3" json:"status,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReviewInvitation) Reset() {
+	*x = ReviewInvitation{}
+	mi := &file_reviews_v1_reviews_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReviewInvitation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReviewInvitation) ProtoMessage() {}
+
+func (x *ReviewInvitation) ProtoReflect() protoreflect.Message {
+	mi := &file_reviews_v1_reviews_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReviewInvitation.ProtoReflect.Descriptor instead.
+func (*ReviewInvitation) Descriptor() ([]byte, []int) {
+	return file_reviews_v1_reviews_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ReviewInvitation) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ReviewInvitation) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *ReviewInvitation) GetVehicleId() string {
+	if x != nil {
+		return x.VehicleId
+	}
+	return ""
+}
+
+func (x *ReviewInvitation) GetDealerPointId() string {
+	if x != nil {
+		return x.DealerPointId
+	}
+	return ""
+}
+
+func (x *ReviewInvitation) GetSourceType() string {
+	if x != nil {
+		return x.SourceType
+	}
+	return ""
+}
+
+func (x *ReviewInvitation) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
+func (x *ReviewInvitation) GetServiceKind() string {
+	if x != nil {
+		return x.ServiceKind
+	}
+	return ""
+}
+
+func (x *ReviewInvitation) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ReviewInvitation) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+type ListReviewInvitationsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListReviewInvitationsRequest) Reset() {
+	*x = ListReviewInvitationsRequest{}
+	mi := &file_reviews_v1_reviews_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListReviewInvitationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListReviewInvitationsRequest) ProtoMessage() {}
+
+func (x *ListReviewInvitationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_reviews_v1_reviews_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListReviewInvitationsRequest.ProtoReflect.Descriptor instead.
+func (*ListReviewInvitationsRequest) Descriptor() ([]byte, []int) {
+	return file_reviews_v1_reviews_proto_rawDescGZIP(), []int{8}
+}
+
+type ListReviewInvitationsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Invitations   []*ReviewInvitation    `protobuf:"bytes,1,rep,name=invitations,proto3" json:"invitations,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListReviewInvitationsResponse) Reset() {
+	*x = ListReviewInvitationsResponse{}
+	mi := &file_reviews_v1_reviews_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListReviewInvitationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListReviewInvitationsResponse) ProtoMessage() {}
+
+func (x *ListReviewInvitationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_reviews_v1_reviews_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListReviewInvitationsResponse.ProtoReflect.Descriptor instead.
+func (*ListReviewInvitationsResponse) Descriptor() ([]byte, []int) {
+	return file_reviews_v1_reviews_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ListReviewInvitationsResponse) GetInvitations() []*ReviewInvitation {
+	if x != nil {
+		return x.Invitations
+	}
+	return nil
+}
+
+type DismissReviewInvitationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DismissReviewInvitationRequest) Reset() {
+	*x = DismissReviewInvitationRequest{}
+	mi := &file_reviews_v1_reviews_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DismissReviewInvitationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DismissReviewInvitationRequest) ProtoMessage() {}
+
+func (x *DismissReviewInvitationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_reviews_v1_reviews_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DismissReviewInvitationRequest.ProtoReflect.Descriptor instead.
+func (*DismissReviewInvitationRequest) Descriptor() ([]byte, []int) {
+	return file_reviews_v1_reviews_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *DismissReviewInvitationRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DismissReviewInvitationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DismissReviewInvitationResponse) Reset() {
+	*x = DismissReviewInvitationResponse{}
+	mi := &file_reviews_v1_reviews_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DismissReviewInvitationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DismissReviewInvitationResponse) ProtoMessage() {}
+
+func (x *DismissReviewInvitationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_reviews_v1_reviews_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DismissReviewInvitationResponse.ProtoReflect.Descriptor instead.
+func (*DismissReviewInvitationResponse) Descriptor() ([]byte, []int) {
+	return file_reviews_v1_reviews_proto_rawDescGZIP(), []int{11}
+}
+
 var File_reviews_v1_reviews_proto protoreflect.FileDescriptor
 
 const file_reviews_v1_reviews_proto_rawDesc = "" +
@@ -434,11 +702,32 @@ const file_reviews_v1_reviews_proto_rawDesc = "" +
 	"\x10GetReviewRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"?\n" +
 	"\x11GetReviewResponse\x12*\n" +
-	"\x06review\x18\x01 \x01(\v2\x12.reviews.v1.ReviewR\x06review2\xf2\x02\n" +
+	"\x06review\x18\x01 \x01(\v2\x12.reviews.v1.ReviewR\x06review\"\x9e\x02\n" +
+	"\x10ReviewInvitation\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12\x1d\n" +
+	"\n" +
+	"vehicle_id\x18\x03 \x01(\tR\tvehicleId\x12&\n" +
+	"\x0fdealer_point_id\x18\x04 \x01(\tR\rdealerPointId\x12\x1f\n" +
+	"\vsource_type\x18\x05 \x01(\tR\n" +
+	"sourceType\x12\x1b\n" +
+	"\tsource_id\x18\x06 \x01(\tR\bsourceId\x12!\n" +
+	"\fservice_kind\x18\a \x01(\tR\vserviceKind\x12\x16\n" +
+	"\x06status\x18\b \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\t \x01(\x03R\tcreatedAt\"\x1e\n" +
+	"\x1cListReviewInvitationsRequest\"_\n" +
+	"\x1dListReviewInvitationsResponse\x12>\n" +
+	"\vinvitations\x18\x01 \x03(\v2\x1c.reviews.v1.ReviewInvitationR\vinvitations\"0\n" +
+	"\x1eDismissReviewInvitationRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"!\n" +
+	"\x1fDismissReviewInvitationResponse2\xb6\x05\n" +
 	"\x0eReviewsService\x12y\n" +
 	"\fCreateReview\x12\x1f.reviews.v1.CreateReviewRequest\x1a .reviews.v1.CreateReviewResponse\"&\x82\xd3\xe4\x93\x02 :\x01*b\x06review\"\x13/api/client/reviews\x12q\n" +
 	"\rListMyReviews\x12 .reviews.v1.ListMyReviewsRequest\x1a!.reviews.v1.ListMyReviewsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/client/reviews\x12r\n" +
-	"\tGetReview\x12\x1c.reviews.v1.GetReviewRequest\x1a\x1d.reviews.v1.GetReviewResponse\"(\x82\xd3\xe4\x93\x02\"b\x06review\x12\x18/api/client/reviews/{id}B6Z4github.com/dealer/dealer/pkg/pb/reviews/v1;reviewsv1b\x06proto3"
+	"\tGetReview\x12\x1c.reviews.v1.GetReviewRequest\x1a\x1d.reviews.v1.GetReviewResponse\"(\x82\xd3\xe4\x93\x02\"b\x06review\x12\x18/api/client/reviews/{id}\x12\x94\x01\n" +
+	"\x15ListReviewInvitations\x12(.reviews.v1.ListReviewInvitationsRequest\x1a).reviews.v1.ListReviewInvitationsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/api/client/review-invitations\x12\xaa\x01\n" +
+	"\x17DismissReviewInvitation\x12*.reviews.v1.DismissReviewInvitationRequest\x1a+.reviews.v1.DismissReviewInvitationResponse\"6\x82\xd3\xe4\x93\x020:\x01*\"+/api/client/review-invitations/{id}/dismissB6Z4github.com/dealer/dealer/pkg/pb/reviews/v1;reviewsv1b\x06proto3"
 
 var (
 	file_reviews_v1_reviews_proto_rawDescOnce sync.Once
@@ -452,31 +741,41 @@ func file_reviews_v1_reviews_proto_rawDescGZIP() []byte {
 	return file_reviews_v1_reviews_proto_rawDescData
 }
 
-var file_reviews_v1_reviews_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_reviews_v1_reviews_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_reviews_v1_reviews_proto_goTypes = []any{
-	(*Review)(nil),                // 0: reviews.v1.Review
-	(*CreateReviewRequest)(nil),   // 1: reviews.v1.CreateReviewRequest
-	(*CreateReviewResponse)(nil),  // 2: reviews.v1.CreateReviewResponse
-	(*ListMyReviewsRequest)(nil),  // 3: reviews.v1.ListMyReviewsRequest
-	(*ListMyReviewsResponse)(nil), // 4: reviews.v1.ListMyReviewsResponse
-	(*GetReviewRequest)(nil),      // 5: reviews.v1.GetReviewRequest
-	(*GetReviewResponse)(nil),     // 6: reviews.v1.GetReviewResponse
+	(*Review)(nil),                          // 0: reviews.v1.Review
+	(*CreateReviewRequest)(nil),             // 1: reviews.v1.CreateReviewRequest
+	(*CreateReviewResponse)(nil),            // 2: reviews.v1.CreateReviewResponse
+	(*ListMyReviewsRequest)(nil),            // 3: reviews.v1.ListMyReviewsRequest
+	(*ListMyReviewsResponse)(nil),           // 4: reviews.v1.ListMyReviewsResponse
+	(*GetReviewRequest)(nil),                // 5: reviews.v1.GetReviewRequest
+	(*GetReviewResponse)(nil),               // 6: reviews.v1.GetReviewResponse
+	(*ReviewInvitation)(nil),                // 7: reviews.v1.ReviewInvitation
+	(*ListReviewInvitationsRequest)(nil),    // 8: reviews.v1.ListReviewInvitationsRequest
+	(*ListReviewInvitationsResponse)(nil),   // 9: reviews.v1.ListReviewInvitationsResponse
+	(*DismissReviewInvitationRequest)(nil),  // 10: reviews.v1.DismissReviewInvitationRequest
+	(*DismissReviewInvitationResponse)(nil), // 11: reviews.v1.DismissReviewInvitationResponse
 }
 var file_reviews_v1_reviews_proto_depIdxs = []int32{
-	0, // 0: reviews.v1.CreateReviewResponse.review:type_name -> reviews.v1.Review
-	0, // 1: reviews.v1.ListMyReviewsResponse.reviews:type_name -> reviews.v1.Review
-	0, // 2: reviews.v1.GetReviewResponse.review:type_name -> reviews.v1.Review
-	1, // 3: reviews.v1.ReviewsService.CreateReview:input_type -> reviews.v1.CreateReviewRequest
-	3, // 4: reviews.v1.ReviewsService.ListMyReviews:input_type -> reviews.v1.ListMyReviewsRequest
-	5, // 5: reviews.v1.ReviewsService.GetReview:input_type -> reviews.v1.GetReviewRequest
-	2, // 6: reviews.v1.ReviewsService.CreateReview:output_type -> reviews.v1.CreateReviewResponse
-	4, // 7: reviews.v1.ReviewsService.ListMyReviews:output_type -> reviews.v1.ListMyReviewsResponse
-	6, // 8: reviews.v1.ReviewsService.GetReview:output_type -> reviews.v1.GetReviewResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0,  // 0: reviews.v1.CreateReviewResponse.review:type_name -> reviews.v1.Review
+	0,  // 1: reviews.v1.ListMyReviewsResponse.reviews:type_name -> reviews.v1.Review
+	0,  // 2: reviews.v1.GetReviewResponse.review:type_name -> reviews.v1.Review
+	7,  // 3: reviews.v1.ListReviewInvitationsResponse.invitations:type_name -> reviews.v1.ReviewInvitation
+	1,  // 4: reviews.v1.ReviewsService.CreateReview:input_type -> reviews.v1.CreateReviewRequest
+	3,  // 5: reviews.v1.ReviewsService.ListMyReviews:input_type -> reviews.v1.ListMyReviewsRequest
+	5,  // 6: reviews.v1.ReviewsService.GetReview:input_type -> reviews.v1.GetReviewRequest
+	8,  // 7: reviews.v1.ReviewsService.ListReviewInvitations:input_type -> reviews.v1.ListReviewInvitationsRequest
+	10, // 8: reviews.v1.ReviewsService.DismissReviewInvitation:input_type -> reviews.v1.DismissReviewInvitationRequest
+	2,  // 9: reviews.v1.ReviewsService.CreateReview:output_type -> reviews.v1.CreateReviewResponse
+	4,  // 10: reviews.v1.ReviewsService.ListMyReviews:output_type -> reviews.v1.ListMyReviewsResponse
+	6,  // 11: reviews.v1.ReviewsService.GetReview:output_type -> reviews.v1.GetReviewResponse
+	9,  // 12: reviews.v1.ReviewsService.ListReviewInvitations:output_type -> reviews.v1.ListReviewInvitationsResponse
+	11, // 13: reviews.v1.ReviewsService.DismissReviewInvitation:output_type -> reviews.v1.DismissReviewInvitationResponse
+	9,  // [9:14] is the sub-list for method output_type
+	4,  // [4:9] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_reviews_v1_reviews_proto_init() }
@@ -490,7 +789,7 @@ func file_reviews_v1_reviews_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_reviews_v1_reviews_proto_rawDesc), len(file_reviews_v1_reviews_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

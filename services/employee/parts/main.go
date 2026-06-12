@@ -62,6 +62,7 @@ func main() {
 		logger.Warn("BRANDS_GRPC_ADDR not set; parts brand checks disabled")
 	}
 	var dealerPoints service.DealerPointsChecker
+	var dpChecker *client.DealerPointsChecker
 	if cfg.DealerPointsGRPCAddr != "" {
 		dialCtx, dialCancel := context.WithTimeout(ctx, 10*time.Second)
 		dpClient, err := client.NewDealerPointsChecker(dialCtx, cfg.DealerPointsGRPCAddr)
@@ -71,12 +72,14 @@ func main() {
 			os.Exit(1)
 		}
 		defer dpClient.Close()
+		dpChecker = dpClient
 		dealerPoints = dpClient
 		logger.Info("dealer point checks via gRPC", "dealer_points", cfg.DealerPointsGRPCAddr)
 	} else {
 		logger.Warn("DEALER_POINTS_GRPC_ADDR not set; parts dealer point checks disabled")
 	}
 	var workOrders service.WorkOrdersNotifier
+	var woNotifier *client.WorkOrdersNotifier
 	if cfg.WorkOrdersGRPCAddr != "" {
 		// Short timeout: workorders may start after parts; blocking here delays gRPC listen and breaks workorders startup.
 		dialCtx, dialCancel := context.WithTimeout(ctx, 2*time.Second)
@@ -86,6 +89,7 @@ func main() {
 			logger.Warn("gRPC workorders client connect failed; confirm won't update work orders until restart", "err", err)
 		} else {
 			defer woClient.Close()
+			woNotifier = woClient
 			workOrders = woClient
 			logger.Info("work order notify via gRPC", "workorders", cfg.WorkOrdersGRPCAddr)
 		}
@@ -113,7 +117,7 @@ func main() {
 		JWTSecret:  cfg.JWTSecret,
 		WriteRoles: []string{"admin", "manager", "parts_manager", "storekeeper", "master", "service_advisor"},
 	})...)
-	partsv1.RegisterPartsServiceServer(gsrv, grpcserver.NewServer(svc, employees))
+	partsv1.RegisterPartsServiceServer(gsrv, grpcserver.NewServer(svc, employees, dpChecker, woNotifier))
 	reflection.Register(gsrv)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))

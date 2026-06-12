@@ -9,6 +9,7 @@ import * as partsApi from './partsApi'
 import * as worksApi from './worksApi'
 import * as employeesApi from './employeesApi'
 import * as dealerPointsApi from './dealerPointsApi'
+import * as brandsApi from './brandsApi'
 import { useAuth } from './auth'
 import { FormPage } from '@/components/common/FormPage'
 import { FormField } from '@/components/common/FormField'
@@ -20,8 +21,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-const emptyLabor = (): WorkOrderLabor => ({ work_id: '', quantity: '1', unit_price: '0', executor_id: '' })
+const emptyLabor = (): WorkOrderLabor => ({ work_id: '', description: '', quantity: '1', unit_price: '0', executor_id: '' })
 const emptyPart = (): WorkOrderPart => ({ part_id: '', warehouse_id: '', description: '', quantity: '1', unit_price: '0' })
+
+function laborWorkName(l: WorkOrderLabor, catalog: worksApi.Work[]): string {
+  if (l.description?.trim()) return l.description
+  if (l.work_name?.trim()) return l.work_name
+  return catalog.find((w) => w.id === l.work_id)?.name || ''
+}
 
 function toUnix(dt: string): number | undefined {
   if (!dt) return undefined
@@ -50,6 +57,9 @@ export function WorkOrderForm() {
   const [works, setWorks] = useState<worksApi.Work[]>([])
   const [employees, setEmployees] = useState<employeesApi.Employee[]>([])
   const [warehouses, setWarehouses] = useState<dealerPointsApi.Warehouse[]>([])
+  const [dealerPoints, setDealerPoints] = useState<dealerPointsApi.DealerPoint[]>([])
+  const [hourPrice, setHourPrice] = useState('')
+  const [laborRateNote, setLaborRateNote] = useState('')
   const [openedAt, setOpenedAt] = useState('')
   const [closedAt, setClosedAt] = useState('')
   const [form, setForm] = useState<FormType>({
@@ -69,7 +79,54 @@ export function WorkOrderForm() {
     worksApi.listWorks({ limit: 500 }).then((r) => setWorks(r.works)).catch(() => {})
     employeesApi.listEmployees({ limit: 500, active_only: true }).then((r) => setEmployees(r.employees)).catch(() => {})
     dealerPointsApi.listWarehouses({ limit: 500 }).then((r) => setWarehouses(r.warehouses)).catch(() => {})
+    dealerPointsApi.listDealerPoints({ limit: 200 }).then((r) => setDealerPoints(r.dealer_points)).catch(() => {})
   }, [])
+
+  const selectedVehicle = vehicles.find((v) => v.id === form.vehicle_id)
+  const brandId = selectedVehicle?.brand_id || ''
+  const dealerPointId = form.dealer_point_id || selectedVehicle?.dealer_point_id || ''
+
+  useEffect(() => {
+    if (!brandId || !dealerPointId) {
+      setHourPrice('')
+      setLaborRateNote('')
+      return
+    }
+    brandsApi
+      .resolveBrandLaborRate({
+        brand_id: brandId,
+        dealer_point_id: dealerPointId,
+        repair_type: form.repair_type || 'commercial',
+      })
+      .then((r) => {
+        if (r.found) {
+          setHourPrice(r.hour_price)
+          setLaborRateNote(`Гарантия: ${r.warranty_hour_price} ₽ · Коммерция: ${r.commercial_hour_price} ₽`)
+        } else {
+          setHourPrice('')
+          setLaborRateNote('Тариф н/ч не задан для выбранного бренда и точки')
+        }
+      })
+      .catch(() => {
+        setHourPrice('')
+        setLaborRateNote('')
+      })
+  }, [brandId, dealerPointId, form.repair_type])
+
+  useEffect(() => {
+    if (!works.length) return
+    setForm((f) => {
+      let changed = false
+      const labor = (f.labor || []).map((l) => {
+        if (l.description?.trim() || !l.work_id) return l
+        const name = works.find((w) => w.id === l.work_id)?.name
+        if (!name) return l
+        changed = true
+        return { ...l, description: name }
+      })
+      return changed ? { ...f, labor } : f
+    })
+  }, [works])
 
   useEffect(() => {
     if (isNew) return
@@ -89,7 +146,12 @@ export function WorkOrderForm() {
           mileage_km: wo.mileage_km,
           notes: wo.notes,
           labor: wo.labor?.length
-            ? wo.labor.map((l) => ({ ...l, work_id: l.work_id || '', executor_id: l.executor_id || '' }))
+            ? wo.labor.map((l) => ({
+                ...l,
+                work_id: l.work_id || '',
+                executor_id: l.executor_id || '',
+                description: l.description || l.work_name || '',
+              }))
             : [emptyLabor()],
           parts: wo.parts?.filter((p) => !p.issued) || [],
         })
@@ -169,12 +231,30 @@ export function WorkOrderForm() {
           <FormField label="Автомобиль" required>
             <NativeSelect
               value={form.vehicle_id}
-              onChange={(e) => setForm({ ...form, vehicle_id: e.target.value })}
+              onChange={(e) => {
+                const vehicle = vehicles.find((v) => v.id === e.target.value)
+                setForm((f) => ({
+                  ...f,
+                  vehicle_id: e.target.value,
+                  dealer_point_id: vehicle?.dealer_point_id || f.dealer_point_id,
+                }))
+              }}
               required
             >
               <option value="">Выберите автомобиль</option>
               {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>{v.vin} — {v.make} {v.model}</option>
+              ))}
+            </NativeSelect>
+          </FormField>
+          <FormField label="Дилерская точка">
+            <NativeSelect
+              value={form.dealer_point_id || ''}
+              onChange={(e) => setForm({ ...form, dealer_point_id: e.target.value })}
+            >
+              <option value="">Не выбрана</option>
+              {dealerPoints.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </NativeSelect>
           </FormField>
@@ -242,6 +322,12 @@ export function WorkOrderForm() {
           <Textarea value={form.diagnosis || ''} onChange={(e) => setForm({ ...form, diagnosis: e.target.value })} />
         </FormField>
 
+        {laborRateNote && (
+          <p className="text-sm text-muted-foreground">
+            Стоимость н/ч: {hourPrice ? `${hourPrice} ₽` : '—'} ({laborRateNote})
+          </p>
+        )}
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Работы</CardTitle>
@@ -251,7 +337,7 @@ export function WorkOrderForm() {
           </CardHeader>
           <CardContent className="space-y-3">
             {(form.labor || []).map((l, i) => (
-              <div key={i} className="grid gap-2 rounded-md border p-3 md:grid-cols-5">
+              <div key={i} className="grid gap-2 rounded-md border p-3 md:grid-cols-6">
                 <NativeSelect
                   value={l.work_id}
                   onChange={(e) => {
@@ -260,17 +346,22 @@ export function WorkOrderForm() {
                       work_id: e.target.value,
                       description: work?.name || '',
                       quantity: work?.labor_hours || '1',
-                      unit_price: work?.unit_price || '0',
+                      unit_price: hourPrice || work?.unit_price || '0',
                     })
                   }}
                 >
-                  <option value="">Работа</option>
+                  <option value="">Код</option>
                   {works.map((work) => (
-                    <option key={work.id} value={work.id}>{work.code} — {work.name}</option>
+                    <option key={work.id} value={work.id}>{work.code}</option>
                   ))}
                 </NativeSelect>
+                <Input
+                  placeholder="Название работы"
+                  value={laborWorkName(l, works)}
+                  onChange={(e) => updateLabor(i, { description: e.target.value })}
+                />
                 <Input placeholder="Нормо-часы" value={l.quantity} onChange={(e) => updateLabor(i, { quantity: e.target.value })} />
-                <Input placeholder="Цена" value={l.unit_price} onChange={(e) => updateLabor(i, { unit_price: e.target.value })} />
+                <Input placeholder="Цена н/ч" value={l.unit_price} onChange={(e) => updateLabor(i, { unit_price: e.target.value })} />
                 <NativeSelect
                   value={l.executor_id}
                   onChange={(e) => updateLabor(i, { executor_id: e.target.value })}

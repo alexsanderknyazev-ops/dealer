@@ -45,9 +45,19 @@ service PartsService {
   rpc GetMovementDocument(GetMovementDocumentRequest) returns (GetMovementDocumentResponse) {
     option (google.api.http) = { get: "/api/movement-documents/{id}" response_body: "document" };
   }
+  rpc UpdateMovementDocument(UpdateMovementDocumentRequest) returns (UpdateMovementDocumentResponse) {
+    option (google.api.http) = { put: "/api/movement-documents/{id}" body: "*" response_body: "document" };
+  }
   rpc ListMovementDocuments(ListMovementDocumentsRequest) returns (ListMovementDocumentsResponse) {
     option (google.api.http) = { get: "/api/movement-documents" };
   }
+  rpc StartMovementDocument(StartMovementDocumentRequest) returns (StartMovementDocumentResponse) {
+    option (google.api.http) = { post: "/api/movement-documents/{id}/start" body: "*" response_body: "document" };
+  }
+  rpc CloseMovementDocument(CloseMovementDocumentRequest) returns (CloseMovementDocumentResponse) {
+    option (google.api.http) = { post: "/api/movement-documents/{id}/close" body: "*" response_body: "document" };
+  }
+  // Устаревший alias: закрывает документ (списание со склада).
   rpc ConfirmMovementDocument(ConfirmMovementDocumentRequest) returns (ConfirmMovementDocumentResponse) {
     option (google.api.http) = { post: "/api/movement-documents/{id}/confirm" body: "*" response_body: "document" };
   }
@@ -128,6 +138,9 @@ message MovementDocumentLine {
   string reference_line_id = 5;
   string notes = 6;
   int32 sort_order = 7;
+  string part_name = 8;
+  string part_sku = 9;
+  string warehouse_name = 10;
 }
 
 message MovementDocumentLineInput {
@@ -155,6 +168,22 @@ message MovementDocument {
   repeated MovementDocumentLine lines = 13;
   string created_by_name = 14;
   string confirmed_by_name = 15;
+  string reference_label = 16;
+  string customer_name = 17;
+  string vehicle_vin = 18;
+  string vehicle_label = 19;
+}
+
+message UpdateMovementDocumentRequest {
+  string id = 1;
+  optional string movement_type = 2;
+  optional string notes = 3;
+  repeated MovementDocumentLineInput lines = 4;
+  bool replace_lines = 5;
+}
+
+message UpdateMovementDocumentResponse {
+  MovementDocument document = 1;
 }
 
 message CreateMovementDocumentRequest {
@@ -189,6 +218,23 @@ message ListMovementDocumentsRequest {
 message ListMovementDocumentsResponse {
   repeated MovementDocument documents = 1;
   int32 total = 2;
+}
+
+message StartMovementDocumentRequest {
+  string id = 1;
+}
+
+message StartMovementDocumentResponse {
+  MovementDocument document = 1;
+}
+
+message CloseMovementDocumentRequest {
+  string id = 1;
+  string closed_by = 2;
+}
+
+message CloseMovementDocumentResponse {
+  MovementDocument document = 1;
 }
 
 message ConfirmMovementDocumentRequest {

@@ -6,18 +6,21 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/dealer/dealer/employee-reviews-service/internal/domain"
 	vehiclesv1 "github.com/dealer/dealer/pkg/pb/vehicles/v1"
 )
 
 var (
-	ErrInvalidID        = errors.New("invalid id")
-	ErrVehicleNotFound  = errors.New("vehicle not found")
+	ErrInvalidID       = errors.New("invalid id")
+	ErrNotFound        = errors.New("review not found")
+	ErrVehicleNotFound = errors.New("vehicle not found")
 )
 
 type reviewRepository interface {
 	Insert(ctx context.Context, review *domain.Review) error
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Review, error)
 	List(ctx context.Context, p domain.ReviewListParams) ([]*domain.Review, int64, error)
 	Stats(ctx context.Context, clientID, dealerPointID *uuid.UUID) (*domain.ReviewStats, error)
 }
@@ -28,6 +31,7 @@ type vehicleLookup interface {
 
 type ReviewAPI interface {
 	RecordReviewPublished(ctx context.Context, reviewID, clientID, userID, dealerPointID, vehicleID uuid.UUID, clientEmail, clientFullName, text, status string, rating int32, occurredAt time.Time) error
+	Get(ctx context.Context, id string) (*domain.Review, error)
 	ListByClient(ctx context.Context, clientID string, limit, offset int32) ([]*domain.Review, int64, error)
 	List(ctx context.Context, p domain.ReviewListParams) ([]*domain.Review, int64, error)
 	Stats(ctx context.Context, clientID, dealerPointID string) (*domain.ReviewStats, error)
@@ -82,6 +86,21 @@ func (s *ReviewService) RecordReviewPublished(
 		OccurredAt:     occurredAt,
 		CreatedAt:      now,
 	})
+}
+
+func (s *ReviewService) Get(ctx context.Context, id string) (*domain.Review, error) {
+	parsed, err := uuid.Parse(id)
+	if err != nil {
+		return nil, ErrInvalidID
+	}
+	review, err := s.repo.GetByID(ctx, parsed)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return review, nil
 }
 
 func (s *ReviewService) ListByClient(ctx context.Context, clientID string, limit, offset int32) ([]*domain.Review, int64, error) {

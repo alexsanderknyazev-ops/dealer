@@ -39,6 +39,9 @@ message WorkOrderLabor {
   string executor_id = 7;
   int32 sort_order = 8;
   string executor_name = 9;
+  string work_code = 10;
+  string work_name = 11;
+  string labor_hours = 12;
 }
 
 message WorkOrderPart {
@@ -51,6 +54,9 @@ message WorkOrderPart {
   string amount = 7;
   bool issued = 8;
   int32 sort_order = 9;
+  string part_sku = 10;
+  string warehouse_name = 11;
+  string part_name = 12;
 }
 
 message WorkOrder {
@@ -81,6 +87,9 @@ message WorkOrder {
   string movement_document_id = 25;
   string movement_document_status = 26;
   string service_advisor_name = 27;
+  string customer_name = 28;
+  string vehicle_vin = 29;
+  string vehicle_label = 30;
 }
 
 message WorkOrderLaborInput {

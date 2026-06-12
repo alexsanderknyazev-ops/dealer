@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Check, X } from 'lucide-react'
+import { Check, Pencil, Play, X } from 'lucide-react'
 import * as api from './movementDocumentsApi'
 import { useAuth } from './auth'
 import { PageHeader } from '@/components/common/PageHeader'
@@ -13,7 +13,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 const STATUS_LABEL: Record<string, string> = {
   draft: 'Черновик',
-  confirmed: 'Подтверждён',
+  in_progress: 'В работе',
+  closed: 'Закрыт',
+  confirmed: 'Закрыт',
   cancelled: 'Отменён',
 }
 
@@ -48,18 +50,38 @@ export function MovementDocumentView() {
     load()
   }, [id])
 
-  async function handleConfirm() {
+  async function handleStart() {
     if (!id) return
     setActing(true)
     setError(null)
     try {
-      const updated = await api.confirmMovementDocument(id, user?.userId)
+      setDoc(await api.startMovementDocument(id))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Не удалось перевести в работу')
+    } finally {
+      setActing(false)
+    }
+  }
+
+  async function handleClose() {
+    if (!id) return
+    if (
+      !window.confirm(
+        'Закрыть документ? Запчасти будут списаны со склада, отменить операцию будет нельзя.',
+      )
+    ) {
+      return
+    }
+    setActing(true)
+    setError(null)
+    try {
+      const updated = await api.closeMovementDocument(id, user?.userId)
       setDoc(updated)
       if (updated.reference_type === 'work_order' && updated.reference_id) {
         navigate(`/work-orders/${updated.reference_id}`)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Не удалось подтвердить документ')
+      setError(e instanceof Error ? e.message : 'Не удалось закрыть документ')
     } finally {
       setActing(false)
     }
@@ -81,22 +103,52 @@ export function MovementDocumentView() {
   if (loading) return <LoadingState />
   if (!doc) return error ? <ErrorAlert message={error} onRetry={load} /> : null
 
+  const canStart = doc.status === 'draft'
+  const canClose = doc.status === 'in_progress'
+  const canCancel = doc.status === 'draft' || doc.status === 'in_progress'
+  const canEdit = doc.status === 'draft' || doc.status === 'in_progress'
+
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
       <PageHeader
         title={`Документ ${doc.document_number}`}
-        subtitle={<Badge variant="secondary">{STATUS_LABEL[doc.status] || doc.status}</Badge>}
+        subtitle={
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{STATUS_LABEL[doc.status] || doc.status}</Badge>
+            <Link className="text-sm text-muted-foreground underline" to="/movement-documents">
+              Все документы
+            </Link>
+          </div>
+        }
         action={
-          doc.status === 'draft' ? (
+          canEdit || canStart || canClose || canCancel ? (
             <div className="flex gap-2">
-              <Button onClick={handleConfirm} disabled={acting}>
-                <Check className="mr-2 h-4 w-4" />
-                Подтвердить перемещение
-              </Button>
-              <Button variant="outline" onClick={handleCancel} disabled={acting}>
-                <X className="mr-2 h-4 w-4" />
-                Отменить
-              </Button>
+              {canEdit && (
+                <Button variant="outline" asChild>
+                  <Link to={`/movement-documents/${doc.id}/edit`}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Редактировать
+                  </Link>
+                </Button>
+              )}
+              {canStart && (
+                <Button onClick={handleStart} disabled={acting}>
+                  <Play className="mr-2 h-4 w-4" />
+                  В работу
+                </Button>
+              )}
+              {canClose && (
+                <Button onClick={handleClose} disabled={acting}>
+                  <Check className="mr-2 h-4 w-4" />
+                  Закрыть (списать со склада)
+                </Button>
+              )}
+              {canCancel && (
+                <Button variant="outline" onClick={handleCancel} disabled={acting}>
+                  <X className="mr-2 h-4 w-4" />
+                  Отменить
+                </Button>
+              )}
             </div>
           ) : null
         }
@@ -112,8 +164,15 @@ export function MovementDocumentView() {
             <div>
               Заказ-наряд:{' '}
               <Link className="text-primary underline" to={`/work-orders/${doc.reference_id}`}>
-                открыть
+                {doc.reference_label || 'открыть'}
               </Link>
+              {doc.customer_name && <div>Клиент: {doc.customer_name}</div>}
+              {(doc.vehicle_vin || doc.vehicle_label) && (
+                <div>
+                  Автомобиль: {doc.vehicle_label}
+                  {doc.vehicle_vin ? ` (VIN: ${doc.vehicle_vin})` : ''}
+                </div>
+              )}
             </div>
           )}
           {doc.notes && <div>Примечание: {doc.notes}</div>}
@@ -123,7 +182,7 @@ export function MovementDocumentView() {
           </div>
           {doc.confirmed_at > 0 && (
             <div>
-              Подтвердил: {doc.confirmed_by_name || '—'} ({new Date(doc.confirmed_at * 1000).toLocaleString('ru-RU')})
+              Закрыл: {doc.confirmed_by_name || '—'} ({new Date(doc.confirmed_at * 1000).toLocaleString('ru-RU')})
             </div>
           )}
         </CardContent>
@@ -136,6 +195,7 @@ export function MovementDocumentView() {
             <TableHeader>
               <TableRow>
                 <TableHead>Запчасть</TableHead>
+                <TableHead>Артикул</TableHead>
                 <TableHead>Склад</TableHead>
                 <TableHead>Кол-во</TableHead>
               </TableRow>
@@ -143,8 +203,9 @@ export function MovementDocumentView() {
             <TableBody>
               {doc.lines?.map((line) => (
                 <TableRow key={line.id}>
-                  <TableCell className="font-mono text-xs">{line.part_id}</TableCell>
-                  <TableCell className="font-mono text-xs">{line.warehouse_id}</TableCell>
+                  <TableCell>{line.part_name || line.part_id}</TableCell>
+                  <TableCell className="text-muted-foreground">{line.part_sku || '—'}</TableCell>
+                  <TableCell>{line.warehouse_name || line.warehouse_id}</TableCell>
                   <TableCell>{line.quantity}</TableCell>
                 </TableRow>
               ))}

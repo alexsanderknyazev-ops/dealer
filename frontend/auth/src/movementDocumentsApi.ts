@@ -17,6 +17,17 @@ export type MovementDocumentLine = {
   reference_line_id: string
   notes: string
   sort_order: number
+  part_name: string
+  part_sku: string
+  warehouse_name: string
+}
+
+export type MovementDocumentLineInput = {
+  part_id: string
+  warehouse_id: string
+  quantity: number
+  notes?: string
+  sort_order?: number
 }
 
 export type MovementDocument = {
@@ -26,6 +37,10 @@ export type MovementDocument = {
   movement_type: string
   reference_type: string
   reference_id: string
+  reference_label: string
+  customer_name: string
+  vehicle_vin: string
+  vehicle_label: string
   notes: string
   created_by: string
   confirmed_by: string
@@ -35,6 +50,12 @@ export type MovementDocument = {
   confirmed_at: number
   updated_at: number
   lines: MovementDocumentLine[]
+}
+
+export type MovementDocumentForm = {
+  movement_type: string
+  notes?: string
+  lines: MovementDocumentLineInput[]
 }
 
 function getAuthHeaders(): HeadersInit {
@@ -79,11 +100,74 @@ export async function listMovementDocuments(params: {
   return res.json()
 }
 
-export async function confirmMovementDocument(id: string, confirmedBy?: string): Promise<MovementDocument> {
-  const res = await fetch(`${API}/api/movement-documents/${id}/confirm`, {
+export async function startMovementDocument(id: string): Promise<MovementDocument> {
+  const res = await fetch(`${API}/api/movement-documents/${id}/start`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify({ confirmed_by: confirmedBy || '' }),
+    body: JSON.stringify({}),
+  })
+  if (!res.ok) throw toApiError(res.status, await readErrorMessage(res))
+  return res.json()
+}
+
+export async function closeMovementDocument(id: string, closedBy?: string): Promise<MovementDocument> {
+  const res = await fetch(`${API}/api/movement-documents/${id}/close`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ closed_by: closedBy || '' }),
+  })
+  if (!res.ok) throw toApiError(res.status, await readErrorMessage(res))
+  return res.json()
+}
+
+/** @deprecated используйте closeMovementDocument */
+export async function confirmMovementDocument(id: string, confirmedBy?: string): Promise<MovementDocument> {
+  return closeMovementDocument(id, confirmedBy)
+}
+
+export async function createMovementDocument(
+  payload: MovementDocumentForm,
+  createdBy?: string,
+): Promise<MovementDocument> {
+  const res = await fetch(`${API}/api/movement-documents`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      movement_type: payload.movement_type,
+      notes: payload.notes || '',
+      lines: payload.lines.map((l, i) => ({
+        part_id: l.part_id,
+        warehouse_id: l.warehouse_id,
+        quantity: l.quantity,
+        notes: l.notes || '',
+        sort_order: l.sort_order ?? i,
+      })),
+      created_by: createdBy || '',
+    }),
+  })
+  if (!res.ok) throw toApiError(res.status, await readErrorMessage(res))
+  return res.json()
+}
+
+export async function updateMovementDocument(
+  id: string,
+  payload: MovementDocumentForm,
+): Promise<MovementDocument> {
+  const res = await fetch(`${API}/api/movement-documents/${id}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      movement_type: payload.movement_type,
+      notes: payload.notes || '',
+      replace_lines: true,
+      lines: payload.lines.map((l, i) => ({
+        part_id: l.part_id,
+        warehouse_id: l.warehouse_id,
+        quantity: l.quantity,
+        notes: l.notes || '',
+        sort_order: l.sort_order ?? i,
+      })),
+    }),
   })
   if (!res.ok) throw toApiError(res.status, await readErrorMessage(res))
   return res.json()

@@ -77,16 +77,16 @@ func main() {
 	}
 	svc := service.NewWorkOrderService(repo, refs)
 
-	var employeeNamer grpcserver.EmployeeNamer
+	var displayRefs grpcserver.ReferenceDisplayer
 	if rc, ok := refs.(*client.ReferenceChecker); ok {
-		employeeNamer = rc
+		displayRefs = rc
 	}
 
 	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
 		JWTSecret:  cfg.JWTSecret,
 		WriteRoles: []string{"admin", "manager", "master", "service_advisor", "storekeeper", "parts_manager"},
 	})...)
-	workordersv1.RegisterWorkOrdersServiceServer(gsrv, grpcserver.NewServer(svc, employeeNamer))
+	workordersv1.RegisterWorkOrdersServiceServer(gsrv, grpcserver.NewServer(svc, displayRefs))
 	reflection.Register(gsrv)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))

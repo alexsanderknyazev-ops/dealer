@@ -355,7 +355,7 @@ func TestWorkOrderService_ApplyMovementDocument_Confirmed(t *testing.T) {
 	stored.MovementDocumentID = &docID
 	stored.MovementDocumentStatus = "draft"
 
-	updated, err := s.ApplyMovementDocument(context.Background(), wo.ID.String(), docID.String(), "confirmed")
+	updated, err := s.ApplyMovementDocument(context.Background(), wo.ID.String(), docID.String(), "closed")
 	if err != nil {
 		t.Fatal(err)
 	}

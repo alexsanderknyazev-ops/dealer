@@ -554,6 +554,23 @@ services:
       kafka:
         condition: service_started
 
+  scheduler-service:
+    build:
+      context: .
+      dockerfile: build/scheduler-service.Dockerfile
+    ports:
+      - "8100:8100"
+    environment:
+      SCHEDULER_HTTP_PORT: "8100"
+      SCHEDULER_POLL_INTERVAL: "5m"
+      SCHEDULER_BATCH_SIZE: "100"
+      POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_ERRORS: "platform.errors.v1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data: {}
   clickhouse_data: {}

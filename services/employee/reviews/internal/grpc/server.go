@@ -28,6 +28,14 @@ func (s *Server) ListReviewsByClient(ctx context.Context, req *reviewsv1.ListRev
 	return &reviewsv1.ListReviewsByClientResponse{Reviews: toProtoList(list), Total: total}, nil
 }
 
+func (s *Server) GetEmployeeReview(ctx context.Context, req *reviewsv1.GetEmployeeReviewRequest) (*reviewsv1.GetEmployeeReviewResponse, error) {
+	review, err := s.svc.Get(ctx, req.Id)
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return &reviewsv1.GetEmployeeReviewResponse{Review: toProto(review)}, nil
+}
+
 func (s *Server) ListReviews(ctx context.Context, req *reviewsv1.ListReviewsRequest) (*reviewsv1.ListReviewsResponse, error) {
 	clientID, err := service.ParseOptionalUUID(req.ClientId)
 	if err != nil {
@@ -68,6 +76,9 @@ func (s *Server) GetReviewStats(ctx context.Context, req *reviewsv1.GetReviewSta
 func mapErr(err error) error {
 	if errors.Is(err, service.ErrInvalidID) {
 		return status.Error(codes.InvalidArgument, "invalid id")
+	}
+	if errors.Is(err, service.ErrNotFound) {
+		return status.Error(codes.NotFound, "review not found")
 	}
 	return status.Error(codes.Internal, err.Error())
 }

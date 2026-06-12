@@ -22,7 +22,71 @@ service WorksService {
   rpc DeleteWork(DeleteWorkRequest) returns (DeleteWorkResponse) {
     option (google.api.http) = { delete: "/api/works/{id}" };
   }
+  rpc CreateFolder(CreateFolderRequest) returns (CreateFolderResponse) {
+    option (google.api.http) = { post: "/api/works/folders" body: "*" response_body: "folder" };
+  }
+  rpc GetFolder(GetFolderRequest) returns (GetFolderResponse) {
+    option (google.api.http) = { get: "/api/works/folders/{id}" response_body: "folder" };
+  }
+  rpc ListFolders(ListFoldersRequest) returns (ListFoldersResponse) {
+    option (google.api.http) = { get: "/api/works/folders" };
+  }
+  rpc UpdateFolder(UpdateFolderRequest) returns (UpdateFolderResponse) {
+    option (google.api.http) = { put: "/api/works/folders/{id}" body: "*" response_body: "folder" };
+  }
+  rpc DeleteFolder(DeleteFolderRequest) returns (DeleteFolderResponse) {
+    option (google.api.http) = { delete: "/api/works/folders/{id}" };
+  }
 }
+
+message WorkFolder {
+  string id = 1;
+  string name = 2;
+  string parent_id = 3;
+  int64 created_at = 4;
+  int64 updated_at = 5;
+}
+
+message CreateFolderRequest {
+  string name = 1;
+  string parent_id = 2;
+}
+
+message CreateFolderResponse {
+  WorkFolder folder = 1;
+}
+
+message GetFolderRequest {
+  string id = 1;
+}
+
+message GetFolderResponse {
+  WorkFolder folder = 1;
+}
+
+message ListFoldersRequest {
+  string parent_id = 1;
+}
+
+message ListFoldersResponse {
+  repeated WorkFolder folders = 1;
+}
+
+message UpdateFolderRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string parent_id = 3;
+}
+
+message UpdateFolderResponse {
+  WorkFolder folder = 1;
+}
+
+message DeleteFolderRequest {
+  string id = 1;
+}
+
+message DeleteFolderResponse {}
 
 message Work {
   string id = 1;
@@ -34,6 +98,7 @@ message Work {
   string notes = 7;
   int64 created_at = 8;
   int64 updated_at = 9;
+  string folder_id = 10;
 }
 
 message CreateWorkRequest {
@@ -43,6 +108,7 @@ message CreateWorkRequest {
   string labor_hours = 4;
   string unit_price = 5;
   string notes = 6;
+  string folder_id = 7;
 }
 
 message CreateWorkResponse {
@@ -62,6 +128,7 @@ message ListWorksRequest {
   int32 offset = 2;
   string search = 3;
   string category = 4;
+  string folder_id = 5;
 }
 
 message ListWorksResponse {
@@ -77,6 +144,7 @@ message UpdateWorkRequest {
   optional string labor_hours = 5;
   optional string unit_price = 6;
   optional string notes = 7;
+  optional string folder_id = 8;
 }
 
 message UpdateWorkResponse {

@@ -17,6 +17,12 @@ service ReviewsService {
   rpc GetReview(GetReviewRequest) returns (GetReviewResponse) {
     option (google.api.http) = { get: "/api/client/reviews/{id}" response_body: "review" };
   }
+  rpc ListReviewInvitations(ListReviewInvitationsRequest) returns (ListReviewInvitationsResponse) {
+    option (google.api.http) = { get: "/api/client/review-invitations" };
+  }
+  rpc DismissReviewInvitation(DismissReviewInvitationRequest) returns (DismissReviewInvitationResponse) {
+    option (google.api.http) = { post: "/api/client/review-invitations/{id}/dismiss" body: "*" };
+  }
 }
 
 message Review {
@@ -54,3 +60,27 @@ message GetReviewRequest {
 message GetReviewResponse {
   Review review = 1;
 }
+
+message ReviewInvitation {
+  string id = 1;
+  string client_id = 2;
+  string vehicle_id = 3;
+  string dealer_point_id = 4;
+  string source_type = 5;
+  string source_id = 6;
+  string service_kind = 7;
+  string status = 8;
+  int64 created_at = 9;
+}
+
+message ListReviewInvitationsRequest {}
+
+message ListReviewInvitationsResponse {
+  repeated ReviewInvitation invitations = 1;
+}
+
+message DismissReviewInvitationRequest {
+  string id = 1;
+}
+
+message DismissReviewInvitationResponse {}

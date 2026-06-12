@@ -18,11 +18,12 @@ import (
 )
 
 var (
-	ErrNotOwner         = repository.ErrNotOwner
-	ErrReviewNotFound   = errors.New("review not found")
-	ErrDuplicateReview  = errors.New("review already exists for this vehicle")
-	ErrInvalidRating    = errors.New("rating must be between 1 and 5")
-	ErrMissingDealerPoint = errors.New("vehicle has no dealer point")
+	ErrNotOwner              = repository.ErrNotOwner
+	ErrReviewNotFound        = errors.New("review not found")
+	ErrInvitationNotFound    = errors.New("review invitation not found")
+	ErrDuplicateReview       = errors.New("review already exists for this vehicle")
+	ErrInvalidRating         = errors.New("rating must be between 1 and 5")
+	ErrMissingDealerPoint    = errors.New("vehicle has no dealer point")
 )
 
 type reviewRepository interface {
@@ -31,6 +32,9 @@ type reviewRepository interface {
 	Create(ctx context.Context, review *domain.Review) error
 	ListByUserID(ctx context.Context, userID uuid.UUID) ([]*domain.Review, error)
 	GetByIDForUser(ctx context.Context, id, userID uuid.UUID) (*domain.Review, error)
+	ListPendingInvitationsByUserID(ctx context.Context, userID uuid.UUID) ([]*domain.ReviewInvitation, error)
+	DismissInvitationForUser(ctx context.Context, id, userID uuid.UUID) error
+	CompleteInvitationsForVehicle(ctx context.Context, clientID, vehicleID uuid.UUID) error
 }
 
 type vehicleLookup interface {
@@ -41,6 +45,8 @@ type ReviewAPI interface {
 	CreateReview(ctx context.Context, userID uuid.UUID, vehicleID string, rating int32, text string) (*domain.Review, error)
 	ListMyReviews(ctx context.Context, userID uuid.UUID) ([]*domain.Review, error)
 	GetReview(ctx context.Context, userID uuid.UUID, id string) (*domain.Review, error)
+	ListReviewInvitations(ctx context.Context, userID uuid.UUID) ([]*domain.ReviewInvitation, error)
+	DismissReviewInvitation(ctx context.Context, userID uuid.UUID, id string) error
 }
 
 type reviewPublisher interface {
@@ -111,6 +117,7 @@ func (s *ReviewService) CreateReview(ctx context.Context, userID uuid.UUID, vehi
 			obslog.Default.Warn("kafka publish failed", "event", "review.published", "review_id", review.ID.String(), "err", err)
 		}
 	}
+	_ = s.repo.CompleteInvitationsForVehicle(ctx, clientID, vid)
 	return review, nil
 }
 
@@ -128,4 +135,20 @@ func (s *ReviewService) GetReview(ctx context.Context, userID uuid.UUID, id stri
 		return nil, ErrReviewNotFound
 	}
 	return review, err
+}
+
+func (s *ReviewService) ListReviewInvitations(ctx context.Context, userID uuid.UUID) ([]*domain.ReviewInvitation, error) {
+	return s.repo.ListPendingInvitationsByUserID(ctx, userID)
+}
+
+func (s *ReviewService) DismissReviewInvitation(ctx context.Context, userID uuid.UUID, id string) error {
+	invID, err := uuid.Parse(strings.TrimSpace(id))
+	if err != nil {
+		return err
+	}
+	err = s.repo.DismissInvitationForUser(ctx, invID, userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrInvitationNotFound
+	}
+	return err
 }

@@ -33,6 +33,9 @@ type WorkOrderLabor struct {
 	ExecutorId    string                 `protobuf:"bytes,7,opt,name=executor_id,json=executorId,proto3" json:"executor_id,omitempty"`
 	SortOrder     int32                  `protobuf:"varint,8,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	ExecutorName  string                 `protobuf:"bytes,9,opt,name=executor_name,json=executorName,proto3" json:"executor_name,omitempty"`
+	WorkCode      string                 `protobuf:"bytes,10,opt,name=work_code,json=workCode,proto3" json:"work_code,omitempty"`
+	WorkName      string                 `protobuf:"bytes,11,opt,name=work_name,json=workName,proto3" json:"work_name,omitempty"`
+	LaborHours    string                 `protobuf:"bytes,12,opt,name=labor_hours,json=laborHours,proto3" json:"labor_hours,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -130,6 +133,27 @@ func (x *WorkOrderLabor) GetExecutorName() string {
 	return ""
 }
 
+func (x *WorkOrderLabor) GetWorkCode() string {
+	if x != nil {
+		return x.WorkCode
+	}
+	return ""
+}
+
+func (x *WorkOrderLabor) GetWorkName() string {
+	if x != nil {
+		return x.WorkName
+	}
+	return ""
+}
+
+func (x *WorkOrderLabor) GetLaborHours() string {
+	if x != nil {
+		return x.LaborHours
+	}
+	return ""
+}
+
 type WorkOrderPart struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -143,6 +167,7 @@ type WorkOrderPart struct {
 	SortOrder     int32                  `protobuf:"varint,9,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	PartSku       string                 `protobuf:"bytes,10,opt,name=part_sku,json=partSku,proto3" json:"part_sku,omitempty"`
 	WarehouseName string                 `protobuf:"bytes,11,opt,name=warehouse_name,json=warehouseName,proto3" json:"warehouse_name,omitempty"`
+	PartName      string                 `protobuf:"bytes,12,opt,name=part_name,json=partName,proto3" json:"part_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -250,6 +275,13 @@ func (x *WorkOrderPart) GetPartSku() string {
 func (x *WorkOrderPart) GetWarehouseName() string {
 	if x != nil {
 		return x.WarehouseName
+	}
+	return ""
+}
+
+func (x *WorkOrderPart) GetPartName() string {
+	if x != nil {
+		return x.PartName
 	}
 	return ""
 }
@@ -1606,7 +1638,7 @@ var File_workorders_v1_work_orders_proto protoreflect.FileDescriptor
 
 const file_workorders_v1_work_orders_proto_rawDesc = "" +
 	"\n" +
-	"\x1fworkorders/v1/work_orders.proto\x12\rworkorders.v1\x1a\x1cgoogle/api/annotations.proto\"\x93\x02\n" +
+	"\x1fworkorders/v1/work_orders.proto\x12\rworkorders.v1\x1a\x1cgoogle/api/annotations.proto\"\xee\x02\n" +
 	"\x0eWorkOrderLabor\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\awork_id\x18\x02 \x01(\tR\x06workId\x12 \n" +
@@ -1619,7 +1651,12 @@ const file_workorders_v1_work_orders_proto_rawDesc = "" +
 	"executorId\x12\x1d\n" +
 	"\n" +
 	"sort_order\x18\b \x01(\x05R\tsortOrder\x12#\n" +
-	"\rexecutor_name\x18\t \x01(\tR\fexecutorName\"\xc9\x02\n" +
+	"\rexecutor_name\x18\t \x01(\tR\fexecutorName\x12\x1b\n" +
+	"\twork_code\x18\n" +
+	" \x01(\tR\bworkCode\x12\x1b\n" +
+	"\twork_name\x18\v \x01(\tR\bworkName\x12\x1f\n" +
+	"\vlabor_hours\x18\f \x01(\tR\n" +
+	"laborHours\"\xe6\x02\n" +
 	"\rWorkOrderPart\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\apart_id\x18\x02 \x01(\tR\x06partId\x12!\n" +
@@ -1634,7 +1671,8 @@ const file_workorders_v1_work_orders_proto_rawDesc = "" +
 	"sort_order\x18\t \x01(\x05R\tsortOrder\x12\x19\n" +
 	"\bpart_sku\x18\n" +
 	" \x01(\tR\apartSku\x12%\n" +
-	"\x0ewarehouse_name\x18\v \x01(\tR\rwarehouseName\"\xb3\b\n" +
+	"\x0ewarehouse_name\x18\v \x01(\tR\rwarehouseName\x12\x1b\n" +
+	"\tpart_name\x18\f \x01(\tR\bpartName\"\xb3\b\n" +
 	"\tWorkOrder\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\forder_number\x18\x02 \x01(\tR\vorderNumber\x12\x1f\n" +

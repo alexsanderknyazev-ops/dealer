@@ -554,6 +554,538 @@ func (*DeleteBrandResponse) Descriptor() ([]byte, []int) {
 	return file_brands_v1_brands_proto_rawDescGZIP(), []int{10}
 }
 
+type BrandLaborRate struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	BrandId             string                 `protobuf:"bytes,2,opt,name=brand_id,json=brandId,proto3" json:"brand_id,omitempty"`
+	DealerPointId       string                 `protobuf:"bytes,3,opt,name=dealer_point_id,json=dealerPointId,proto3" json:"dealer_point_id,omitempty"`
+	WarrantyHourPrice   string                 `protobuf:"bytes,4,opt,name=warranty_hour_price,json=warrantyHourPrice,proto3" json:"warranty_hour_price,omitempty"`
+	CommercialHourPrice string                 `protobuf:"bytes,5,opt,name=commercial_hour_price,json=commercialHourPrice,proto3" json:"commercial_hour_price,omitempty"`
+	CreatedAt           int64                  `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt           int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *BrandLaborRate) Reset() {
+	*x = BrandLaborRate{}
+	mi := &file_brands_v1_brands_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BrandLaborRate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrandLaborRate) ProtoMessage() {}
+
+func (x *BrandLaborRate) ProtoReflect() protoreflect.Message {
+	mi := &file_brands_v1_brands_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrandLaborRate.ProtoReflect.Descriptor instead.
+func (*BrandLaborRate) Descriptor() ([]byte, []int) {
+	return file_brands_v1_brands_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *BrandLaborRate) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BrandLaborRate) GetBrandId() string {
+	if x != nil {
+		return x.BrandId
+	}
+	return ""
+}
+
+func (x *BrandLaborRate) GetDealerPointId() string {
+	if x != nil {
+		return x.DealerPointId
+	}
+	return ""
+}
+
+func (x *BrandLaborRate) GetWarrantyHourPrice() string {
+	if x != nil {
+		return x.WarrantyHourPrice
+	}
+	return ""
+}
+
+func (x *BrandLaborRate) GetCommercialHourPrice() string {
+	if x != nil {
+		return x.CommercialHourPrice
+	}
+	return ""
+}
+
+func (x *BrandLaborRate) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *BrandLaborRate) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+type ListBrandLaborRatesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Limit         int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32                  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	BrandId       string                 `protobuf:"bytes,3,opt,name=brand_id,json=brandId,proto3" json:"brand_id,omitempty"`
+	DealerPointId string                 `protobuf:"bytes,4,opt,name=dealer_point_id,json=dealerPointId,proto3" json:"dealer_point_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBrandLaborRatesRequest) Reset() {
+	*x = ListBrandLaborRatesRequest{}
+	mi := &file_brands_v1_brands_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBrandLaborRatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBrandLaborRatesRequest) ProtoMessage() {}
+
+func (x *ListBrandLaborRatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_brands_v1_brands_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBrandLaborRatesRequest.ProtoReflect.Descriptor instead.
+func (*ListBrandLaborRatesRequest) Descriptor() ([]byte, []int) {
+	return file_brands_v1_brands_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ListBrandLaborRatesRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListBrandLaborRatesRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *ListBrandLaborRatesRequest) GetBrandId() string {
+	if x != nil {
+		return x.BrandId
+	}
+	return ""
+}
+
+func (x *ListBrandLaborRatesRequest) GetDealerPointId() string {
+	if x != nil {
+		return x.DealerPointId
+	}
+	return ""
+}
+
+type ListBrandLaborRatesResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BrandLaborRates []*BrandLaborRate      `protobuf:"bytes,1,rep,name=brand_labor_rates,json=brandLaborRates,proto3" json:"brand_labor_rates,omitempty"`
+	Total           int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ListBrandLaborRatesResponse) Reset() {
+	*x = ListBrandLaborRatesResponse{}
+	mi := &file_brands_v1_brands_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBrandLaborRatesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBrandLaborRatesResponse) ProtoMessage() {}
+
+func (x *ListBrandLaborRatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_brands_v1_brands_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBrandLaborRatesResponse.ProtoReflect.Descriptor instead.
+func (*ListBrandLaborRatesResponse) Descriptor() ([]byte, []int) {
+	return file_brands_v1_brands_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListBrandLaborRatesResponse) GetBrandLaborRates() []*BrandLaborRate {
+	if x != nil {
+		return x.BrandLaborRates
+	}
+	return nil
+}
+
+func (x *ListBrandLaborRatesResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type UpdateBrandLaborRateRequest struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	BrandId             string                 `protobuf:"bytes,1,opt,name=brand_id,json=brandId,proto3" json:"brand_id,omitempty"`
+	DealerPointId       string                 `protobuf:"bytes,2,opt,name=dealer_point_id,json=dealerPointId,proto3" json:"dealer_point_id,omitempty"`
+	WarrantyHourPrice   string                 `protobuf:"bytes,3,opt,name=warranty_hour_price,json=warrantyHourPrice,proto3" json:"warranty_hour_price,omitempty"`
+	CommercialHourPrice string                 `protobuf:"bytes,4,opt,name=commercial_hour_price,json=commercialHourPrice,proto3" json:"commercial_hour_price,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *UpdateBrandLaborRateRequest) Reset() {
+	*x = UpdateBrandLaborRateRequest{}
+	mi := &file_brands_v1_brands_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateBrandLaborRateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateBrandLaborRateRequest) ProtoMessage() {}
+
+func (x *UpdateBrandLaborRateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_brands_v1_brands_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateBrandLaborRateRequest.ProtoReflect.Descriptor instead.
+func (*UpdateBrandLaborRateRequest) Descriptor() ([]byte, []int) {
+	return file_brands_v1_brands_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *UpdateBrandLaborRateRequest) GetBrandId() string {
+	if x != nil {
+		return x.BrandId
+	}
+	return ""
+}
+
+func (x *UpdateBrandLaborRateRequest) GetDealerPointId() string {
+	if x != nil {
+		return x.DealerPointId
+	}
+	return ""
+}
+
+func (x *UpdateBrandLaborRateRequest) GetWarrantyHourPrice() string {
+	if x != nil {
+		return x.WarrantyHourPrice
+	}
+	return ""
+}
+
+func (x *UpdateBrandLaborRateRequest) GetCommercialHourPrice() string {
+	if x != nil {
+		return x.CommercialHourPrice
+	}
+	return ""
+}
+
+type UpdateBrandLaborRateResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	BrandLaborRate *BrandLaborRate        `protobuf:"bytes,1,opt,name=brand_labor_rate,json=brandLaborRate,proto3" json:"brand_labor_rate,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *UpdateBrandLaborRateResponse) Reset() {
+	*x = UpdateBrandLaborRateResponse{}
+	mi := &file_brands_v1_brands_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateBrandLaborRateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateBrandLaborRateResponse) ProtoMessage() {}
+
+func (x *UpdateBrandLaborRateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_brands_v1_brands_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateBrandLaborRateResponse.ProtoReflect.Descriptor instead.
+func (*UpdateBrandLaborRateResponse) Descriptor() ([]byte, []int) {
+	return file_brands_v1_brands_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *UpdateBrandLaborRateResponse) GetBrandLaborRate() *BrandLaborRate {
+	if x != nil {
+		return x.BrandLaborRate
+	}
+	return nil
+}
+
+type DeleteBrandLaborRateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteBrandLaborRateRequest) Reset() {
+	*x = DeleteBrandLaborRateRequest{}
+	mi := &file_brands_v1_brands_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteBrandLaborRateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteBrandLaborRateRequest) ProtoMessage() {}
+
+func (x *DeleteBrandLaborRateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_brands_v1_brands_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteBrandLaborRateRequest.ProtoReflect.Descriptor instead.
+func (*DeleteBrandLaborRateRequest) Descriptor() ([]byte, []int) {
+	return file_brands_v1_brands_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *DeleteBrandLaborRateRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DeleteBrandLaborRateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteBrandLaborRateResponse) Reset() {
+	*x = DeleteBrandLaborRateResponse{}
+	mi := &file_brands_v1_brands_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteBrandLaborRateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteBrandLaborRateResponse) ProtoMessage() {}
+
+func (x *DeleteBrandLaborRateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_brands_v1_brands_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteBrandLaborRateResponse.ProtoReflect.Descriptor instead.
+func (*DeleteBrandLaborRateResponse) Descriptor() ([]byte, []int) {
+	return file_brands_v1_brands_proto_rawDescGZIP(), []int{17}
+}
+
+type ResolveBrandLaborRateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BrandId       string                 `protobuf:"bytes,1,opt,name=brand_id,json=brandId,proto3" json:"brand_id,omitempty"`
+	DealerPointId string                 `protobuf:"bytes,2,opt,name=dealer_point_id,json=dealerPointId,proto3" json:"dealer_point_id,omitempty"`
+	RepairType    string                 `protobuf:"bytes,3,opt,name=repair_type,json=repairType,proto3" json:"repair_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResolveBrandLaborRateRequest) Reset() {
+	*x = ResolveBrandLaborRateRequest{}
+	mi := &file_brands_v1_brands_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResolveBrandLaborRateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResolveBrandLaborRateRequest) ProtoMessage() {}
+
+func (x *ResolveBrandLaborRateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_brands_v1_brands_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResolveBrandLaborRateRequest.ProtoReflect.Descriptor instead.
+func (*ResolveBrandLaborRateRequest) Descriptor() ([]byte, []int) {
+	return file_brands_v1_brands_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ResolveBrandLaborRateRequest) GetBrandId() string {
+	if x != nil {
+		return x.BrandId
+	}
+	return ""
+}
+
+func (x *ResolveBrandLaborRateRequest) GetDealerPointId() string {
+	if x != nil {
+		return x.DealerPointId
+	}
+	return ""
+}
+
+func (x *ResolveBrandLaborRateRequest) GetRepairType() string {
+	if x != nil {
+		return x.RepairType
+	}
+	return ""
+}
+
+type ResolveBrandLaborRateResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	WarrantyHourPrice   string                 `protobuf:"bytes,1,opt,name=warranty_hour_price,json=warrantyHourPrice,proto3" json:"warranty_hour_price,omitempty"`
+	CommercialHourPrice string                 `protobuf:"bytes,2,opt,name=commercial_hour_price,json=commercialHourPrice,proto3" json:"commercial_hour_price,omitempty"`
+	HourPrice           string                 `protobuf:"bytes,3,opt,name=hour_price,json=hourPrice,proto3" json:"hour_price,omitempty"`
+	Found               bool                   `protobuf:"varint,4,opt,name=found,proto3" json:"found,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *ResolveBrandLaborRateResponse) Reset() {
+	*x = ResolveBrandLaborRateResponse{}
+	mi := &file_brands_v1_brands_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResolveBrandLaborRateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResolveBrandLaborRateResponse) ProtoMessage() {}
+
+func (x *ResolveBrandLaborRateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_brands_v1_brands_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResolveBrandLaborRateResponse.ProtoReflect.Descriptor instead.
+func (*ResolveBrandLaborRateResponse) Descriptor() ([]byte, []int) {
+	return file_brands_v1_brands_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ResolveBrandLaborRateResponse) GetWarrantyHourPrice() string {
+	if x != nil {
+		return x.WarrantyHourPrice
+	}
+	return ""
+}
+
+func (x *ResolveBrandLaborRateResponse) GetCommercialHourPrice() string {
+	if x != nil {
+		return x.CommercialHourPrice
+	}
+	return ""
+}
+
+func (x *ResolveBrandLaborRateResponse) GetHourPrice() string {
+	if x != nil {
+		return x.HourPrice
+	}
+	return ""
+}
+
+func (x *ResolveBrandLaborRateResponse) GetFound() bool {
+	if x != nil {
+		return x.Found
+	}
+	return false
+}
+
 var File_brands_v1_brands_proto protoreflect.FileDescriptor
 
 const file_brands_v1_brands_proto_rawDesc = "" +
@@ -589,14 +1121,57 @@ const file_brands_v1_brands_proto_rawDesc = "" +
 	"\x05brand\x18\x01 \x01(\v2\x10.brands.v1.BrandR\x05brand\"$\n" +
 	"\x12DeleteBrandRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x15\n" +
-	"\x13DeleteBrandResponse2\x9c\x04\n" +
+	"\x13DeleteBrandResponse\"\x85\x02\n" +
+	"\x0eBrandLaborRate\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\bbrand_id\x18\x02 \x01(\tR\abrandId\x12&\n" +
+	"\x0fdealer_point_id\x18\x03 \x01(\tR\rdealerPointId\x12.\n" +
+	"\x13warranty_hour_price\x18\x04 \x01(\tR\x11warrantyHourPrice\x122\n" +
+	"\x15commercial_hour_price\x18\x05 \x01(\tR\x13commercialHourPrice\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x06 \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\x8d\x01\n" +
+	"\x1aListBrandLaborRatesRequest\x12\x14\n" +
+	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset\x12\x19\n" +
+	"\bbrand_id\x18\x03 \x01(\tR\abrandId\x12&\n" +
+	"\x0fdealer_point_id\x18\x04 \x01(\tR\rdealerPointId\"z\n" +
+	"\x1bListBrandLaborRatesResponse\x12E\n" +
+	"\x11brand_labor_rates\x18\x01 \x03(\v2\x19.brands.v1.BrandLaborRateR\x0fbrandLaborRates\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\"\xc4\x01\n" +
+	"\x1bUpdateBrandLaborRateRequest\x12\x19\n" +
+	"\bbrand_id\x18\x01 \x01(\tR\abrandId\x12&\n" +
+	"\x0fdealer_point_id\x18\x02 \x01(\tR\rdealerPointId\x12.\n" +
+	"\x13warranty_hour_price\x18\x03 \x01(\tR\x11warrantyHourPrice\x122\n" +
+	"\x15commercial_hour_price\x18\x04 \x01(\tR\x13commercialHourPrice\"c\n" +
+	"\x1cUpdateBrandLaborRateResponse\x12C\n" +
+	"\x10brand_labor_rate\x18\x01 \x01(\v2\x19.brands.v1.BrandLaborRateR\x0ebrandLaborRate\"-\n" +
+	"\x1bDeleteBrandLaborRateRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x1e\n" +
+	"\x1cDeleteBrandLaborRateResponse\"\x82\x01\n" +
+	"\x1cResolveBrandLaborRateRequest\x12\x19\n" +
+	"\bbrand_id\x18\x01 \x01(\tR\abrandId\x12&\n" +
+	"\x0fdealer_point_id\x18\x02 \x01(\tR\rdealerPointId\x12\x1f\n" +
+	"\vrepair_type\x18\x03 \x01(\tR\n" +
+	"repairType\"\xb8\x01\n" +
+	"\x1dResolveBrandLaborRateResponse\x12.\n" +
+	"\x13warranty_hour_price\x18\x01 \x01(\tR\x11warrantyHourPrice\x122\n" +
+	"\x15commercial_hour_price\x18\x02 \x01(\tR\x13commercialHourPrice\x12\x1d\n" +
+	"\n" +
+	"hour_price\x18\x03 \x01(\tR\thourPrice\x12\x14\n" +
+	"\x05found\x18\x04 \x01(\bR\x05found2\xe6\b\n" +
 	"\rBrandsService\x12k\n" +
 	"\vCreateBrand\x12\x1d.brands.v1.CreateBrandRequest\x1a\x1e.brands.v1.CreateBrandResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*b\x05brand\"\v/api/brands\x12d\n" +
 	"\bGetBrand\x12\x1a.brands.v1.GetBrandRequest\x1a\x1b.brands.v1.GetBrandResponse\"\x1f\x82\xd3\xe4\x93\x02\x19b\x05brand\x12\x10/api/brands/{id}\x12^\n" +
 	"\n" +
 	"ListBrands\x12\x1c.brands.v1.ListBrandsRequest\x1a\x1d.brands.v1.ListBrandsResponse\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/api/brands\x12p\n" +
 	"\vUpdateBrand\x12\x1d.brands.v1.UpdateBrandRequest\x1a\x1e.brands.v1.UpdateBrandResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*b\x05brand\x1a\x10/api/brands/{id}\x12f\n" +
-	"\vDeleteBrand\x12\x1d.brands.v1.DeleteBrandRequest\x1a\x1e.brands.v1.DeleteBrandResponse\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/api/brands/{id}B4Z2github.com/dealer/dealer/pkg/pb/brands/v1;brandsv1b\x06proto3"
+	"\vDeleteBrand\x12\x1d.brands.v1.DeleteBrandRequest\x1a\x1e.brands.v1.DeleteBrandResponse\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/api/brands/{id}\x12\x84\x01\n" +
+	"\x13ListBrandLaborRates\x12%.brands.v1.ListBrandLaborRatesRequest\x1a&.brands.v1.ListBrandLaborRatesResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/brand-labor-rates\x12\x9c\x01\n" +
+	"\x14UpdateBrandLaborRate\x12&.brands.v1.UpdateBrandLaborRateRequest\x1a'.brands.v1.UpdateBrandLaborRateResponse\"3\x82\xd3\xe4\x93\x02-:\x01*b\x10brand_labor_rate\x1a\x16/api/brand-labor-rates\x12\x8c\x01\n" +
+	"\x14DeleteBrandLaborRate\x12&.brands.v1.DeleteBrandLaborRateRequest\x1a'.brands.v1.DeleteBrandLaborRateResponse\"#\x82\xd3\xe4\x93\x02\x1d*\x1b/api/brand-labor-rates/{id}\x12\x92\x01\n" +
+	"\x15ResolveBrandLaborRate\x12'.brands.v1.ResolveBrandLaborRateRequest\x1a(.brands.v1.ResolveBrandLaborRateResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/api/brand-labor-rates/resolveB4Z2github.com/dealer/dealer/pkg/pb/brands/v1;brandsv1b\x06proto3"
 
 var (
 	file_brands_v1_brands_proto_rawDescOnce sync.Once
@@ -610,40 +1185,59 @@ func file_brands_v1_brands_proto_rawDescGZIP() []byte {
 	return file_brands_v1_brands_proto_rawDescData
 }
 
-var file_brands_v1_brands_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_brands_v1_brands_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_brands_v1_brands_proto_goTypes = []any{
-	(*Brand)(nil),               // 0: brands.v1.Brand
-	(*CreateBrandRequest)(nil),  // 1: brands.v1.CreateBrandRequest
-	(*CreateBrandResponse)(nil), // 2: brands.v1.CreateBrandResponse
-	(*GetBrandRequest)(nil),     // 3: brands.v1.GetBrandRequest
-	(*GetBrandResponse)(nil),    // 4: brands.v1.GetBrandResponse
-	(*ListBrandsRequest)(nil),   // 5: brands.v1.ListBrandsRequest
-	(*ListBrandsResponse)(nil),  // 6: brands.v1.ListBrandsResponse
-	(*UpdateBrandRequest)(nil),  // 7: brands.v1.UpdateBrandRequest
-	(*UpdateBrandResponse)(nil), // 8: brands.v1.UpdateBrandResponse
-	(*DeleteBrandRequest)(nil),  // 9: brands.v1.DeleteBrandRequest
-	(*DeleteBrandResponse)(nil), // 10: brands.v1.DeleteBrandResponse
+	(*Brand)(nil),                         // 0: brands.v1.Brand
+	(*CreateBrandRequest)(nil),            // 1: brands.v1.CreateBrandRequest
+	(*CreateBrandResponse)(nil),           // 2: brands.v1.CreateBrandResponse
+	(*GetBrandRequest)(nil),               // 3: brands.v1.GetBrandRequest
+	(*GetBrandResponse)(nil),              // 4: brands.v1.GetBrandResponse
+	(*ListBrandsRequest)(nil),             // 5: brands.v1.ListBrandsRequest
+	(*ListBrandsResponse)(nil),            // 6: brands.v1.ListBrandsResponse
+	(*UpdateBrandRequest)(nil),            // 7: brands.v1.UpdateBrandRequest
+	(*UpdateBrandResponse)(nil),           // 8: brands.v1.UpdateBrandResponse
+	(*DeleteBrandRequest)(nil),            // 9: brands.v1.DeleteBrandRequest
+	(*DeleteBrandResponse)(nil),           // 10: brands.v1.DeleteBrandResponse
+	(*BrandLaborRate)(nil),                // 11: brands.v1.BrandLaborRate
+	(*ListBrandLaborRatesRequest)(nil),    // 12: brands.v1.ListBrandLaborRatesRequest
+	(*ListBrandLaborRatesResponse)(nil),   // 13: brands.v1.ListBrandLaborRatesResponse
+	(*UpdateBrandLaborRateRequest)(nil),   // 14: brands.v1.UpdateBrandLaborRateRequest
+	(*UpdateBrandLaborRateResponse)(nil),  // 15: brands.v1.UpdateBrandLaborRateResponse
+	(*DeleteBrandLaborRateRequest)(nil),   // 16: brands.v1.DeleteBrandLaborRateRequest
+	(*DeleteBrandLaborRateResponse)(nil),  // 17: brands.v1.DeleteBrandLaborRateResponse
+	(*ResolveBrandLaborRateRequest)(nil),  // 18: brands.v1.ResolveBrandLaborRateRequest
+	(*ResolveBrandLaborRateResponse)(nil), // 19: brands.v1.ResolveBrandLaborRateResponse
 }
 var file_brands_v1_brands_proto_depIdxs = []int32{
 	0,  // 0: brands.v1.CreateBrandResponse.brand:type_name -> brands.v1.Brand
 	0,  // 1: brands.v1.GetBrandResponse.brand:type_name -> brands.v1.Brand
 	0,  // 2: brands.v1.ListBrandsResponse.brands:type_name -> brands.v1.Brand
 	0,  // 3: brands.v1.UpdateBrandResponse.brand:type_name -> brands.v1.Brand
-	1,  // 4: brands.v1.BrandsService.CreateBrand:input_type -> brands.v1.CreateBrandRequest
-	3,  // 5: brands.v1.BrandsService.GetBrand:input_type -> brands.v1.GetBrandRequest
-	5,  // 6: brands.v1.BrandsService.ListBrands:input_type -> brands.v1.ListBrandsRequest
-	7,  // 7: brands.v1.BrandsService.UpdateBrand:input_type -> brands.v1.UpdateBrandRequest
-	9,  // 8: brands.v1.BrandsService.DeleteBrand:input_type -> brands.v1.DeleteBrandRequest
-	2,  // 9: brands.v1.BrandsService.CreateBrand:output_type -> brands.v1.CreateBrandResponse
-	4,  // 10: brands.v1.BrandsService.GetBrand:output_type -> brands.v1.GetBrandResponse
-	6,  // 11: brands.v1.BrandsService.ListBrands:output_type -> brands.v1.ListBrandsResponse
-	8,  // 12: brands.v1.BrandsService.UpdateBrand:output_type -> brands.v1.UpdateBrandResponse
-	10, // 13: brands.v1.BrandsService.DeleteBrand:output_type -> brands.v1.DeleteBrandResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	11, // 4: brands.v1.ListBrandLaborRatesResponse.brand_labor_rates:type_name -> brands.v1.BrandLaborRate
+	11, // 5: brands.v1.UpdateBrandLaborRateResponse.brand_labor_rate:type_name -> brands.v1.BrandLaborRate
+	1,  // 6: brands.v1.BrandsService.CreateBrand:input_type -> brands.v1.CreateBrandRequest
+	3,  // 7: brands.v1.BrandsService.GetBrand:input_type -> brands.v1.GetBrandRequest
+	5,  // 8: brands.v1.BrandsService.ListBrands:input_type -> brands.v1.ListBrandsRequest
+	7,  // 9: brands.v1.BrandsService.UpdateBrand:input_type -> brands.v1.UpdateBrandRequest
+	9,  // 10: brands.v1.BrandsService.DeleteBrand:input_type -> brands.v1.DeleteBrandRequest
+	12, // 11: brands.v1.BrandsService.ListBrandLaborRates:input_type -> brands.v1.ListBrandLaborRatesRequest
+	14, // 12: brands.v1.BrandsService.UpdateBrandLaborRate:input_type -> brands.v1.UpdateBrandLaborRateRequest
+	16, // 13: brands.v1.BrandsService.DeleteBrandLaborRate:input_type -> brands.v1.DeleteBrandLaborRateRequest
+	18, // 14: brands.v1.BrandsService.ResolveBrandLaborRate:input_type -> brands.v1.ResolveBrandLaborRateRequest
+	2,  // 15: brands.v1.BrandsService.CreateBrand:output_type -> brands.v1.CreateBrandResponse
+	4,  // 16: brands.v1.BrandsService.GetBrand:output_type -> brands.v1.GetBrandResponse
+	6,  // 17: brands.v1.BrandsService.ListBrands:output_type -> brands.v1.ListBrandsResponse
+	8,  // 18: brands.v1.BrandsService.UpdateBrand:output_type -> brands.v1.UpdateBrandResponse
+	10, // 19: brands.v1.BrandsService.DeleteBrand:output_type -> brands.v1.DeleteBrandResponse
+	13, // 20: brands.v1.BrandsService.ListBrandLaborRates:output_type -> brands.v1.ListBrandLaborRatesResponse
+	15, // 21: brands.v1.BrandsService.UpdateBrandLaborRate:output_type -> brands.v1.UpdateBrandLaborRateResponse
+	17, // 22: brands.v1.BrandsService.DeleteBrandLaborRate:output_type -> brands.v1.DeleteBrandLaborRateResponse
+	19, // 23: brands.v1.BrandsService.ResolveBrandLaborRate:output_type -> brands.v1.ResolveBrandLaborRateResponse
+	15, // [15:24] is the sub-list for method output_type
+	6,  // [6:15] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_brands_v1_brands_proto_init() }
@@ -658,7 +1252,7 @@ func file_brands_v1_brands_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_brands_v1_brands_proto_rawDesc), len(file_brands_v1_brands_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

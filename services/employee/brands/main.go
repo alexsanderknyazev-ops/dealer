@@ -41,13 +41,15 @@ func main() {
 	defer pool.Close()
 
 	repo := repository.NewBrandRepository(pool)
+	rateRepo := repository.NewLaborRateRepository(pool)
 	svc := service.NewBrandService(repo)
+	rateSvc := service.NewLaborRateService(rateRepo, repo)
 
 	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
 		JWTSecret:  cfg.JWTSecret,
-		WriteRoles: []string{"admin", "manager", "sales"},
+		WriteRoles: []string{"admin", "manager", "sales", "master", "service_advisor"},
 	})...)
-	brandsv1.RegisterBrandsServiceServer(gsrv, grpcserver.NewServer(svc))
+	brandsv1.RegisterBrandsServiceServer(gsrv, grpcserver.NewServer(svc, rateSvc))
 	reflection.Register(gsrv)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))

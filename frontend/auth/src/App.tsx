@@ -19,6 +19,7 @@ import { VehicleView } from './VehicleView'
 import { Vehicles } from './Vehicles'
 import { Brands } from './Brands'
 import { BrandForm } from './BrandForm'
+import { BrandLaborRates } from './BrandLaborRates'
 import { DealerPoints } from './DealerPoints'
 import { DealerPointForm } from './DealerPointForm'
 import { LegalEntities } from './LegalEntities'
@@ -32,6 +33,9 @@ import { WorkOrderView } from './WorkOrderView'
 import { MovementDocuments } from './MovementDocuments'
 import { MovementDocumentView } from './MovementDocumentView'
 import { MovementDocumentForm } from './MovementDocumentForm'
+import { Works } from './Works'
+import { WorkForm } from './WorkForm'
+import { WorkView } from './WorkView'
 
 function RequireAuth(props: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -76,9 +80,14 @@ export default function App() {
         <Route path="parts/new" element={<RequireAuth><PartForm /></RequireAuth>} />
         <Route path="parts/:id" element={<RequireAuth><PartView /></RequireAuth>} />
         <Route path="parts/:id/edit" element={<RequireAuth><PartForm /></RequireAuth>} />
+        <Route path="works" element={<RequireAuth><Works /></RequireAuth>} />
+        <Route path="works/new" element={<RequireAuth><WorkForm /></RequireAuth>} />
+        <Route path="works/:id/edit" element={<RequireAuth><WorkForm /></RequireAuth>} />
+        <Route path="works/:id" element={<RequireAuth><WorkView /></RequireAuth>} />
         <Route path="brands" element={<RequireAuth><Brands /></RequireAuth>} />
         <Route path="brands/new" element={<RequireAuth><BrandForm /></RequireAuth>} />
         <Route path="brands/:id/edit" element={<RequireAuth><BrandForm /></RequireAuth>} />
+        <Route path="brand-labor-rates" element={<RequireAuth><BrandLaborRates /></RequireAuth>} />
         <Route path="dealer-points" element={<RequireAuth><DealerPoints /></RequireAuth>} />
         <Route path="dealer-points/new" element={<RequireAuth><DealerPointForm /></RequireAuth>} />
         <Route path="dealer-points/:id/edit" element={<RequireAuth><DealerPointForm /></RequireAuth>} />

@@ -11,6 +11,7 @@ type Work struct {
 	Code       string
 	Name       string
 	Category   string
+	FolderID   *uuid.UUID
 	LaborHours string
 	UnitPrice  string
 	Notes      string

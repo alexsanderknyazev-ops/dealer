@@ -22,6 +22,7 @@ type ReferenceDisplayer interface {
 	VehicleDisplay(ctx context.Context, id uuid.UUID) (vin, label string)
 	PartDisplay(ctx context.Context, id uuid.UUID) (name, sku string)
 	WarehouseName(ctx context.Context, id uuid.UUID) string
+	WorkDisplay(ctx context.Context, id uuid.UUID) (code, name, laborHours string)
 }
 
 type Server struct {
@@ -105,6 +106,15 @@ func (s *Server) toProto(ctx context.Context, wo *domain.WorkOrder) *workordersv
 				item.ExecutorName = s.employees.EmployeeFullName(ctx, *l.ExecutorID)
 			}
 		}
+		if l.WorkID != nil && s.refs != nil {
+			code, name, laborHours := s.refs.WorkDisplay(ctx, *l.WorkID)
+			item.WorkCode = code
+			item.WorkName = name
+			item.LaborHours = laborHours
+			if name != "" && item.Description == "" {
+				item.Description = name
+			}
+		}
 		out.Labor[i] = item
 	}
 	out.Parts = make([]*workordersv1.WorkOrderPart, len(wo.Parts))
@@ -122,6 +132,7 @@ func (s *Server) toProto(ctx context.Context, wo *domain.WorkOrder) *workordersv
 		}
 		if s.refs != nil {
 			name, sku := s.refs.PartDisplay(ctx, p.PartID)
+			item.PartName = name
 			if name != "" && item.Description == "" {
 				item.Description = name
 			}

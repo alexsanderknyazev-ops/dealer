@@ -18,6 +18,7 @@ const (
 	APIPartsPrefix      = "/api/parts/"
 	APIBrands           = "/api/brands"
 	APIBrandsPrefix     = "/api/brands/"
+	APIBrandLaborRates  = "/api/brand-labor-rates"
 	APIDealerPoints     = "/api/dealer-points"
 	APIDealerPointsPre  = "/api/dealer-points/"
 	APILegalEntities    = "/api/legal-entities"
@@ -50,6 +51,7 @@ func GatewayProxyPrefixes() []string {
 		APIDeals,
 		APIParts,
 		APIBrands,
+		APIBrandLaborRates,
 		APIDealerPoints,
 		APILegalEntities,
 		APIWarehouses,

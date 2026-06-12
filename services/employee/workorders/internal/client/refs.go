@@ -265,6 +265,17 @@ func (c *ReferenceChecker) VehicleDisplay(ctx context.Context, id uuid.UUID) (vi
 	return vin, label
 }
 
+func (c *ReferenceChecker) WorkDisplay(ctx context.Context, id uuid.UUID) (code, name, laborHours string) {
+	if c.works == nil {
+		return "", "", ""
+	}
+	resp, err := c.works.GetWork(grpclient.OutgoingContext(ctx), &worksv1.GetWorkRequest{Id: id.String()})
+	if err != nil || resp.Work == nil {
+		return "", "", ""
+	}
+	return resp.Work.Code, resp.Work.Name, resp.Work.LaborHours
+}
+
 func (c *ReferenceChecker) PartDisplay(ctx context.Context, id uuid.UUID) (name, sku string) {
 	if c.parts == nil {
 		return "", ""

@@ -19,6 +19,9 @@ export type WorkOrderLabor = {
   executor_id: string
   executor_name?: string
   sort_order?: number
+  work_code?: string
+  work_name?: string
+  labor_hours?: string
 }
 
 export type WorkOrderPart = {
@@ -33,6 +36,7 @@ export type WorkOrderPart = {
   sort_order?: number
   part_sku?: string
   warehouse_name?: string
+  part_name?: string
 }
 
 export type WorkOrder = {

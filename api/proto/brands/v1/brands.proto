@@ -22,6 +22,20 @@ service BrandsService {
   rpc DeleteBrand(DeleteBrandRequest) returns (DeleteBrandResponse) {
     option (google.api.http) = { delete: "/api/brands/{id}" };
   }
+
+  // Стоимость нормо-часа по бренду и дилерской точке
+  rpc ListBrandLaborRates(ListBrandLaborRatesRequest) returns (ListBrandLaborRatesResponse) {
+    option (google.api.http) = { get: "/api/brand-labor-rates" };
+  }
+  rpc UpdateBrandLaborRate(UpdateBrandLaborRateRequest) returns (UpdateBrandLaborRateResponse) {
+    option (google.api.http) = { put: "/api/brand-labor-rates" body: "*" response_body: "brand_labor_rate" };
+  }
+  rpc DeleteBrandLaborRate(DeleteBrandLaborRateRequest) returns (DeleteBrandLaborRateResponse) {
+    option (google.api.http) = { delete: "/api/brand-labor-rates/{id}" };
+  }
+  rpc ResolveBrandLaborRate(ResolveBrandLaborRateRequest) returns (ResolveBrandLaborRateResponse) {
+    option (google.api.http) = { get: "/api/brand-labor-rates/resolve" };
+  }
 }
 
 message Brand {
@@ -72,3 +86,55 @@ message DeleteBrandRequest {
 }
 
 message DeleteBrandResponse {}
+
+message BrandLaborRate {
+  string id = 1;
+  string brand_id = 2;
+  string dealer_point_id = 3;
+  string warranty_hour_price = 4;
+  string commercial_hour_price = 5;
+  int64 created_at = 6;
+  int64 updated_at = 7;
+}
+
+message ListBrandLaborRatesRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string brand_id = 3;
+  string dealer_point_id = 4;
+}
+
+message ListBrandLaborRatesResponse {
+  repeated BrandLaborRate brand_labor_rates = 1;
+  int32 total = 2;
+}
+
+message UpdateBrandLaborRateRequest {
+  string brand_id = 1;
+  string dealer_point_id = 2;
+  string warranty_hour_price = 3;
+  string commercial_hour_price = 4;
+}
+
+message UpdateBrandLaborRateResponse {
+  BrandLaborRate brand_labor_rate = 1;
+}
+
+message DeleteBrandLaborRateRequest {
+  string id = 1;
+}
+
+message DeleteBrandLaborRateResponse {}
+
+message ResolveBrandLaborRateRequest {
+  string brand_id = 1;
+  string dealer_point_id = 2;
+  string repair_type = 3;
+}
+
+message ResolveBrandLaborRateResponse {
+  string warranty_hour_price = 1;
+  string commercial_hour_price = 2;
+  string hour_price = 3;
+  bool found = 4;
+}

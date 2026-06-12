@@ -19,11 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WorksService_CreateWork_FullMethodName = "/works.v1.WorksService/CreateWork"
-	WorksService_GetWork_FullMethodName    = "/works.v1.WorksService/GetWork"
-	WorksService_ListWorks_FullMethodName  = "/works.v1.WorksService/ListWorks"
-	WorksService_UpdateWork_FullMethodName = "/works.v1.WorksService/UpdateWork"
-	WorksService_DeleteWork_FullMethodName = "/works.v1.WorksService/DeleteWork"
+	WorksService_CreateWork_FullMethodName   = "/works.v1.WorksService/CreateWork"
+	WorksService_GetWork_FullMethodName      = "/works.v1.WorksService/GetWork"
+	WorksService_ListWorks_FullMethodName    = "/works.v1.WorksService/ListWorks"
+	WorksService_UpdateWork_FullMethodName   = "/works.v1.WorksService/UpdateWork"
+	WorksService_DeleteWork_FullMethodName   = "/works.v1.WorksService/DeleteWork"
+	WorksService_CreateFolder_FullMethodName = "/works.v1.WorksService/CreateFolder"
+	WorksService_GetFolder_FullMethodName    = "/works.v1.WorksService/GetFolder"
+	WorksService_ListFolders_FullMethodName  = "/works.v1.WorksService/ListFolders"
+	WorksService_UpdateFolder_FullMethodName = "/works.v1.WorksService/UpdateFolder"
+	WorksService_DeleteFolder_FullMethodName = "/works.v1.WorksService/DeleteFolder"
 )
 
 // WorksServiceClient is the client API for WorksService service.
@@ -35,6 +40,11 @@ type WorksServiceClient interface {
 	ListWorks(ctx context.Context, in *ListWorksRequest, opts ...grpc.CallOption) (*ListWorksResponse, error)
 	UpdateWork(ctx context.Context, in *UpdateWorkRequest, opts ...grpc.CallOption) (*UpdateWorkResponse, error)
 	DeleteWork(ctx context.Context, in *DeleteWorkRequest, opts ...grpc.CallOption) (*DeleteWorkResponse, error)
+	CreateFolder(ctx context.Context, in *CreateFolderRequest, opts ...grpc.CallOption) (*CreateFolderResponse, error)
+	GetFolder(ctx context.Context, in *GetFolderRequest, opts ...grpc.CallOption) (*GetFolderResponse, error)
+	ListFolders(ctx context.Context, in *ListFoldersRequest, opts ...grpc.CallOption) (*ListFoldersResponse, error)
+	UpdateFolder(ctx context.Context, in *UpdateFolderRequest, opts ...grpc.CallOption) (*UpdateFolderResponse, error)
+	DeleteFolder(ctx context.Context, in *DeleteFolderRequest, opts ...grpc.CallOption) (*DeleteFolderResponse, error)
 }
 
 type worksServiceClient struct {
@@ -95,6 +105,56 @@ func (c *worksServiceClient) DeleteWork(ctx context.Context, in *DeleteWorkReque
 	return out, nil
 }
 
+func (c *worksServiceClient) CreateFolder(ctx context.Context, in *CreateFolderRequest, opts ...grpc.CallOption) (*CreateFolderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateFolderResponse)
+	err := c.cc.Invoke(ctx, WorksService_CreateFolder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *worksServiceClient) GetFolder(ctx context.Context, in *GetFolderRequest, opts ...grpc.CallOption) (*GetFolderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFolderResponse)
+	err := c.cc.Invoke(ctx, WorksService_GetFolder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *worksServiceClient) ListFolders(ctx context.Context, in *ListFoldersRequest, opts ...grpc.CallOption) (*ListFoldersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFoldersResponse)
+	err := c.cc.Invoke(ctx, WorksService_ListFolders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *worksServiceClient) UpdateFolder(ctx context.Context, in *UpdateFolderRequest, opts ...grpc.CallOption) (*UpdateFolderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateFolderResponse)
+	err := c.cc.Invoke(ctx, WorksService_UpdateFolder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *worksServiceClient) DeleteFolder(ctx context.Context, in *DeleteFolderRequest, opts ...grpc.CallOption) (*DeleteFolderResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteFolderResponse)
+	err := c.cc.Invoke(ctx, WorksService_DeleteFolder_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WorksServiceServer is the server API for WorksService service.
 // All implementations must embed UnimplementedWorksServiceServer
 // for forward compatibility.
@@ -104,6 +164,11 @@ type WorksServiceServer interface {
 	ListWorks(context.Context, *ListWorksRequest) (*ListWorksResponse, error)
 	UpdateWork(context.Context, *UpdateWorkRequest) (*UpdateWorkResponse, error)
 	DeleteWork(context.Context, *DeleteWorkRequest) (*DeleteWorkResponse, error)
+	CreateFolder(context.Context, *CreateFolderRequest) (*CreateFolderResponse, error)
+	GetFolder(context.Context, *GetFolderRequest) (*GetFolderResponse, error)
+	ListFolders(context.Context, *ListFoldersRequest) (*ListFoldersResponse, error)
+	UpdateFolder(context.Context, *UpdateFolderRequest) (*UpdateFolderResponse, error)
+	DeleteFolder(context.Context, *DeleteFolderRequest) (*DeleteFolderResponse, error)
 	mustEmbedUnimplementedWorksServiceServer()
 }
 
@@ -128,6 +193,21 @@ func (UnimplementedWorksServiceServer) UpdateWork(context.Context, *UpdateWorkRe
 }
 func (UnimplementedWorksServiceServer) DeleteWork(context.Context, *DeleteWorkRequest) (*DeleteWorkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteWork not implemented")
+}
+func (UnimplementedWorksServiceServer) CreateFolder(context.Context, *CreateFolderRequest) (*CreateFolderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateFolder not implemented")
+}
+func (UnimplementedWorksServiceServer) GetFolder(context.Context, *GetFolderRequest) (*GetFolderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFolder not implemented")
+}
+func (UnimplementedWorksServiceServer) ListFolders(context.Context, *ListFoldersRequest) (*ListFoldersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFolders not implemented")
+}
+func (UnimplementedWorksServiceServer) UpdateFolder(context.Context, *UpdateFolderRequest) (*UpdateFolderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateFolder not implemented")
+}
+func (UnimplementedWorksServiceServer) DeleteFolder(context.Context, *DeleteFolderRequest) (*DeleteFolderResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteFolder not implemented")
 }
 func (UnimplementedWorksServiceServer) mustEmbedUnimplementedWorksServiceServer() {}
 func (UnimplementedWorksServiceServer) testEmbeddedByValue()                      {}
@@ -240,6 +320,96 @@ func _WorksService_DeleteWork_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WorksService_CreateFolder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateFolderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorksServiceServer).CreateFolder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorksService_CreateFolder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorksServiceServer).CreateFolder(ctx, req.(*CreateFolderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorksService_GetFolder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFolderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorksServiceServer).GetFolder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorksService_GetFolder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorksServiceServer).GetFolder(ctx, req.(*GetFolderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorksService_ListFolders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFoldersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorksServiceServer).ListFolders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorksService_ListFolders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorksServiceServer).ListFolders(ctx, req.(*ListFoldersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorksService_UpdateFolder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateFolderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorksServiceServer).UpdateFolder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorksService_UpdateFolder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorksServiceServer).UpdateFolder(ctx, req.(*UpdateFolderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorksService_DeleteFolder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteFolderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorksServiceServer).DeleteFolder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorksService_DeleteFolder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorksServiceServer).DeleteFolder(ctx, req.(*DeleteFolderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WorksService_ServiceDesc is the grpc.ServiceDesc for WorksService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +436,26 @@ var WorksService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteWork",
 			Handler:    _WorksService_DeleteWork_Handler,
+		},
+		{
+			MethodName: "CreateFolder",
+			Handler:    _WorksService_CreateFolder_Handler,
+		},
+		{
+			MethodName: "GetFolder",
+			Handler:    _WorksService_GetFolder_Handler,
+		},
+		{
+			MethodName: "ListFolders",
+			Handler:    _WorksService_ListFolders_Handler,
+		},
+		{
+			MethodName: "UpdateFolder",
+			Handler:    _WorksService_UpdateFolder_Handler,
+		},
+		{
+			MethodName: "DeleteFolder",
+			Handler:    _WorksService_DeleteFolder_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

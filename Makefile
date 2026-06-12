@@ -25,7 +25,7 @@ docker-down:
 # Применить миграции к БД (нужен запущенный Postgres, порт 5433 при Docker)
 migrate:
 	@: $${POSTGRES_DSN:?Set POSTGRES_DSN (see .env.example; copy .env from .env.example)}
-	@for f in migrations/000_schemas.up.sql migrations/001_users.up.sql migrations/002_roles.up.sql migrations/003_customers.up.sql migrations/004_vehicles.up.sql migrations/005_deals.up.sql migrations/006_parts.up.sql migrations/007_part_folders.up.sql migrations/008_brands.up.sql migrations/009_dealer_points.up.sql migrations/010_part_stock.up.sql migrations/011_clients.up.sql migrations/012_client_role.up.sql migrations/013_clientauth.up.sql migrations/014_reviews.up.sql migrations/015_employee_statistics.up.sql migrations/016_client_statistics.up.sql migrations/017_employee_reviews.up.sql migrations/018_work_orders.up.sql migrations/019_stock_movements.up.sql migrations/020_movement_documents.up.sql migrations/021_work_order_movement_doc.up.sql migrations/022_works.up.sql migrations/023_work_order_labor_work_id.up.sql migrations/024_employees.up.sql migrations/025_review_invitations.up.sql migrations/026_movement_document_statuses.up.sql; do \
+	@for f in migrations/000_schemas.up.sql migrations/001_users.up.sql migrations/002_roles.up.sql migrations/003_customers.up.sql migrations/004_vehicles.up.sql migrations/005_deals.up.sql migrations/006_parts.up.sql migrations/007_part_folders.up.sql migrations/008_brands.up.sql migrations/009_dealer_points.up.sql migrations/010_part_stock.up.sql migrations/011_clients.up.sql migrations/012_client_role.up.sql migrations/013_clientauth.up.sql migrations/014_reviews.up.sql migrations/015_employee_statistics.up.sql migrations/016_client_statistics.up.sql migrations/017_employee_reviews.up.sql migrations/018_work_orders.up.sql migrations/019_stock_movements.up.sql migrations/020_movement_documents.up.sql migrations/021_work_order_movement_doc.up.sql migrations/022_works.up.sql migrations/023_work_order_labor_work_id.up.sql migrations/024_employees.up.sql migrations/025_review_invitations.up.sql migrations/026_movement_document_statuses.up.sql migrations/027_work_folders.up.sql migrations/028_brand_labor_rates.up.sql; do \
 		echo "Applying $$f..."; psql "$$POSTGRES_DSN" -f "$$f" || exit 1; \
 	done
 	@echo "Migrations done."
@@ -105,8 +105,13 @@ seed-parts:
 	@: $${POSTGRES_DSN:?Set POSTGRES_DSN}
 	psql "$$POSTGRES_DSN" -f migrations/seed_parts.sql
 
-# Все тестовые данные: клиенты/авто/запчасти + дилерские точки/юрлица/склады/бренды/папки
-full-seed: seed-data seed-dealer-brands seed-parts
+# Папки и работы СТО (нужна миграция 022 и 027)
+seed-works:
+	@: $${POSTGRES_DSN:?Set POSTGRES_DSN}
+	psql "$$POSTGRES_DSN" -f migrations/seed_works.sql
+
+# Все тестовые данные: клиенты/авто/запчасти + дилерские точки/юрлица/склады/бренды/папки + работы
+full-seed: seed-data seed-dealer-brands seed-parts seed-works
 
 # Сборка образов и запуск всех сервисов (Postgres, auth, vehicles, parts, …). Перед первым запуском: make migrate && make full-seed
 deploy:

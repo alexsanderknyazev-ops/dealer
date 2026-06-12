@@ -66,7 +66,7 @@ func dial(t *testing.T, srv *grpc.Server) brandsv1.BrandsServiceClient {
 
 func TestBrandsGRPC(t *testing.T) {
 	s := grpc.NewServer()
-	brandsv1.RegisterBrandsServiceServer(s, NewServer(mockGRPCBrand{}))
+	brandsv1.RegisterBrandsServiceServer(s, NewServer(mockGRPCBrand{}, nil))
 	cli := dial(t, s)
 	ctx := context.Background()
 	if _, err := cli.CreateBrand(ctx, &brandsv1.CreateBrandRequest{Name: "A"}); err != nil {

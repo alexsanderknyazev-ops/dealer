@@ -19,11 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	BrandsService_CreateBrand_FullMethodName = "/brands.v1.BrandsService/CreateBrand"
-	BrandsService_GetBrand_FullMethodName    = "/brands.v1.BrandsService/GetBrand"
-	BrandsService_ListBrands_FullMethodName  = "/brands.v1.BrandsService/ListBrands"
-	BrandsService_UpdateBrand_FullMethodName = "/brands.v1.BrandsService/UpdateBrand"
-	BrandsService_DeleteBrand_FullMethodName = "/brands.v1.BrandsService/DeleteBrand"
+	BrandsService_CreateBrand_FullMethodName           = "/brands.v1.BrandsService/CreateBrand"
+	BrandsService_GetBrand_FullMethodName              = "/brands.v1.BrandsService/GetBrand"
+	BrandsService_ListBrands_FullMethodName            = "/brands.v1.BrandsService/ListBrands"
+	BrandsService_UpdateBrand_FullMethodName           = "/brands.v1.BrandsService/UpdateBrand"
+	BrandsService_DeleteBrand_FullMethodName           = "/brands.v1.BrandsService/DeleteBrand"
+	BrandsService_ListBrandLaborRates_FullMethodName   = "/brands.v1.BrandsService/ListBrandLaborRates"
+	BrandsService_UpdateBrandLaborRate_FullMethodName  = "/brands.v1.BrandsService/UpdateBrandLaborRate"
+	BrandsService_DeleteBrandLaborRate_FullMethodName  = "/brands.v1.BrandsService/DeleteBrandLaborRate"
+	BrandsService_ResolveBrandLaborRate_FullMethodName = "/brands.v1.BrandsService/ResolveBrandLaborRate"
 )
 
 // BrandsServiceClient is the client API for BrandsService service.
@@ -35,6 +39,11 @@ type BrandsServiceClient interface {
 	ListBrands(ctx context.Context, in *ListBrandsRequest, opts ...grpc.CallOption) (*ListBrandsResponse, error)
 	UpdateBrand(ctx context.Context, in *UpdateBrandRequest, opts ...grpc.CallOption) (*UpdateBrandResponse, error)
 	DeleteBrand(ctx context.Context, in *DeleteBrandRequest, opts ...grpc.CallOption) (*DeleteBrandResponse, error)
+	// Стоимость нормо-часа по бренду и дилерской точке
+	ListBrandLaborRates(ctx context.Context, in *ListBrandLaborRatesRequest, opts ...grpc.CallOption) (*ListBrandLaborRatesResponse, error)
+	UpdateBrandLaborRate(ctx context.Context, in *UpdateBrandLaborRateRequest, opts ...grpc.CallOption) (*UpdateBrandLaborRateResponse, error)
+	DeleteBrandLaborRate(ctx context.Context, in *DeleteBrandLaborRateRequest, opts ...grpc.CallOption) (*DeleteBrandLaborRateResponse, error)
+	ResolveBrandLaborRate(ctx context.Context, in *ResolveBrandLaborRateRequest, opts ...grpc.CallOption) (*ResolveBrandLaborRateResponse, error)
 }
 
 type brandsServiceClient struct {
@@ -95,6 +104,46 @@ func (c *brandsServiceClient) DeleteBrand(ctx context.Context, in *DeleteBrandRe
 	return out, nil
 }
 
+func (c *brandsServiceClient) ListBrandLaborRates(ctx context.Context, in *ListBrandLaborRatesRequest, opts ...grpc.CallOption) (*ListBrandLaborRatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListBrandLaborRatesResponse)
+	err := c.cc.Invoke(ctx, BrandsService_ListBrandLaborRates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *brandsServiceClient) UpdateBrandLaborRate(ctx context.Context, in *UpdateBrandLaborRateRequest, opts ...grpc.CallOption) (*UpdateBrandLaborRateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateBrandLaborRateResponse)
+	err := c.cc.Invoke(ctx, BrandsService_UpdateBrandLaborRate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *brandsServiceClient) DeleteBrandLaborRate(ctx context.Context, in *DeleteBrandLaborRateRequest, opts ...grpc.CallOption) (*DeleteBrandLaborRateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteBrandLaborRateResponse)
+	err := c.cc.Invoke(ctx, BrandsService_DeleteBrandLaborRate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *brandsServiceClient) ResolveBrandLaborRate(ctx context.Context, in *ResolveBrandLaborRateRequest, opts ...grpc.CallOption) (*ResolveBrandLaborRateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResolveBrandLaborRateResponse)
+	err := c.cc.Invoke(ctx, BrandsService_ResolveBrandLaborRate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BrandsServiceServer is the server API for BrandsService service.
 // All implementations must embed UnimplementedBrandsServiceServer
 // for forward compatibility.
@@ -104,6 +153,11 @@ type BrandsServiceServer interface {
 	ListBrands(context.Context, *ListBrandsRequest) (*ListBrandsResponse, error)
 	UpdateBrand(context.Context, *UpdateBrandRequest) (*UpdateBrandResponse, error)
 	DeleteBrand(context.Context, *DeleteBrandRequest) (*DeleteBrandResponse, error)
+	// Стоимость нормо-часа по бренду и дилерской точке
+	ListBrandLaborRates(context.Context, *ListBrandLaborRatesRequest) (*ListBrandLaborRatesResponse, error)
+	UpdateBrandLaborRate(context.Context, *UpdateBrandLaborRateRequest) (*UpdateBrandLaborRateResponse, error)
+	DeleteBrandLaborRate(context.Context, *DeleteBrandLaborRateRequest) (*DeleteBrandLaborRateResponse, error)
+	ResolveBrandLaborRate(context.Context, *ResolveBrandLaborRateRequest) (*ResolveBrandLaborRateResponse, error)
 	mustEmbedUnimplementedBrandsServiceServer()
 }
 
@@ -128,6 +182,18 @@ func (UnimplementedBrandsServiceServer) UpdateBrand(context.Context, *UpdateBran
 }
 func (UnimplementedBrandsServiceServer) DeleteBrand(context.Context, *DeleteBrandRequest) (*DeleteBrandResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteBrand not implemented")
+}
+func (UnimplementedBrandsServiceServer) ListBrandLaborRates(context.Context, *ListBrandLaborRatesRequest) (*ListBrandLaborRatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListBrandLaborRates not implemented")
+}
+func (UnimplementedBrandsServiceServer) UpdateBrandLaborRate(context.Context, *UpdateBrandLaborRateRequest) (*UpdateBrandLaborRateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateBrandLaborRate not implemented")
+}
+func (UnimplementedBrandsServiceServer) DeleteBrandLaborRate(context.Context, *DeleteBrandLaborRateRequest) (*DeleteBrandLaborRateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteBrandLaborRate not implemented")
+}
+func (UnimplementedBrandsServiceServer) ResolveBrandLaborRate(context.Context, *ResolveBrandLaborRateRequest) (*ResolveBrandLaborRateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResolveBrandLaborRate not implemented")
 }
 func (UnimplementedBrandsServiceServer) mustEmbedUnimplementedBrandsServiceServer() {}
 func (UnimplementedBrandsServiceServer) testEmbeddedByValue()                       {}
@@ -240,6 +306,78 @@ func _BrandsService_DeleteBrand_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BrandsService_ListBrandLaborRates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBrandLaborRatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrandsServiceServer).ListBrandLaborRates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BrandsService_ListBrandLaborRates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrandsServiceServer).ListBrandLaborRates(ctx, req.(*ListBrandLaborRatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BrandsService_UpdateBrandLaborRate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBrandLaborRateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrandsServiceServer).UpdateBrandLaborRate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BrandsService_UpdateBrandLaborRate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrandsServiceServer).UpdateBrandLaborRate(ctx, req.(*UpdateBrandLaborRateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BrandsService_DeleteBrandLaborRate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteBrandLaborRateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrandsServiceServer).DeleteBrandLaborRate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BrandsService_DeleteBrandLaborRate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrandsServiceServer).DeleteBrandLaborRate(ctx, req.(*DeleteBrandLaborRateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BrandsService_ResolveBrandLaborRate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResolveBrandLaborRateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrandsServiceServer).ResolveBrandLaborRate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BrandsService_ResolveBrandLaborRate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrandsServiceServer).ResolveBrandLaborRate(ctx, req.(*ResolveBrandLaborRateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BrandsService_ServiceDesc is the grpc.ServiceDesc for BrandsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +404,22 @@ var BrandsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteBrand",
 			Handler:    _BrandsService_DeleteBrand_Handler,
+		},
+		{
+			MethodName: "ListBrandLaborRates",
+			Handler:    _BrandsService_ListBrandLaborRates_Handler,
+		},
+		{
+			MethodName: "UpdateBrandLaborRate",
+			Handler:    _BrandsService_UpdateBrandLaborRate_Handler,
+		},
+		{
+			MethodName: "DeleteBrandLaborRate",
+			Handler:    _BrandsService_DeleteBrandLaborRate_Handler,
+		},
+		{
+			MethodName: "ResolveBrandLaborRate",
+			Handler:    _BrandsService_ResolveBrandLaborRate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -817,6 +817,310 @@ spec:
             - name: JWT_SECRET
               value: "change-me-in-production"
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: works-service
+  namespace: dealer
+spec:
+  selector:
+    app: works-service
+  ports:
+    - name: grpc
+      port: 50065
+      targetPort: 50065
+    - name: http
+      port: 8098
+      targetPort: 8098
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: works-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: works-service
+  template:
+    metadata:
+      labels:
+        app: works-service
+    spec:
+      containers:
+        - name: works-service
+          image: __IMG_WORKS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50065
+            - containerPort: 8098
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8098
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8098
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: WORKS_GRPC_PORT
+              value: "50065"
+            - name: WORKS_HTTP_PORT
+              value: "8098"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: employees-service
+  namespace: dealer
+spec:
+  selector:
+    app: employees-service
+  ports:
+    - name: grpc
+      port: 50066
+      targetPort: 50066
+    - name: http
+      port: 8099
+      targetPort: 8099
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employees-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employees-service
+  template:
+    metadata:
+      labels:
+        app: employees-service
+    spec:
+      containers:
+        - name: employees-service
+          image: __IMG_EMPLOYEES__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50066
+            - containerPort: 8099
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8099
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8099
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: EMPLOYEES_GRPC_PORT
+              value: "50066"
+            - name: EMPLOYEES_HTTP_PORT
+              value: "8099"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workorders-service
+  namespace: dealer
+spec:
+  selector:
+    app: workorders-service
+  ports:
+    - name: grpc
+      port: 50064
+      targetPort: 50064
+    - name: http
+      port: 8097
+      targetPort: 8097
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workorders-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workorders-service
+  template:
+    metadata:
+      labels:
+        app: workorders-service
+    spec:
+      containers:
+        - name: workorders-service
+          image: __IMG_WORKORDERS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50064
+            - containerPort: 8097
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8097
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8097
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          env:
+            - name: WORKORDERS_GRPC_PORT
+              value: "50064"
+            - name: WORKORDERS_HTTP_PORT
+              value: "8097"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+            - name: CUSTOMERS_GRPC_ADDR
+              value: "customers-service:50052"
+            - name: VEHICLES_GRPC_ADDR
+              value: "vehicles-service:50053"
+            - name: DEALER_POINTS_GRPC_ADDR
+              value: "dealer-points-service:50057"
+            - name: PARTS_GRPC_ADDR
+              value: "parts-service:50055"
+            - name: WORKS_GRPC_ADDR
+              value: "works-service:50065"
+            - name: EMPLOYEES_GRPC_ADDR
+              value: "employees-service:50066"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: appointments-service
+  namespace: dealer
+spec:
+  selector:
+    app: appointments-service
+  ports:
+    - name: grpc
+      port: 50067
+      targetPort: 50067
+    - name: http
+      port: 8101
+      targetPort: 8101
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appointments-service
+  namespace: dealer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: appointments-service
+  template:
+    metadata:
+      labels:
+        app: appointments-service
+    spec:
+      containers:
+        - name: appointments-service
+          image: __IMG_APPOINTMENTS__
+          imagePullPolicy: __PULL_POLICY__
+          ports:
+            - containerPort: 50067
+            - containerPort: 8101
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8101
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8101
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          env:
+            - name: APPOINTMENTS_GRPC_PORT
+              value: "50067"
+            - name: APPOINTMENTS_HTTP_PORT
+              value: "8101"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: dealer-db
+                  key: POSTGRES_DSN
+            - name: JWT_SECRET
+              value: "change-me-in-production"
+            - name: CUSTOMERS_GRPC_ADDR
+              value: "customers-service:50052"
+            - name: VEHICLES_GRPC_ADDR
+              value: "vehicles-service:50053"
+            - name: DEALER_POINTS_GRPC_ADDR
+              value: "dealer-points-service:50057"
+            - name: PARTS_GRPC_ADDR
+              value: "parts-service:50055"
+            - name: WORKS_GRPC_ADDR
+              value: "works-service:50065"
+            - name: WORKORDERS_GRPC_ADDR
+              value: "workorders-service:50064"
+---
 #Service
 apiVersion: v1
 kind: Service
@@ -895,6 +1199,14 @@ spec:
               value: "client-statistics-service:50062"
             - name: EMPLOYEE_REVIEWS_GRPC_ADDR
               value: "employee-reviews-service:50063"
+            - name: WORKORDERS_GRPC_ADDR
+              value: "workorders-service:50064"
+            - name: WORKS_GRPC_ADDR
+              value: "works-service:50065"
+            - name: EMPLOYEES_GRPC_ADDR
+              value: "employees-service:50066"
+            - name: APPOINTMENTS_GRPC_ADDR
+              value: "appointments-service:50067"
             - name: KAFKA_BROKERS
               value: "kafka:29092"
             - name: KAFKA_TOPIC_ERRORS

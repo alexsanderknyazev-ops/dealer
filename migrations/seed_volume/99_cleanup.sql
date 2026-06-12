@@ -1,7 +1,7 @@
 -- Удаление volume seed (UUID 9000000*)
 -- Порядок: дочерние таблицы → родительские
 
-DELETE FROM appointments.repair_appointment_parts WHERE appointment_id::text LIKE '90000011-%';
+DELETE FROM appointments.repair_appointment_parts WHERE appointment_id::text LIKE '90000011-%' OR id::text LIKE '90000031-%';
 DELETE FROM appointments.repair_appointment_labor WHERE appointment_id::text LIKE '90000011-%' OR id::text LIKE '90000021-%';
 DELETE FROM appointments.repair_appointments WHERE id::text LIKE '90000011-%';
 
@@ -29,8 +29,8 @@ DELETE FROM deals.deals WHERE id::text LIKE '90000009-%';
 
 DELETE FROM works.works WHERE id::text LIKE '90000008-%';
 
-DELETE FROM parts.customer_order_lines WHERE order_id::text LIKE '90000037-%';
-DELETE FROM parts.supplier_order_lines WHERE order_id::text LIKE '90000027-%';
+DELETE FROM parts.customer_order_lines WHERE order_id::text LIKE '90000037-%' OR id::text LIKE '90000038-%' OR id::text LIKE '90000039-%';
+DELETE FROM parts.supplier_order_lines WHERE order_id::text LIKE '90000027-%' OR id::text LIKE '90000028-%' OR id::text LIKE '90000029-%';
 DELETE FROM parts.customer_orders WHERE id::text LIKE '90000037-%';
 DELETE FROM parts.supplier_orders WHERE id::text LIKE '90000027-%';
 DELETE FROM parts.movement_document_lines WHERE document_id::text LIKE '90000047-%';

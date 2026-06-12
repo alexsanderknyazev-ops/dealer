@@ -38,7 +38,8 @@ for f in \
   "$DIR/14_employee_reviews.sql" \
   "$DIR/15_employee_statistics.sql" \
   "$DIR/16_client_statistics.sql" \
-  "$DIR/17_appointments.sql"; do
+  "$DIR/17_appointments.sql" \
+  "$DIR/18_part_orders.sql"; do
   echo "==> $(basename "$f")"
   exec_sql < "$f"
 done

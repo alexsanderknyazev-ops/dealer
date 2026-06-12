@@ -111,8 +111,8 @@ const headerSelect = `
 	SELECT id, order_number, customer_id, vehicle_id, dealer_point_id, warehouse_id,
 		repair_type, status, service_advisor_id, complaint, diagnosis, mileage_km,
 		labor_cost::text, parts_cost::text, total_cost::text, opened_at, closed_at,
-		parts_issued, parts_issued_at, movement_document_id, movement_document_status,
-		source_order_type, source_order_id, notes, created_at, updated_at
+		parts_issued, parts_issued_at, movement_document_id, COALESCE(movement_document_status, ''),
+		COALESCE(source_order_type, ''), source_order_id, notes, created_at, updated_at
 	FROM work_orders
 `
 

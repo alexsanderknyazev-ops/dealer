@@ -1,4 +1,4 @@
-.PHONY: proto docker-up docker-down run-auth seed-admin frontend-dev frontend-build frontend-client-dev frontend-client-build
+.PHONY: proto docker-up docker-down kube-up run-auth seed-admin frontend-dev frontend-build frontend-client-dev frontend-client-build
 
 proto:
 	@which protoc >/dev/null || (echo "install protoc (brew install protobuf)" && exit 1)
@@ -136,3 +136,7 @@ frontend-client-dev:
 
 frontend-client-build:
 	cd frontend/client && npm install && npm run build
+
+# Полный деплой в minikube: образы, k8s, миграции, seed, LAN port-forward
+kube-up:
+	./scripts/kube-up.sh

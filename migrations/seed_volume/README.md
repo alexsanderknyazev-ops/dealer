@@ -29,8 +29,8 @@ export POSTGRES_DSN='postgres://dealer:PASSWORD@HOST:PORT/dealer?sslmode=disable
 | `04_brands.sql` | brands | 80 брендов |
 | `05_customers.sql` | customers | 120 |
 | `06_vehicles.sql` | vehicles | 120 |
-| `07_parts.sql` | parts | 120 запчастей + 60 поставщиков |
-| `08_works.sql` | works | 100 работ |
+| `07_parts.sql` | parts | папки запчастей + 120 запчастей + 60 поставщиков |
+| `08_works.sql` | works | папки работ + 100 работ |
 | `09_deals.sql` | deals | 100 |
 | `10_workorders.sql` | workorders | 80 заказ-нарядов |
 | `11_clientauth.sql` | clientauth | 100 |
@@ -39,7 +39,8 @@ export POSTGRES_DSN='postgres://dealer:PASSWORD@HOST:PORT/dealer?sslmode=disable
 | `14_employee_reviews.sql` | employee_reviews | 80 |
 | `15_employee_statistics.sql` | employee_statistics | 80 |
 | `16_client_statistics.sql` | client_statistics | 80 + 80 событий |
-| `17_appointments.sql` | appointments | 80 |
+| `17_appointments.sql` | appointments | 80 записей + работы и запчасти |
+| `18_part_orders.sql` | parts | 80 заказов поставщику + 80 заказов покупателя |
 
 ## Очистка
 

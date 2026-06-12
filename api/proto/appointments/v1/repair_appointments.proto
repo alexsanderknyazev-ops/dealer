@@ -8,7 +8,7 @@ option go_package = "github.com/dealer/dealer/pkg/pb/appointments/v1;appointment
 
 service RepairAppointmentsService {
   rpc ListRepairAppointmentSlots(ListRepairAppointmentSlotsRequest) returns (ListRepairAppointmentSlotsResponse) {
-    option (google.api.http) = { get: "/api/repair-appointments/slots" };
+    option (google.api.http) = { get: "/api/repair-appointment-slots" };
   }
   rpc CreateRepairAppointment(CreateRepairAppointmentRequest) returns (CreateRepairAppointmentResponse) {
     option (google.api.http) = { post: "/api/repair-appointments" body: "*" response_body: "appointment" };

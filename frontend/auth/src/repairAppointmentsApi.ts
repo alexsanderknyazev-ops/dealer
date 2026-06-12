@@ -108,7 +108,7 @@ async function readErrorMessage(res: Response): Promise<string> {
 
 export async function listSlots(date: string): Promise<{ slots: RepairAppointmentSlot[] }> {
   const sp = new URLSearchParams({ date })
-  const res = await fetch(`${API}/api/repair-appointments/slots?${sp}`, { headers: getAuthHeaders() })
+  const res = await fetch(`${API}/api/repair-appointment-slots?${sp}`, { headers: getAuthHeaders() })
   if (!res.ok) throw new ApiError(await readErrorMessage(res), res.status)
   return res.json()
 }

@@ -318,7 +318,7 @@ func RegisterRepairAppointmentsServiceHandlerServer(ctx context.Context, mux *ru
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/appointments.v1.RepairAppointmentsService/ListRepairAppointmentSlots", runtime.WithHTTPPathPattern("/api/repair-appointments/slots"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/appointments.v1.RepairAppointmentsService/ListRepairAppointmentSlots", runtime.WithHTTPPathPattern("/api/repair-appointment-slots"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -496,7 +496,7 @@ func RegisterRepairAppointmentsServiceHandlerClient(ctx context.Context, mux *ru
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/appointments.v1.RepairAppointmentsService/ListRepairAppointmentSlots", runtime.WithHTTPPathPattern("/api/repair-appointments/slots"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/appointments.v1.RepairAppointmentsService/ListRepairAppointmentSlots", runtime.WithHTTPPathPattern("/api/repair-appointment-slots"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -651,7 +651,7 @@ func (m response_RepairAppointmentsService_CancelRepairAppointment_0) XXX_Respon
 }
 
 var (
-	pattern_RepairAppointmentsService_ListRepairAppointmentSlots_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "repair-appointments", "slots"}, ""))
+	pattern_RepairAppointmentsService_ListRepairAppointmentSlots_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "repair-appointment-slots"}, ""))
 	pattern_RepairAppointmentsService_CreateRepairAppointment_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "repair-appointments"}, ""))
 	pattern_RepairAppointmentsService_GetRepairAppointment_0                 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "repair-appointments", "id"}, ""))
 	pattern_RepairAppointmentsService_UpdateRepairAppointment_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "repair-appointments", "id"}, ""))

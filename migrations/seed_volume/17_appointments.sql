@@ -40,3 +40,19 @@ SELECT
   now()
 FROM generate_series(1, 80) AS g(n)
 ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO repair_appointment_parts (
+  id, appointment_id, part_id, warehouse_id, quantity, unit_price, notes, sort_order, created_at
+)
+SELECT
+  ('90000031-0000-4000-8000-' || lpad(to_hex(g.n), 12, '0'))::uuid,
+  ('90000011-0000-4000-8000-' || lpad(to_hex(g.n), 12, '0'))::uuid,
+  ('90000007-0000-4000-8000-' || lpad(to_hex(1 + (g.n % 120)), 12, '0'))::uuid,
+  ('90000023-0000-4000-8000-' || lpad(to_hex((1 + (g.n % 60)) * 2), 12, '0'))::uuid,
+  1 + (g.n % 3),
+  300 + (g.n % 15) * 40,
+  'Запчасть по записи ' || g.n,
+  0,
+  now()
+FROM generate_series(1, 80) AS g(n)
+ON CONFLICT (id) DO NOTHING;

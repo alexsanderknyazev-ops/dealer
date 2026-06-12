@@ -61,6 +61,14 @@ spec:
               value: "client-statistics-service:50062"
             - name: EMPLOYEE_REVIEWS_GRPC_ADDR
               value: "employee-reviews-service:50063"
+            - name: WORKORDERS_GRPC_ADDR
+              value: "workorders-service:50064"
+            - name: WORKS_GRPC_ADDR
+              value: "works-service:50065"
+            - name: EMPLOYEES_GRPC_ADDR
+              value: "employees-service:50066"
+            - name: APPOINTMENTS_GRPC_ADDR
+              value: "appointments-service:50067"
             - name: KAFKA_BROKERS
               value: "kafka:29092"
             - name: KAFKA_TOPIC_ERRORS

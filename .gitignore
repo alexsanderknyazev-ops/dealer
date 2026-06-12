@@ -44,5 +44,5 @@ frontend/*/dist/
 frontend/*/test-results/
 frontend/**/*.tsbuildinfo
 
-# Load test run artifacts
-qa/load-test/results/
+# Load test run artifacts (never commit)
+qa/load-test/

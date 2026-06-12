@@ -10,7 +10,7 @@
 # Scenarios:
 #   health | employee-read | employee-login | client-read | mixed (default)
 #
-# Reports (qa/load-test/results/<run-id>/):
+# Reports: ${TMPDIR}/dealer-load-test/results/<run-id>/ (outside repo)
 #   report.txt      — текстовый отчёт
 #   summary.json    — сводка + всё вместе
 #   services.json   — детально по сервисам
@@ -19,7 +19,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-RESULTS_DIR="${ROOT}/qa/load-test/results"
+RESULTS_DIR="${LOAD_TEST_RESULTS_DIR:-${TMPDIR:-/tmp}/dealer-load-test/results}"
 RUN_ID="run-$(date -u +%Y%m%d-%H%M%S)"
 RUN_DIR="${RESULTS_DIR}/${RUN_ID}"
 

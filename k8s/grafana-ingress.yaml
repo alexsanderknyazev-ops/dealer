@@ -1,11 +1,11 @@
-# Ingress для Grafana в namespace k8s-manager (Minikube + nginx ingress).
+# Ingress для Grafana в namespace monitoring (Minikube + nginx ingress).
 # Доступ: http://grafana.local (добавь 127.0.0.1 grafana.local в /etc/hosts).
-# При необходимости: minikube tunnel
+# При необходимости: minikube addons enable ingress && minikube tunnel
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: grafana
-  namespace: k8s-manager
+  namespace: monitoring
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:

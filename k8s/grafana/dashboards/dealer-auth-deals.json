@@ -1,0 +1,91 @@
+{
+  "title": "Dealer / Auth & Deals",
+  "uid": "dealer-auth-deals",
+  "tags": ["dealer", "auth", "deals"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Login throughput (auth-service)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(http_requests_total{service=\"auth-service\",method=\"POST\",path=\"/api/login\"}[5m]))",
+        "legendFormat": "login RPS",
+        "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
+      "title": "Login error rate",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(http_requests_total{service=\"auth-service\",method=\"POST\",path=\"/api/login\",status=~\"4..|5..\"}[5m])) / clamp_min(sum(rate(http_requests_total{service=\"auth-service\",method=\"POST\",path=\"/api/login\"}[5m])), 0.0001)",
+        "legendFormat": "error rate",
+        "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percentunit" }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
+      "title": "Login p95 latency",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service=\"auth-service\",method=\"POST\",path=\"/api/login\"}[5m])))",
+        "legendFormat": "p95",
+        "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
+      "title": "Auth gRPC Validate RPS",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(grpc_requests_total{service=\"auth-service\",method=\"/auth.v1.AuthService/Validate\"}[5m]))",
+        "legendFormat": "Validate",
+        "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
+      "title": "Deals create throughput",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(http_requests_total{service=\"deals-service\",method=\"POST\",path=\"/api/deals\"}[5m]))",
+        "legendFormat": "create RPS",
+        "refId": "A"
+      }],
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
+      "title": "Deals create error rate & p95",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{service=\"deals-service\",method=\"POST\",path=\"/api/deals\",status=~\"4..|5..\"}[5m])) / clamp_min(sum(rate(http_requests_total{service=\"deals-service\",method=\"POST\",path=\"/api/deals\"}[5m])), 0.0001)",
+          "legendFormat": "error rate",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service=\"deals-service\",method=\"POST\",path=\"/api/deals\"}[5m])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": { "defaults": {}, "overrides": [] }
+    }
+  ]
+}

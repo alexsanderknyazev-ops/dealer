@@ -9,7 +9,7 @@ eval "$(minikube docker-env)"
 export DOCKER_BUILDKIT=0
 
 docker rm -f dealer-client-ui 2>/dev/null || true
-docker build -f "${ROOT}/build/client-frontend-dev.Dockerfile" -t dealer-client-ui:latest "$ROOT"
+docker build -f "${ROOT}/build/client-frontend.Dockerfile" -t dealer-client-ui:latest "$ROOT"
 kubectl apply -f "${ROOT}/k8s/client-frontend.yaml"
 kubectl -n "$NS" rollout restart deployment/client-frontend
 kubectl -n "$NS" rollout status deployment/client-frontend --timeout=120s

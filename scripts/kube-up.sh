@@ -168,6 +168,10 @@ Logins:
 Re-expose LAN ports after reboot:
   ./scripts/expose-lan.sh
 
+Monitoring:
+  Prometheus: http://${lan_ip}:9090
+  Grafana:    http://${lan_ip}:3030  (admin / admin)
+
 EOF
 }
 
@@ -179,6 +183,12 @@ main() {
   if ! minikube status >/dev/null 2>&1; then
     log "Starting minikube (${MINIKUBE_CPUS} CPU, ${MINIKUBE_MEMORY}MB RAM)"
     minikube start --cpus="$MINIKUBE_CPUS" --memory="$MINIKUBE_MEMORY"
+  fi
+
+  if ! minikube addons list 2>/dev/null | grep -q 'metrics-server.*enabled'; then
+    log "Enabling metrics-server addon"
+    minikube addons enable metrics-server
+    kubectl -n kube-system rollout status deployment/metrics-server --timeout=120s || true
   fi
 
   eval "$(minikube docker-env)"
@@ -207,7 +217,7 @@ main() {
     build_service employee-statistics-service build/employee-statistics-service.Dockerfile services/statistics/employee/VERSION
     build_service client-statistics-service build/client-statistics-service.Dockerfile services/statistics/client/VERSION
     log "BUILD dealer-client-ui:latest"
-    docker build -f "$ROOT/build/client-frontend-dev.Dockerfile" -t dealer-client-ui:latest "$ROOT"
+    docker build -f "$ROOT/build/client-frontend.Dockerfile" -t dealer-client-ui:latest "$ROOT"
   else
     log "Skipping image build (--skip-build)"
   fi
@@ -227,6 +237,12 @@ main() {
 
   log "Applying k8s/client-frontend.yaml"
   kubectl apply -f "$ROOT/k8s/client-frontend.yaml"
+
+  log "Applying k8s/monitoring-stack.yaml (Prometheus + Grafana)"
+  kubectl apply -f "$ROOT/k8s/monitoring-stack.yaml"
+  "$ROOT/scripts/apply-grafana-dashboards.sh"
+  kubectl -n monitoring rollout status deployment/prometheus --timeout=120s || true
+  kubectl -n monitoring rollout status deployment/grafana --timeout=120s || true
 
   wait_infra
 

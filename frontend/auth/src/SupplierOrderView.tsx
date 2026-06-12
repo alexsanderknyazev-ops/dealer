@@ -117,7 +117,7 @@ export function SupplierOrderView() {
             <Link className="text-sm text-muted-foreground underline" to="/supplier-orders">Все заказы</Link>
           </div>
         }
-        actions={
+        action={
           <div className="flex flex-wrap gap-2">
             {canFulfill && (
               <>

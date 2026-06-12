@@ -65,3 +65,4 @@ func GatewayProxyPrefixes() []string {
 		APIMovementDocuments,
 		APIRepairAppointments,
 	}
+}

@@ -65,7 +65,7 @@ export function SupplierOrders() {
     <div className="mx-auto w-full max-w-5xl space-y-6">
       <PageHeader
         title="Заказы поставщику"
-        actions={
+        action={
           <Button asChild>
             <Link to="/supplier-orders/new">
               <Plus className="mr-1 h-4 w-4" /> Новый заказ
@@ -88,7 +88,7 @@ export function SupplierOrders() {
       {loading ? (
         <LoadingState />
       ) : list.length === 0 ? (
-        <EmptyState message="Заказов нет" />
+        <EmptyState>Заказов нет</EmptyState>
       ) : (
         <Card>
           <CardContent className="p-0">
@@ -121,7 +121,7 @@ export function SupplierOrders() {
           </CardContent>
         </Card>
       )}
-      <Pagination page={page} pageSize={limit} total={total} onPageChange={setPage} />
+      <Pagination page={page} limit={limit} total={total} onPageChange={setPage} />
     </div>
   )
 }

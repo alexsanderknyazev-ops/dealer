@@ -21,7 +21,6 @@ const (
 
 	RefWorkOrder        = "work_order"
 	RefMovementDocument = "movement_document"
-	// RefSupplierOrder, RefCustomerOrder — в part_order.go
 )
 
 // MovementTypeSupportsExtraction — закрытый документ этого типа можно частично вернуть извлечением.

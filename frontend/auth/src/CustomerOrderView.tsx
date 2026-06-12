@@ -110,7 +110,7 @@ export function CustomerOrderView() {
             <Link className="text-sm text-muted-foreground underline" to="/customer-orders">Все заказы</Link>
           </div>
         }
-        actions={
+        action={
           <div className="flex flex-wrap gap-2">
             {canFulfill && (
               <>

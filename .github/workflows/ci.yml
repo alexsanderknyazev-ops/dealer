@@ -75,6 +75,20 @@ jobs:
           working-directory: ${{ matrix.module }}
           args: --timeout=5m
 
+  integration:
+    name: Integration (testcontainers)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Run integration tests
+        run: go test -tags=integration -timeout 30m -count=1 ./pkg/integration/...
+
   changes:
     name: Detect changed services
     runs-on: ubuntu-latest

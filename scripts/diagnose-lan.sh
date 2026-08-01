@@ -122,7 +122,7 @@ if [[ "$fail" -eq 0 ]]; then
   echo ""
   echo "If ping OK but browser fails:"
   echo "  • Use http:// (not https)"
-  echo "  • Port 9080 for UI (8080 = Jenkins)"
+  echo "  • Port 9080 for UI (8080 = API gateway)"
 else
   echo "Fix server issues first, then run: ./scripts/expose-lan.sh"
 fi

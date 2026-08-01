@@ -110,13 +110,26 @@ make frontend-dev
 - `services/customers/VERSION`
 - … то же для `vehicles`, `deals`, `parts`, `brands`, `dealerpoints`
 
-**Правило:** увеличьте **`N`** (или дату + сбросьте `N`), когда нужно пересобрать и отправить образ этого сервиса в registry. В Jenkins, если в registry уже есть образ с тегом `ИМЯ_СЕРВИСА:содержимое_VERSION`, **сборка и push для этого сервиса пропускаются**; иначе выполняется `docker build` и публикация тега версии и `latest`.
+**Правило:** увеличьте **`N`** (или дату + сбросьте `N`), когда нужно пересобрать и отправить образ этого сервиса в registry. В GitHub Actions, если в registry уже есть образ с тегом `ИМЯ_СЕРВИСА:содержимое_VERSION`, **сборка и push для этого сервиса пропускаются** (change-detection); иначе выполняется `docker build` и публикация тега версии и `latest`.
 
 В образе доступна переменная окружения **`SERVICE_VERSION`** (тот же текст, что в `VERSION`).
 
-Деплой в Kubernetes подставляет в манифест образы с тегом из соответствующего `VERSION` (при pull из registry), либо локальный `jenkins-<BUILD_NUMBER>` при загрузке образа в minikube через docker.
+Деплой в Kubernetes подставляет в манифест образы с тегом из соответствующего `VERSION` (при pull из registry).
 
-В Jenkins стадия **Docker build and push** разбита на вложенные шаги (**Docker: prepare**, **Docker: auth-service**, …) — в классическом Stage View и в Blue Ocean видно, какой сервис сейчас собирается.
+В GitHub Actions стадия **Build & push** разбита на отдельные jobs (**Build & push <имя_сервиса>**) — в сводке workflow видно, какой сервис собирается и какая у него версия.
+
+## CI/CD (GitHub Actions)
+
+Workflows в `.github/workflows/`:
+
+- **`ci.yml`** — на push/PR в `main`:
+  - **Test** — `go test ./...` во всех 22 Go-модулях (матрица).
+  - **Lint** — `golangci-lint` (конфигурация в `.golangci.yml`).
+  - **Detect changed services** — определяет изменённые сервисы и общие пакеты (`pkg`, `api`, `build`, k8s-манифесты).
+  - **Build & push** — на push в `main` собирает и публикует образы изменённых сервисов в GHCR (`ghcr.io/<owner>/<имя_сервиса>:<VERSION>`, `:latest`, `:sha-<sha>`).
+- **`deploy.yml`** — ручной (`workflow_dispatch`): kubectl-деплой в кластер через `scripts/k8s-deploy.sh`.
+
+Для деплоя в GitHub Actions задайте секреты репозитория: `KUBECONFIG_B64` (base64 kubeconfig). Образы тянутся из GHCR (публичные — по умолчанию доступны без токена).
 
 ## Конфигурация
 
@@ -126,6 +139,6 @@ make frontend-dev
 - `JWT_SECRET` — не должен быть пустым для запуска сервисов.
 - `POSTGRES_PASSWORD` и корректный `POSTGRES_DSN`.
 
-Для Jenkins deploy (`DEPLOY=true`) параметры `POSTGRES_PASSWORD` и `JWT_SECRET` обязательны: pipeline создаёт `Secret`-ы `dealer-db` и `dealer-app-secrets`, после чего сервисы читают секреты через `secretKeyRef`.
+При деплое в Kubernetes создаются `Secret`-ы `dealer-db` и `dealer-app-secrets`, после чего сервисы читают секреты через `secretKeyRef`.
 
-В CI добавлен обязательный lint-этап Go для изменённых сервисов (`golangci-lint`), базовая конфигурация зафиксирована в `.golangci.yml`.
+В CI добавлен обязательный lint-этап Go для всех модулей (`golangci-lint`), базовая конфигурация зафиксирована в `.golangci.yml`.

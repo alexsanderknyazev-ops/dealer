@@ -66,8 +66,6 @@ echo "  Prometheus:             http://${LAN_IP}:9090"
 echo "  Grafana:                http://${LAN_IP}:3030  (admin / admin)"
 echo ""
 echo "CI (Docker, same host):"
-echo "  Jenkins:    http://${LAN_IP}:8080"
-echo "  SonarQube:  http://${LAN_IP}:9000"
 echo "  Registry:   http://${LAN_IP}:5050"
 echo ""
 

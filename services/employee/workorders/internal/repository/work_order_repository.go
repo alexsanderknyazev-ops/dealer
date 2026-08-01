@@ -40,7 +40,7 @@ func (r *WorkOrderRepository) Create(ctx context.Context, wo *domain.WorkOrder) 
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	query := `
 		INSERT INTO work_orders (
 			id, order_number, customer_id, vehicle_id, dealer_point_id, warehouse_id,
@@ -223,7 +223,7 @@ func (r *WorkOrderRepository) Update(ctx context.Context, wo *domain.WorkOrder, 
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	_, err = tx.Exec(ctx, `
 		UPDATE work_orders SET
 			customer_id=$2, vehicle_id=$3, dealer_point_id=$4, warehouse_id=$5,
@@ -276,7 +276,7 @@ func (r *WorkOrderRepository) MarkPartsIssued(ctx context.Context, workOrderID u
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	for _, lineID := range lineIDs {
 		_, err = tx.Exec(ctx, `UPDATE work_order_parts SET issued = true, updated_at = $3 WHERE id = $1 AND work_order_id = $2`, lineID, workOrderID, issuedAt)
 		if err != nil {

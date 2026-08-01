@@ -119,6 +119,10 @@ func (m *memWORefs) CreateMovementDocument(_ context.Context, _ uuid.UUID, _ str
 	return uuid.New().String(), nil
 }
 
+func (m *memWORefs) FulfillOrderFromWorkOrder(context.Context, string, string) error {
+	return nil
+}
+
 func (m *memWORepo) NextOrderNumber(_ context.Context) (string, error) {
 	if m.err != nil {
 		return "", m.err

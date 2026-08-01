@@ -53,7 +53,7 @@ func dial(t *testing.T, srv *grpc.Server) brandsv1.BrandsServiceClient {
 	l := bufconn.Listen(1024 * 1024)
 	go func() { _ = srv.Serve(l) }()
 	t.Cleanup(func() { srv.Stop() })
-	c, err := grpc.DialContext(context.Background(), "x",
+	c, err := grpc.NewClient("passthrough:///"+ "x",
 		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) { return l.Dial() }),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -89,7 +89,7 @@ func TestBrandsGRPC(t *testing.T) {
 
 func TestBrandsGRPC_GetNF(t *testing.T) {
 	s := grpc.NewServer()
-	brandsv1.RegisterBrandsServiceServer(s, NewServer(&stubBrandNF{}))
+	brandsv1.RegisterBrandsServiceServer(s, NewServer(&stubBrandNF{}, nil))
 	cli := dial(t, s)
 	_, err := cli.GetBrand(context.Background(), &brandsv1.GetBrandRequest{Id: uuid.New().String()})
 	if err == nil {
@@ -105,7 +105,7 @@ func (stubBrandNF) Get(context.Context, string) (*domain.Brand, error) {
 
 func TestBrandsGRPC_UpdateNF(t *testing.T) {
 	s := grpc.NewServer()
-	brandsv1.RegisterBrandsServiceServer(s, NewServer(&stubBrandUpdateNF{}))
+	brandsv1.RegisterBrandsServiceServer(s, NewServer(&stubBrandUpdateNF{}, nil))
 	cli := dial(t, s)
 	n := "x"
 	_, err := cli.UpdateBrand(context.Background(), &brandsv1.UpdateBrandRequest{Id: uuid.New().String(), Name: &n})
@@ -122,7 +122,7 @@ func (stubBrandUpdateNF) Update(context.Context, string, *string) (*domain.Brand
 
 func TestBrandsGRPC_DeleteNF(t *testing.T) {
 	s := grpc.NewServer()
-	brandsv1.RegisterBrandsServiceServer(s, NewServer(&stubBrandDeleteNF{}))
+	brandsv1.RegisterBrandsServiceServer(s, NewServer(&stubBrandDeleteNF{}, nil))
 	cli := dial(t, s)
 	_, err := cli.DeleteBrand(context.Background(), &brandsv1.DeleteBrandRequest{Id: uuid.New().String()})
 	if err == nil || status.Code(err) != codes.NotFound {
@@ -138,7 +138,7 @@ func (stubBrandDeleteNF) Delete(context.Context, string) error {
 
 func TestBrandsGRPC_ListErr(t *testing.T) {
 	s := grpc.NewServer()
-	brandsv1.RegisterBrandsServiceServer(s, NewServer(&stubBrandListErr{}))
+	brandsv1.RegisterBrandsServiceServer(s, NewServer(&stubBrandListErr{}, nil))
 	cli := dial(t, s)
 	_, err := cli.ListBrands(context.Background(), &brandsv1.ListBrandsRequest{})
 	if err == nil || status.Code(err) != codes.Internal {
@@ -156,7 +156,7 @@ var errStubDB = errors.New("db")
 
 func TestBrandsGRPC_CreateErr(t *testing.T) {
 	s := grpc.NewServer()
-	brandsv1.RegisterBrandsServiceServer(s, NewServer(&stubBrandCreateErr{}))
+	brandsv1.RegisterBrandsServiceServer(s, NewServer(&stubBrandCreateErr{}, nil))
 	cli := dial(t, s)
 	_, err := cli.CreateBrand(context.Background(), &brandsv1.CreateBrandRequest{Name: "A"})
 	if err == nil || status.Code(err) != codes.Internal {

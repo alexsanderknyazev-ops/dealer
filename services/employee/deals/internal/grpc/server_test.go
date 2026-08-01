@@ -56,7 +56,7 @@ func dialDeal(t *testing.T, srv *grpc.Server) dealsv1.DealsServiceClient {
 	l := bufconn.Listen(1024 * 1024)
 	go func() { _ = srv.Serve(l) }()
 	t.Cleanup(func() { srv.Stop() })
-	c, err := grpc.DialContext(context.Background(), "x",
+	c, err := grpc.NewClient("passthrough:///" + "x",
 		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) { return l.Dial() }),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)

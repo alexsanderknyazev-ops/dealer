@@ -64,7 +64,7 @@ func New(cfg Config) *Breaker {
 func (b *Breaker) State() State {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	b.maybeHalfOpen(time.Now())
+	b.maybeHalfOpenLocked(time.Now())
 	return b.state
 }
 
@@ -108,12 +108,6 @@ func (b *Breaker) RecordFailure() {
 			b.tripLocked(now)
 		}
 	}
-}
-
-func (b *Breaker) maybeHalfOpen(now time.Time) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	b.maybeHalfOpenLocked(now)
 }
 
 func (b *Breaker) maybeHalfOpenLocked(now time.Time) {

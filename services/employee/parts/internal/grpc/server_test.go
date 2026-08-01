@@ -83,6 +83,28 @@ func (f *gprStock) ReplaceForPart(_ context.Context, partID uuid.UUID, rows []do
 	return nil
 }
 
+func (f *gprStock) Add(_ context.Context, partID, _ uuid.UUID, quantity int32) error {
+	if p, ok := f.repo.parts[partID]; ok {
+		p.Quantity += quantity
+	}
+	return nil
+}
+
+func (f *gprStock) Deduct(_ context.Context, partID, _ uuid.UUID, quantity int32) (int32, error) {
+	if p, ok := f.repo.parts[partID]; ok {
+		p.Quantity -= quantity
+		return p.Quantity, nil
+	}
+	return 0, nil
+}
+
+func (f *gprStock) GetQuantity(_ context.Context, partID, _ uuid.UUID) (int32, error) {
+	if p, ok := f.repo.parts[partID]; ok {
+		return p.Quantity, nil
+	}
+	return 0, nil
+}
+
 type gprFolder struct{ folders map[uuid.UUID]*domain.PartFolder }
 
 func (f *gprFolder) Create(_ context.Context, folder *domain.PartFolder) error {
@@ -124,7 +146,7 @@ func dialParts(t *testing.T, srv *grpc.Server) partsv1.PartsServiceClient {
 	l := bufconn.Listen(1024 * 1024)
 	go func() { _ = srv.Serve(l) }()
 	t.Cleanup(func() { srv.Stop() })
-	c, err := grpc.DialContext(context.Background(), "b",
+	c, err := grpc.NewClient("passthrough:///"+ "b",
 		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) { return l.Dial() }),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -137,7 +159,7 @@ func dialParts(t *testing.T, srv *grpc.Server) partsv1.PartsServiceClient {
 
 func TestPartsGRPC_PartFlow(t *testing.T) {
 	pr := &gprPart{parts: map[uuid.UUID]*domain.Part{}}
-	svc := service.NewPartService(pr, &gprFolder{folders: map[uuid.UUID]*domain.PartFolder{}}, &gprStock{repo: pr}, nil, nil)
+	svc := service.NewPartService(pr, &gprFolder{folders: map[uuid.UUID]*domain.PartFolder{}}, &gprStock{repo: pr}, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	s := grpc.NewServer()
 	partsv1.RegisterPartsServiceServer(s, NewServer(svc, nil, nil, nil))
 	cli := dialParts(t, s)
@@ -165,7 +187,7 @@ func TestPartsGRPC_PartFlow(t *testing.T) {
 func TestPartsGRPC_FolderFlow(t *testing.T) {
 	pr := &gprPart{parts: map[uuid.UUID]*domain.Part{}}
 	fr := &gprFolder{folders: map[uuid.UUID]*domain.PartFolder{}}
-	svc := service.NewPartService(pr, fr, &gprStock{repo: pr}, nil, nil)
+	svc := service.NewPartService(pr, fr, &gprStock{repo: pr}, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	s := grpc.NewServer()
 	partsv1.RegisterPartsServiceServer(s, NewServer(svc, nil, nil, nil))
 	cli := dialParts(t, s)

@@ -9,8 +9,6 @@
 /deals
 /deals-service
 /vehicles-service
-services/*/parts
-services/*/*-service
 
 # Test binary
 *.test
@@ -34,7 +32,7 @@ services/*/*-service
 .gocache/
 
 
-# CI (генерируется Jenkins: теги образов для деплоя)
+# CI
 .ci/
 
 # Frontend

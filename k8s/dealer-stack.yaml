@@ -1,5 +1,6 @@
 # Лабораторный стек dealer: инфраструктура (Postgres, Redis, Zookeeper, Kafka) + gateways + микросервисы.
-# Плейсхолдеры подставляет Jenkins: __K8S_DB_HOST__, __K8S_DB_PORT__, __IMG_*__, __PULL_POLICY__
+# Плейсхолдеры подставляет скрипт scripts/k8s-deploy.sh (используется GitHub Actions и локально):
+# __K8S_DB_HOST__, __K8S_DB_PORT__, __IMG_*__, __PULL_POLICY__, __NIP_HOST__, __CLIENT_NIP_HOST__
 # Секреты БД создаются при деплое в Secret dealer-db (keys: POSTGRES_PASSWORD, POSTGRES_DSN).
 # По умолчанию K8S_DB_HOST=postgres — совпадает с Service ниже.
 # Ресурсы: небольшие requests/limits (лабораторный профиль); при OOM/throttling увеличьте limits в Deployment.
@@ -67,6 +68,8 @@ spec:
                   key: POSTGRES_PASSWORD
             - name: POSTGRES_DB
               value: dealer
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           resources:
             requests:
               cpu: "200m"

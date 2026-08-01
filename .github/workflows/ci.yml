@@ -89,6 +89,43 @@ jobs:
       - name: Run integration tests
         run: go test -tags=integration -timeout 30m -count=1 ./pkg/integration/...
 
+  integration-services:
+    name: Integration ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - services/employee/auth
+          - services/employee/customers
+          - services/employee/vehicles
+          - services/employee/deals
+          - services/employee/parts
+          - services/employee/brands
+          - services/employee/dealerpoints
+          - services/employee/workorders
+          - services/employee/works
+          - services/employee/employees
+          - services/employee/reviews
+          - services/employee/appointments
+          - services/client/auth
+          - services/client/registration
+          - services/client/reviews
+          - services/statistics/employee
+          - services/statistics/client
+          - services/scheduler
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{ matrix.module }}/go.mod
+          cache-dependency-path: ${{ matrix.module }}/go.sum
+
+      - name: Run integration tests
+        working-directory: ${{ matrix.module }}
+        run: go test -tags=integration -timeout 30m -count=1 ./...
+
   changes:
     name: Detect changed services
     runs-on: ubuntu-latest

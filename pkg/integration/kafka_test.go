@@ -10,17 +10,19 @@ import (
 
 	"github.com/segmentio/kafka-go"
 
+	tc "github.com/dealer/dealer/pkg/testcontainers"
 	pkgkafka "github.com/dealer/dealer/pkg/kafka"
 )
 
 func TestKafka_ProduceConsumeRoundtrip(t *testing.T) {
-	container := requireKafka(t)
 	ctx := context.Background()
-
-	brokers, err := container.Brokers(ctx)
+	container, err := tc.StartKafka(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = container.Close(ctx) })
+
+	brokers := container.Brokers
 	if len(brokers) == 0 {
 		t.Fatal("kafka brokers list is empty")
 	}

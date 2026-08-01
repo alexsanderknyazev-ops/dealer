@@ -4,36 +4,22 @@ package integration
 
 import (
 	"context"
-	"net"
 	"testing"
 
-	"github.com/testcontainers/testcontainers-go/modules/redis"
+	tc "github.com/dealer/dealer/pkg/testcontainers"
 
 	pkgredis "github.com/dealer/dealer/pkg/redis"
 )
 
-func redisAddr(ctx context.Context, container *redis.RedisContainer) (string, error) {
-	host, err := container.Host(ctx)
-	if err != nil {
-		return "", err
-	}
-	port, err := container.MappedPort(ctx, "6379/tcp")
-	if err != nil {
-		return "", err
-	}
-	return net.JoinHostPort(host, port.Port()), nil
-}
-
 func TestRedis_Ping(t *testing.T) {
-	container := requireRedis(t)
 	ctx := context.Background()
-
-	addr, err := redisAddr(ctx, container)
+	container, err := tc.StartRedis(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = container.Close(ctx) })
 
-	rdb := pkgredis.NewClient(addr, "", 0)
+	rdb := pkgredis.NewClient(container.Addr, "", 0)
 	defer rdb.Close()
 
 	if err := pkgredis.Ping(ctx, rdb); err != nil {
@@ -42,15 +28,14 @@ func TestRedis_Ping(t *testing.T) {
 }
 
 func TestRedis_SetGet(t *testing.T) {
-	container := requireRedis(t)
 	ctx := context.Background()
-
-	addr, err := redisAddr(ctx, container)
+	container, err := tc.StartRedis(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = container.Close(ctx) })
 
-	rdb := pkgredis.NewClient(addr, "", 0)
+	rdb := pkgredis.NewClient(container.Addr, "", 0)
 	defer rdb.Close()
 
 	key := "integration:key:1"

@@ -34,7 +34,7 @@ services/*/*-service
 .gocache/
 
 
-# CI (генерируется Jenkins: теги образов для деплоя)
+# CI
 .ci/
 
 # Frontend

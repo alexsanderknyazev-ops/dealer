@@ -19,7 +19,7 @@ var (
 	ErrVehicleNotFound  = errors.New("vehicle not found")
 )
 
-// CreateDealInput is the payload for Create (keeps DealAPI arity within Sonar limits).
+// CreateDealInput is the payload for Create (keeps DealAPI arity low).
 type CreateDealInput struct {
 	CustomerID, VehicleID, Amount, Stage, AssignedTo, Notes string
 }

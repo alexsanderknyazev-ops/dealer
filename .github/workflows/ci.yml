@@ -1,0 +1,206 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - "qa/**"
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - "qa/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+  GO_VERSION: "1.22"
+
+jobs:
+  test:
+    name: Test ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - .
+          - services/employee/auth
+          - services/employee/customers
+          - services/employee/vehicles
+          - services/employee/deals
+          - services/employee/parts
+          - services/employee/brands
+          - services/employee/dealerpoints
+          - services/employee/workorders
+          - services/employee/works
+          - services/employee/employees
+          - services/employee/reviews
+          - services/employee/appointments
+          - services/client/auth
+          - services/client/registration
+          - services/client/reviews
+          - services/gateway/employee
+          - services/gateway/client-public
+          - services/gateway/client-protected
+          - services/statistics/employee
+          - services/statistics/client
+          - services/errors-ingest
+          - services/scheduler
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{ matrix.module }}/go.mod
+          cache-dependency-path: ${{ matrix.module }}/go.sum
+
+      - name: Test
+        working-directory: ${{ matrix.module }}
+        run: go test ./...
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: ${{ matrix.module }}
+          args: --timeout=5m
+
+  changes:
+    name: Detect changed services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.map.outputs.services }}
+      any: ${{ steps.filter.outputs.any }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            auth-service: services/employee/auth/**
+            customers-service: services/employee/customers/**
+            vehicles-service: services/employee/vehicles/**
+            deals-service: services/employee/deals/**
+            parts-service: services/employee/parts/**
+            brands-service: services/employee/brands/**
+            dealer-points-service: services/employee/dealerpoints/**
+            workorders-service: services/employee/workorders/**
+            works-service: services/employee/works/**
+            employees-service: services/employee/employees/**
+            employee-reviews-service: services/employee/reviews/**
+            appointments-service: services/employee/appointments/**
+            client-auth-service: services/client/auth/**
+            client-registration-service: services/client/registration/**
+            client-reviews-service: services/client/reviews/**
+            gateway-service: services/gateway/employee/**
+            client-public-gateway-service: services/gateway/client-public/**
+            client-protected-gateway-service: services/gateway/client-protected/**
+            employee-statistics-service: services/statistics/employee/**
+            client-statistics-service: services/statistics/client/**
+            errors-ingest-service: services/errors-ingest/**
+            scheduler-service: services/scheduler/**
+            shared:
+              - pkg/**
+              - api/**
+              - migrations/**
+              - build/**
+              - go.mod
+              - go.sum
+              - go.work
+              - go.work.sum
+              - ".golangci.yml"
+              - "services/*/k8s/**"
+
+      - name: Map changes to services
+        id: map
+        shell: bash
+        run: |
+          FILTERS='${{ toJSON(steps.filter.outputs) }}'
+          SHARED="$(echo "$FILTERS" | jq -r '.shared')"
+          MAP='auth-service services/employee/auth build/auth-service.Dockerfile
+          customers-service services/employee/customers build/customers-service.Dockerfile
+          vehicles-service services/employee/vehicles build/vehicles-service.Dockerfile
+          deals-service services/employee/deals build/deals-service.Dockerfile
+          parts-service services/employee/parts build/parts-service.Dockerfile
+          brands-service services/employee/brands build/brands-service.Dockerfile
+          dealer-points-service services/employee/dealerpoints build/dealer-points-service.Dockerfile
+          workorders-service services/employee/workorders build/workorders-service.Dockerfile
+          works-service services/employee/works build/works-service.Dockerfile
+          employees-service services/employee/employees build/employees-service.Dockerfile
+          employee-reviews-service services/employee/reviews build/employee-reviews-service.Dockerfile
+          appointments-service services/employee/appointments build/appointments-service.Dockerfile
+          client-auth-service services/client/auth build/client-auth-service.Dockerfile
+          client-registration-service services/client/registration build/client-registration-service.Dockerfile
+          client-reviews-service services/client/reviews build/client-reviews-service.Dockerfile
+          gateway-service services/gateway/employee build/gateway-service.Dockerfile
+          client-public-gateway-service services/gateway/client-public build/client-public-gateway-service.Dockerfile
+          client-protected-gateway-service services/gateway/client-protected build/client-protected-gateway-service.Dockerfile
+          employee-statistics-service services/statistics/employee build/employee-statistics-service.Dockerfile
+          client-statistics-service services/statistics/client build/client-statistics-service.Dockerfile
+          errors-ingest-service services/errors-ingest build/errors-ingest-service.Dockerfile
+          scheduler-service services/scheduler build/scheduler-service.Dockerfile'
+          SERVICES='[]'
+          while read -r img mod df; do
+            [ -z "$img" ] && continue
+            val="$(echo "$FILTERS" | jq -r --arg k "$img" '.[$k] // "false"')"
+            if [ "$val" = "true" ] || [ "$SHARED" = "true" ]; then
+              SERVICES="$(echo "$SERVICES" | jq -c --arg i "$img" --arg m "$mod" --arg d "$df" '. + [{"image":$i,"module":$m,"dockerfile":$d}]')"
+            fi
+          done <<< "$MAP"
+          echo "services=$SERVICES" >> "$GITHUB_OUTPUT"
+          echo "Detected: $SERVICES"
+
+  docker:
+    name: Build & push ${{ matrix.service.image }}
+    needs: changes
+    if: needs.changes.outputs.any == 'true' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJson(needs.changes.outputs.services) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read service version
+        id: ver
+        run: |
+          V="$(tr -d '[:space:]' < "${{ matrix.service.module }}/VERSION")"
+          [ -n "$V" ] || { echo "VERSION file empty"; exit 1; }
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.service.dockerfile }}
+          push: true
+          build-args: |
+            SERVICE_VERSION=${{ steps.ver.outputs.version }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.service.image }}:${{ steps.ver.outputs.version }}
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.service.image }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.service.image }}:sha-${{ github.sha }}

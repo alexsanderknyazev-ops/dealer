@@ -13,7 +13,7 @@ import (
 
 var ErrNotFound = errors.New("customer not found")
 
-// CreateCustomerInput is the payload for Create (keeps CustomerAPI arity within Sonar limits).
+// CreateCustomerInput is the payload for Create (keeps CustomerAPI arity low).
 type CreateCustomerInput struct {
 	Name         string
 	Email        string

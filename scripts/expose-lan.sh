@@ -43,8 +43,6 @@ echo "  Client public gateway:  http://${LAN_IP}:8091"
 echo "  Client protected GW:    http://${LAN_IP}:8093"
 echo ""
 echo "CI (Docker, same host):"
-echo "  Jenkins:    http://${LAN_IP}:8080"
-echo "  SonarQube:  http://${LAN_IP}:9000"
 echo "  Registry:   http://${LAN_IP}:5050"
 echo ""
 

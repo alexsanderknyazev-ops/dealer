@@ -1,0 +1,40 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      services:
+        description: "Список сервисов через запятую, или пусто = все"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+
+      - name: Deploy
+        env:
+          REGISTRY: ghcr.io/${{ github.repository_owner }}
+          PULL_POLICY: IfNotPresent
+        run: |
+          SERVICES="${{ inputs.services }}"
+          if [ -z "$SERVICES" ]; then
+            ./scripts/k8s-deploy.sh
+          else
+            # shellcheck disable=SC2086
+            ./scripts/k8s-deploy.sh $(echo "$SERVICES" | tr ',' ' ')
+          fi

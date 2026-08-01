@@ -29,34 +29,13 @@ env:
 jobs:
   test:
     name: Test ${{ matrix.module }}
+    needs: changes
+    if: needs.changes.outputs.any == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - .
-          - services/employee/auth
-          - services/employee/customers
-          - services/employee/vehicles
-          - services/employee/deals
-          - services/employee/parts
-          - services/employee/brands
-          - services/employee/dealerpoints
-          - services/employee/workorders
-          - services/employee/works
-          - services/employee/employees
-          - services/employee/reviews
-          - services/employee/appointments
-          - services/client/auth
-          - services/client/registration
-          - services/client/reviews
-          - services/gateway/employee
-          - services/gateway/client-public
-          - services/gateway/client-protected
-          - services/statistics/employee
-          - services/statistics/client
-          - services/errors-ingest
-          - services/scheduler
+        module: ${{ fromJson(needs.changes.outputs.modules) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -77,6 +56,8 @@ jobs:
 
   integration:
     name: Integration (testcontainers)
+    needs: changes
+    if: contains(fromJson(needs.changes.outputs.modules), '.')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -91,29 +72,13 @@ jobs:
 
   integration-services:
     name: Integration ${{ matrix.module }}
+    needs: changes
+    if: needs.changes.outputs.any == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - services/employee/auth
-          - services/employee/customers
-          - services/employee/vehicles
-          - services/employee/deals
-          - services/employee/parts
-          - services/employee/brands
-          - services/employee/dealerpoints
-          - services/employee/workorders
-          - services/employee/works
-          - services/employee/employees
-          - services/employee/reviews
-          - services/employee/appointments
-          - services/client/auth
-          - services/client/registration
-          - services/client/reviews
-          - services/statistics/employee
-          - services/statistics/client
-          - services/scheduler
+        module: ${{ fromJson(needs.changes.outputs.integration-modules) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -131,6 +96,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       services: ${{ steps.map.outputs.services }}
+      modules: ${{ steps.map.outputs.modules }}
+      integration-modules: ${{ steps.map.outputs.integration-modules }}
       any: ${{ steps.filter.outputs.any }}
     steps:
       - uses: actions/checkout@v4
@@ -174,6 +141,8 @@ jobs:
               - go.work.sum
               - ".golangci.yml"
               - "services/*/k8s/**"
+            root:
+              - "!services/**"
 
       - name: Map changes to services
         id: map
@@ -181,6 +150,9 @@ jobs:
         run: |
           FILTERS='${{ toJSON(steps.filter.outputs) }}'
           SHARED="$(echo "$FILTERS" | jq -r '.shared')"
+          ROOT_CHANGED="false"
+          [ "$SHARED" = "true" ] && ROOT_CHANGED="true"
+          [ "$(echo "$FILTERS" | jq -r '.root // "false"')" = "true" ] && ROOT_CHANGED="true"
           MAP='auth-service services/employee/auth build/auth-service.Dockerfile
           customers-service services/employee/customers build/customers-service.Dockerfile
           vehicles-service services/employee/vehicles build/vehicles-service.Dockerfile
@@ -204,15 +176,29 @@ jobs:
           errors-ingest-service services/errors-ingest build/errors-ingest-service.Dockerfile
           scheduler-service services/scheduler build/scheduler-service.Dockerfile'
           SERVICES='[]'
+          MODULES='[]'
+          INTEGRATION='[]'
           while read -r img mod df; do
             [ -z "$img" ] && continue
             val="$(echo "$FILTERS" | jq -r --arg k "$img" '.[$k] // "false"')"
             if [ "$val" = "true" ] || [ "$SHARED" = "true" ]; then
               SERVICES="$(echo "$SERVICES" | jq -c --arg i "$img" --arg m "$mod" --arg d "$df" '. + [{"image":$i,"module":$m,"dockerfile":$d}]')"
+              MODULES="$(echo "$MODULES" | jq -c --arg m "$mod" '. + [$m]')"
+              case "$mod" in
+                services/gateway/*|services/errors-ingest) ;;
+                *) INTEGRATION="$(echo "$INTEGRATION" | jq -c --arg m "$mod" '. + [$m]')" ;;
+              esac
             fi
           done <<< "$MAP"
+          if [ "$ROOT_CHANGED" = "true" ]; then
+            MODULES="$(echo "$MODULES" | jq -c '. + ["."]')"
+          fi
           echo "services=$SERVICES" >> "$GITHUB_OUTPUT"
-          echo "Detected: $SERVICES"
+          echo "modules=$MODULES" >> "$GITHUB_OUTPUT"
+          echo "integration-modules=$INTEGRATION" >> "$GITHUB_OUTPUT"
+          echo "Detected services: $SERVICES"
+          echo "Test modules: $MODULES"
+          echo "Integration modules: $INTEGRATION"
 
   docker:
     name: Build & push ${{ matrix.service.image }}

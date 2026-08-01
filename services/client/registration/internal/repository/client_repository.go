@@ -27,7 +27,7 @@ func (r *ClientRepository) CreateClientWithVehicle(ctx context.Context, c *domai
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	if err := r.insertClient(ctx, tx, c); err != nil {
 		return err

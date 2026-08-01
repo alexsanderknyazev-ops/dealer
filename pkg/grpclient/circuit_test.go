@@ -10,15 +10,18 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const bufSize = 1024 * 1024
 
-type unavailableService struct {
-	grpc.ServiceRegistrar
+type unavailableService interface {
+	Failing(context.Context, *struct{}, *struct{}) error
 }
 
-func (unavailableService) Failing(context.Context, *struct{}, *struct{}) error {
+type unavailableSvc struct{}
+
+func (unavailableSvc) Failing(context.Context, *struct{}, *struct{}) error {
 	return status.Error(codes.Unavailable, "down")
 }
 
@@ -28,7 +31,7 @@ func TestUnaryClientInterceptorOpensOnUnavailable(t *testing.T) {
 
 	lis := bufconn.Listen(bufSize)
 	srv := grpc.NewServer()
-	grpc.RegisterService(&grpc.ServiceDesc{
+	srv.RegisterService(&grpc.ServiceDesc{
 		ServiceName: "test.Unavailable",
 		HandlerType: (*unavailableService)(nil),
 		Methods: []grpc.MethodDesc{{
@@ -37,7 +40,7 @@ func TestUnaryClientInterceptorOpensOnUnavailable(t *testing.T) {
 				return nil, status.Error(codes.Unavailable, "down")
 			},
 		}},
-	}, unavailableService{})
+	}, unavailableSvc{})
 	go func() { _ = srv.Serve(lis) }()
 	t.Cleanup(func() { srv.Stop() })
 
@@ -53,7 +56,7 @@ func TestUnaryClientInterceptorOpensOnUnavailable(t *testing.T) {
 	t.Cleanup(func() { _ = conn.Close() })
 
 	invoke := func(ctx context.Context) error {
-		return conn.Invoke(ctx, "/test.Unavailable/Failing", &struct{}{}, &struct{}{})
+		return conn.Invoke(ctx, "/test.Unavailable/Failing", &emptypb.Empty{}, &emptypb.Empty{})
 	}
 
 	for i := 0; i < 2; i++ {

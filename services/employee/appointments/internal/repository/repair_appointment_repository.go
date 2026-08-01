@@ -143,7 +143,7 @@ func (r *RepairAppointmentRepository) Create(ctx context.Context, a *domain.Repa
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	_, err = tx.Exec(ctx, `
 		INSERT INTO repair_appointments (
 			id, appointment_number, customer_id, vehicle_id, dealer_point_id, warehouse_id,
@@ -194,7 +194,7 @@ func (r *RepairAppointmentRepository) Update(ctx context.Context, a *domain.Repa
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	_, err = tx.Exec(ctx, `
 		UPDATE repair_appointments SET
 			customer_id=$2, vehicle_id=$3, dealer_point_id=$4, warehouse_id=$5,

@@ -9,8 +9,6 @@
 /deals
 /deals-service
 /vehicles-service
-services/*/parts
-services/*/*-service
 
 # Test binary
 *.test

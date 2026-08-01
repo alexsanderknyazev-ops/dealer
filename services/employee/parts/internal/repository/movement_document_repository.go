@@ -33,7 +33,7 @@ func (r *MovementDocumentRepository) Create(ctx context.Context, doc *domain.Mov
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	_, err = tx.Exec(ctx, `
 		INSERT INTO movement_documents (
 			id, document_number, status, movement_type, reference_type, reference_id,
@@ -172,7 +172,7 @@ func (r *MovementDocumentRepository) Update(ctx context.Context, doc *domain.Mov
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	_, err = tx.Exec(ctx, `
 		UPDATE movement_documents
 		SET movement_type=$2, customer_id=$3, vehicle_id=$4, supplier_id=$5, receipt_warehouse_id=$6,

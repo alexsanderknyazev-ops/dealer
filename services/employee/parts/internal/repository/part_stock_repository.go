@@ -58,7 +58,7 @@ func (r *PartStockRepository) ReplaceForPart(ctx context.Context, partID uuid.UU
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	_, err = tx.Exec(ctx, "DELETE FROM part_stock WHERE part_id = $1", partID)
 	if err != nil {
 		return err

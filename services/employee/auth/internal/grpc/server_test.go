@@ -69,7 +69,7 @@ func dialAuth(t *testing.T, srv *grpc.Server) authv1.AuthServiceClient {
 	l := bufconn.Listen(1024 * 1024)
 	go func() { _ = srv.Serve(l) }()
 	t.Cleanup(func() { srv.Stop() })
-	c, err := grpc.DialContext(context.Background(), "buf",
+	c, err := grpc.NewClient("passthrough:///" + "buf",
 		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) { return l.Dial() }),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)

@@ -131,7 +131,7 @@ func dialDP(t *testing.T, srv *grpc.Server) dealerpointsv1.DealerPointsServiceCl
 	l := bufconn.Listen(1024 * 1024)
 	go func() { _ = srv.Serve(l) }()
 	t.Cleanup(func() { srv.Stop() })
-	c, err := grpc.DialContext(context.Background(), "b",
+	c, err := grpc.NewClient("passthrough:///" + "b",
 		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) { return l.Dial() }),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)

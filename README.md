@@ -125,6 +125,7 @@ Workflows в `.github/workflows/`:
 - **`ci.yml`** — на push/PR в `main`:
   - **Test** — `go test ./...` во всех 22 Go-модулях (матрица).
   - **Lint** — `golangci-lint` (конфигурация в `.golangci.yml`).
+  - **Integration (testcontainers)** — интеграционные тесты инфраструктуры (`pkg/integration`, build-тег `integration`): поднимаются реальные контейнеры Postgres (с применением всех миграций), Redis и Kafka; локально: `make test-integration`.
   - **Detect changed services** — определяет изменённые сервисы и общие пакеты (`pkg`, `api`, `build`, k8s-манифесты).
   - **Build & push** — на push в `main` собирает и публикует образы изменённых сервисов в GHCR (`ghcr.io/<owner>/<имя_сервиса>:<VERSION>`, `:latest`, `:sha-<sha>`).
 - **`deploy.yml`** — ручной (`workflow_dispatch`): kubectl-деплой в кластер через `scripts/k8s-deploy.sh`.

@@ -1,4 +1,4 @@
-.PHONY: proto docker-up docker-down kube-up run-auth seed-admin frontend-dev frontend-build frontend-client-dev frontend-client-build
+.PHONY: proto docker-up docker-down test-integration kube-up run-auth seed-admin frontend-dev frontend-build frontend-client-dev frontend-client-build
 
 proto:
 	@which protoc >/dev/null || (echo "install protoc (brew install protobuf)" && exit 1)
@@ -22,6 +22,10 @@ docker-up:
 
 docker-down:
 	docker compose down
+
+# Интеграционные тесты инфраструктуры (Postgres + миграции, Redis, Kafka) через Testcontainers. Нужен запущенный Docker.
+test-integration:
+	go test -tags=integration -timeout 30m -count=1 ./pkg/integration/...
 
 # Применить миграции к БД (нужен запущенный Postgres, порт 5433 при Docker)
 migrate:

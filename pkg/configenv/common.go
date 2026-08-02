@@ -83,3 +83,17 @@ func LoadKafkaReviewPublished(brokersDefault string) KafkaReviewPublished {
 		Topic:   String("KAFKA_TOPIC_REVIEW_PUBLISHED", "review.published.v1"),
 	}
 }
+
+// KafkaAppointmentCreated — события создания записей на ремонт.
+type KafkaAppointmentCreated struct {
+	Brokers []string
+	Topic   string
+}
+
+// LoadKafkaAppointmentCreated загружает KAFKA_BROKERS и KAFKA_TOPIC_APPOINTMENT_CREATED.
+func LoadKafkaAppointmentCreated(brokersDefault string) KafkaAppointmentCreated {
+	return KafkaAppointmentCreated{
+		Brokers: Brokers("KAFKA_BROKERS", brokersDefault),
+		Topic:   String("KAFKA_TOPIC_APPOINTMENT_CREATED", "repair.appointment.created.v1"),
+	}
+}

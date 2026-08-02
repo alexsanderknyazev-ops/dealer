@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 		fmt.Fprintln(os.Stderr, "start postgres:", err)
 		os.Exit(1)
 	}
-	pool, err := postgres.NewPool(ctx, pg.DSN, dbschema.Reviews, dbschema.WorkOrders, dbschema.Deals, dbschema.Customers, dbschema.Clients, dbschema.Vehicles, dbschema.Public)
+	pool, err := postgres.NewPool(ctx, pg.DSN, dbschema.Reviews, dbschema.WorkOrders, dbschema.Deals, dbschema.Customers, dbschema.Clients, dbschema.Vehicles, dbschema.Appointments, dbschema.Public)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "create pool:", err)
 		os.Exit(1)

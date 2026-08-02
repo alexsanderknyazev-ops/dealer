@@ -136,3 +136,52 @@ func TestNotificationRepository_CreateRepairAppointmentReminders(t *testing.T) {
 		t.Fatalf("expected 0 new reminders on second call, got %d", n2)
 	}
 }
+
+func TestNotificationRepository_CreateRepairAppointmentBooked(t *testing.T) {
+	ctx := context.Background()
+	repo := NewNotificationRepository(testPool)
+	customerID, _, _ := seedNotificationClient(t)
+
+	appt := uuid.New()
+	start := time.Now().UTC().Add(48 * time.Hour)
+	notifMustExec(t, ctx, `INSERT INTO appointments.repair_appointments (id, appointment_number, customer_id, vehicle_id, scheduled_start, scheduled_end, status) VALUES ($1, $2, $3, $4, $5, $6, 'scheduled')`,
+		appt, "RA-TEST-0001", customerID, uuid.New(), start, start.Add(2*time.Hour))
+	t.Cleanup(func() {
+		_, _ = testPool.Exec(ctx, `DELETE FROM appointments.repair_appointments WHERE id = $1`, appt)
+	})
+
+	n, err := repo.CreateRepairAppointmentBooked(ctx, appt)
+	if err != nil {
+		t.Fatalf("CreateRepairAppointmentBooked: %v", err)
+	}
+	if n != 1 {
+		t.Fatalf("expected 1 notification, got %d", n)
+	}
+
+	var title, body, kind, status string
+	if err := testPool.QueryRow(ctx,
+		`SELECT title, body, kind, status FROM clients.client_notifications WHERE kind = 'repair_appointment_booked' AND source_id = $1`, appt).
+		Scan(&title, &body, &kind, &status); err != nil {
+		t.Fatalf("load notification: %v", err)
+	}
+	if kind != "repair_appointment_booked" {
+		t.Errorf("kind = %q", kind)
+	}
+	if title != "Вы записаны на ремонт" {
+		t.Errorf("title = %q", title)
+	}
+	if body == "" {
+		t.Error("body is empty")
+	}
+	if status != "unread" {
+		t.Errorf("status = %q", status)
+	}
+
+	n2, err := repo.CreateRepairAppointmentBooked(ctx, appt)
+	if err != nil {
+		t.Fatalf("second call: %v", err)
+	}
+	if n2 != 0 {
+		t.Fatalf("expected 0 on second call (idempotent), got %d", n2)
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -13,6 +14,44 @@ type NotificationRepository struct {
 
 func NewNotificationRepository(pool *pgxpool.Pool) *NotificationRepository {
 	return &NotificationRepository{pool: pool}
+}
+
+// CreateRepairAppointmentBooked создаёт уведомление «вы записаны на ремонт»
+// для зарегистрированного клиента сразу после создания записи.
+func (r *NotificationRepository) CreateRepairAppointmentBooked(ctx context.Context, appointmentID uuid.UUID) (int64, error) {
+	query := fmt.Sprintf(`
+		INSERT INTO clients.client_notifications (
+			client_id, user_id, kind, source_type, source_id, title, body, status, created_at, updated_at
+		)
+		SELECT
+			c.id,
+			c.user_id,
+			'repair_appointment_booked',
+			'repair_appointment',
+			ra.id,
+			'Вы записаны на ремонт',
+			'Запись на ремонт ' || ra.appointment_number || ' ' ||
+			to_char(ra.scheduled_start AT TIME ZONE 'UTC', 'DD.MM.YYYY HH24:MI') || ' UTC.',
+			'unread',
+			now(),
+			now()
+		FROM appointments.repair_appointments ra
+		JOIN customers.customers cu ON cu.id = ra.customer_id
+		JOIN clients.clients c ON (
+			(cu.email <> '' AND lower(trim(c.email)) = lower(trim(cu.email)))
+			OR (
+				cu.phone <> '' AND c.phone <> ''
+				AND regexp_replace(c.phone, '[^0-9]', '', 'g') = regexp_replace(cu.phone, '[^0-9]', '', 'g')
+			)
+		)
+		WHERE ra.id = '%s'
+		ON CONFLICT (kind, source_type, source_id) DO NOTHING
+	`, appointmentID)
+	tag, err := r.pool.Exec(ctx, query)
+	if err != nil {
+		return 0, err
+	}
+	return tag.RowsAffected(), nil
 }
 
 // CreateFromClosedCustomerOrderReceipts уведомляет клиента, когда по связанному заказу поставщику закрыто поступление.

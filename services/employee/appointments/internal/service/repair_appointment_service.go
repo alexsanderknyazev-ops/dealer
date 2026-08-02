@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"github.com/dealer/dealer/pkg/obslog"
 	"github.com/dealer/dealer/services/appointments/internal/domain"
 )
 
@@ -52,6 +53,10 @@ type WorkOrdersCreator interface {
 	GetOrderNumber(ctx context.Context, id string) string
 }
 
+type AppointmentPublisher interface {
+	Publish(ctx context.Context, a *domain.RepairAppointment) error
+}
+
 type noopRefs struct{}
 
 func (noopRefs) CustomerExists(context.Context, uuid.UUID) (bool, error) { return true, nil }
@@ -64,13 +69,14 @@ type RepairAppointmentService struct {
 	repo       appointmentRepository
 	refs       ReferenceChecker
 	workOrders WorkOrdersCreator
+	publisher  AppointmentPublisher
 }
 
-func NewRepairAppointmentService(repo appointmentRepository, refs ReferenceChecker, workOrders WorkOrdersCreator) *RepairAppointmentService {
+func NewRepairAppointmentService(repo appointmentRepository, refs ReferenceChecker, workOrders WorkOrdersCreator, publisher AppointmentPublisher) *RepairAppointmentService {
 	if refs == nil {
 		refs = noopRefs{}
 	}
-	return &RepairAppointmentService{repo: repo, refs: refs, workOrders: workOrders}
+	return &RepairAppointmentService{repo: repo, refs: refs, workOrders: workOrders, publisher: publisher}
 }
 
 func parseDate(dateStr string) (time.Time, error) {
@@ -283,6 +289,11 @@ func (s *RepairAppointmentService) Create(ctx context.Context, in domain.CreateI
 	}
 	if err := s.repo.Create(ctx, a); err != nil {
 		return nil, err
+	}
+	if s.publisher != nil {
+		if err := s.publisher.Publish(ctx, a); err != nil {
+			obslog.Default.Warn("kafka publish failed", "event", "appointment.created", "appointment_id", a.ID.String(), "err", err)
+		}
 	}
 	return s.Get(ctx, id.String())
 }

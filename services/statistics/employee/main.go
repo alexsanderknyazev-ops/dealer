@@ -32,6 +32,8 @@ const serviceName = "employee-statistics-service"
 func main() {
 	cfg := config.Load()
 	logger := observe.Init(serviceName)
+	tracerShutdown := observe.InitTracing(serviceName)
+	defer tracerShutdown()
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 

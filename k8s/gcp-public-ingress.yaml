@@ -1,0 +1,44 @@
+# Public internet access via nip.io (no real domain required).
+# Hosts are substituted by scripts/gcp-expose.sh: __NIP_HOST__, __CLIENT_NIP_HOST__
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dealer-http
+  namespace: dealer
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "32m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: __NIP_HOST__
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: client-http
+  namespace: dealer
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "32m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: __CLIENT_NIP_HOST__
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: client-frontend
+                port:
+                  number: 3001

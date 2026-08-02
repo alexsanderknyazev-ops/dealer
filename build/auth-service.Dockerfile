@@ -22,8 +22,10 @@ COPY services/employee/auth/ ./services/employee/auth/
 #устанавливаем рабочую директорию
 WORKDIR /app/services/employee/auth
 #строим проект
-RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-w -s" -o /auth-service . \
-  && CGO_ENABLED=0 go build -ldflags="-w -s" -o /seed-admin ./cmd/seed-admin
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GOMAXPROCS=2 go mod tidy && GOMAXPROCS=2 CGO_ENABLED=0 go build -trimpath -ldflags="-w -s" -o /auth-service . \
+  && GOMAXPROCS=2 CGO_ENABLED=0 go build -trimpath -ldflags="-w -s" -o /seed-admin ./cmd/seed-admin
 #берем alpine 3.19
 FROM alpine:3.19
 ARG SERVICE_VERSION=dev

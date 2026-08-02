@@ -5,7 +5,9 @@ COPY pkg/ ./pkg/
 COPY api/ ./api/
 COPY services/client/registration/ ./services/client/registration/
 WORKDIR /app/services/client/registration
-RUN go mod tidy && go build -o /client-registration-service .
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GOMAXPROCS=2 go mod tidy && GOMAXPROCS=2 CGO_ENABLED=0 go build -trimpath -ldflags="-w -s" -o /client-registration-service .
 
 FROM alpine:3.19
 ARG SERVICE_VERSION=dev

@@ -13,7 +13,9 @@ COPY services/employee/deals/ ./services/employee/deals/
 #устанавливаем рабочую директорию
 WORKDIR /app/services/employee/deals
 #строим проект
-RUN go mod tidy && go build -o /deals-service .
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GOMAXPROCS=2 go mod tidy && GOMAXPROCS=2 CGO_ENABLED=0 go build -trimpath -ldflags="-w -s" -o /deals-service .
 #берем alpine 3.19
 FROM alpine:3.19
 ARG SERVICE_VERSION=dev

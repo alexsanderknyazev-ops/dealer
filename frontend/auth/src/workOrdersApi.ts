@@ -77,6 +77,7 @@ export type WorkOrderForm = {
   vehicle_id: string
   dealer_point_id?: string
   warehouse_id?: string
+  brand_id?: string
   repair_type?: string
   status?: string
   service_advisor_id?: string

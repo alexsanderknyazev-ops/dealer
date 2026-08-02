@@ -72,7 +72,7 @@ done
 }
 
 TABLE_COUNT="$("${COMPOSE[@]}" exec -T postgres env PGPASSWORD="${POSTGRES_PASSWORD:-changeme}" \
-  psql -U dealer -d dealer -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'" | tr -d '[:space:]')"
+  psql -U dealer -d dealer -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog','information_schema')" | tr -d '[:space:]')"
 
 if [[ "$SKIP_MIGRATE" -eq 0 && "${TABLE_COUNT:-0}" == "0" ]]; then
   log "Applying SQL migrations"

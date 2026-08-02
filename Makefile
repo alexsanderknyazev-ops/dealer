@@ -1,4 +1,4 @@
-.PHONY: proto docker-up docker-down test-integration kube-up run-auth seed-admin frontend-dev frontend-build frontend-client-dev frontend-client-build
+.PHONY: proto docker-up docker-down test-integration kube-up local-up run-auth seed-admin frontend-dev frontend-build frontend-client-dev frontend-client-build docker-clean
 
 proto:
 	@which protoc >/dev/null || (echo "install protoc (brew install protobuf)" && exit 1)
@@ -22,6 +22,11 @@ docker-up:
 
 docker-down:
 	docker compose down
+
+# Безопасная чистка Docker: build cache + неиспользуемые образы (без volumes).
+# Флаги --volumes / --minikube вызываются напрямую: ./scripts/docker-cleanup.sh --volumes
+docker-clean:
+	./scripts/docker-cleanup.sh
 
 # Интеграционные тесты инфраструктуры (Postgres + миграции, Redis, Kafka) через Testcontainers. Нужен запущенный Docker.
 test-integration:
@@ -144,6 +149,12 @@ frontend-client-build:
 # Полный деплой в minikube: образы, k8s, миграции, seed, LAN port-forward
 kube-up:
 	./scripts/kube-up.sh
+
+# Локальный dev-стенд через docker compose: пересобирает только изменившиеся сервисы
+# (BuildKit-кэш), стартует и применяет миграции/seed/admin; сносит старые образы пересобранных.
+# Полная пересборка всех образов: make local-up FULL=1. Сброс данных: make local-up VOLUMES=1
+local-up:
+	./scripts/local-up.sh $(if $(FULL),--full,) $(if $(VOLUMES),--volumes,)
 
 # Нагрузочное тестирование (нужен seed_volume и expose-lan)
 load-test:

@@ -7,10 +7,14 @@ import * as vehiclesApi from './vehiclesApi'
 import * as partsApi from './partsApi'
 import * as worksApi from './worksApi'
 import * as dealerPointsApi from './dealerPointsApi'
+import * as workOrdersApi from './workOrdersApi'
+import * as dealsApi from './dealsApi'
+import * as customerOrdersApi from './customerOrdersApi'
 import { useAuth } from './auth'
 import { FormPage } from '@/components/common/FormPage'
 import { FormField } from '@/components/common/FormField'
 import { FormActions } from '@/components/common/FormActions'
+import { SearchSelect, type SearchSelectItem } from '@/components/common/SearchSelect'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
@@ -18,8 +22,16 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-const emptyLabor = (): api.LaborLineInput => ({ work_id: '', description: '', quantity: '1', unit_price: '0' })
-const emptyPart = (): api.PartLineInput => ({ part_id: '', warehouse_id: '', quantity: '1', unit_price: '0', notes: '' })
+type LaborLine = api.LaborLineInput & { display?: string }
+type PartLine = api.PartLineInput & { display?: string }
+
+type AppointmentFormState = Omit<api.RepairAppointmentForm, 'labor' | 'parts'> & {
+  labor?: LaborLine[]
+  parts?: PartLine[]
+}
+
+const emptyLabor = (): LaborLine => ({ work_id: '', description: '', quantity: '1', unit_price: '0' })
+const emptyPart = (): PartLine => ({ part_id: '', warehouse_id: '', quantity: '1', unit_price: '0', notes: '' })
 
 function fromUnix(ts?: number): string {
   if (!ts) return ''
@@ -32,6 +44,48 @@ function toUnix(dt: string): number {
   return Math.floor(Date.parse(dt) / 1000)
 }
 
+function customerItem(c: customersApi.Customer): SearchSelectItem<customersApi.Customer> {
+  return {
+    value: c.id,
+    label: c.name || c.email,
+    sublabel: [c.email, c.phone].filter(Boolean).join(' · '),
+    data: c,
+  }
+}
+
+function vehicleItem(v: vehiclesApi.Vehicle): SearchSelectItem<vehiclesApi.Vehicle> {
+  return {
+    value: v.id,
+    label: `${v.make} ${v.model}${v.year ? ` ${v.year}` : ''}`,
+    sublabel: v.vin,
+    data: v,
+  }
+}
+
+function partItem(p: partsApi.Part): SearchSelectItem<partsApi.Part> {
+  return {
+    value: p.id,
+    label: p.sku,
+    sublabel: p.name,
+    data: p,
+  }
+}
+
+function workItem(w: worksApi.Work): SearchSelectItem<worksApi.Work> {
+  return {
+    value: w.id,
+    label: w.code,
+    sublabel: w.name,
+    data: w,
+  }
+}
+
+function stripDisplay<T extends { display?: string }>(row: T): Omit<T, 'display'> {
+  const { display, ...rest } = row
+  void display
+  return rest
+}
+
 export function RepairAppointmentForm() {
   const { id } = useParams()
   const [searchParams] = useSearchParams()
@@ -41,11 +95,11 @@ export function RepairAppointmentForm() {
   const [loading, setLoading] = useState(!isNew)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [customers, setCustomers] = useState<customersApi.Customer[]>([])
-  const [vehicles, setVehicles] = useState<vehiclesApi.Vehicle[]>([])
-  const [parts, setParts] = useState<partsApi.Part[]>([])
-  const [works, setWorks] = useState<worksApi.Work[]>([])
   const [warehouses, setWarehouses] = useState<dealerPointsApi.Warehouse[]>([])
+  const [customerDisplay, setCustomerDisplay] = useState('')
+  const [vehicleDisplay, setVehicleDisplay] = useState('')
+  const [customerVehicles, setCustomerVehicles] = useState<SearchSelectItem<vehiclesApi.Vehicle>[]>([])
+  const [customerPresets, setCustomerPresets] = useState<SearchSelectItem<customersApi.Customer>[]>([])
 
   const startParam = searchParams.get('start')
   const endParam = searchParams.get('end')
@@ -54,7 +108,7 @@ export function RepairAppointmentForm() {
 
   const [startAt, setStartAt] = useState(fromUnix(defaultStart))
   const [endAt, setEndAt] = useState(fromUnix(defaultEnd))
-  const [form, setForm] = useState<api.RepairAppointmentForm>({
+  const [form, setForm] = useState<AppointmentFormState>({
     customer_id: '',
     vehicle_id: '',
     warehouse_id: '',
@@ -67,12 +121,74 @@ export function RepairAppointmentForm() {
   })
 
   useEffect(() => {
-    customersApi.listCustomers({ limit: 500 }).then((r) => setCustomers(r.customers)).catch(() => {})
-    vehiclesApi.listVehicles({ limit: 500 }).then((r) => setVehicles(r.vehicles)).catch(() => {})
-    partsApi.listParts({ limit: 500 }).then((r) => setParts(r.parts)).catch(() => {})
-    worksApi.listWorks({ limit: 500 }).then((r) => setWorks(r.works)).catch(() => {})
     dealerPointsApi.listWarehouses({ limit: 500 }).then((r) => setWarehouses(r.warehouses)).catch(() => {})
   }, [])
+
+  async function loadCustomerVehicles(customerId: string) {
+    if (!customerId) {
+      setCustomerVehicles([])
+      return
+    }
+    const result: SearchSelectItem<vehiclesApi.Vehicle>[] = []
+    const seen = new Set<string>()
+    const push = (vid: string, label: string, sublabel?: string) => {
+      if (!vid || seen.has(vid)) return
+      seen.add(vid)
+      result.push({ value: vid, label, sublabel, data: undefined })
+    }
+    try {
+      const [woRes, dealRes, coRes] = await Promise.all([
+        workOrdersApi.listWorkOrders({ customer_id: customerId, limit: 100 }),
+        dealsApi.listDeals({ customer_id: customerId, limit: 100 }),
+        customerOrdersApi.listCustomerOrders({ limit: 200 }),
+      ])
+      for (const wo of woRes.work_orders || []) {
+        push(wo.vehicle_id, wo.vehicle_label || wo.vehicle_vin, wo.vehicle_vin)
+      }
+      for (const d of dealRes.deals || []) {
+        push(d.vehicle_id, 'Автомобиль по сделке', d.vehicle_id)
+      }
+      for (const o of coRes.orders || []) {
+        if (o.customer_id === customerId) push(o.vehicle_id, o.vehicle_label || o.vehicle_vin, o.vehicle_vin)
+      }
+    } catch {
+      // не критично — поиск останется обычным
+    }
+    setCustomerVehicles(result)
+  }
+
+  async function loadVehicleCustomers(vehicleId: string) {
+    if (!vehicleId) {
+      setCustomerPresets([])
+      return
+    }
+    const result: SearchSelectItem<customersApi.Customer>[] = []
+    const seen = new Set<string>()
+    const push = (cid: string, label: string, sublabel?: string) => {
+      if (!cid || seen.has(cid)) return
+      seen.add(cid)
+      result.push({ value: cid, label, sublabel, data: undefined })
+    }
+    try {
+      const [woRes, coRes, dealRes] = await Promise.all([
+        workOrdersApi.listWorkOrders({ vehicle_id: vehicleId, limit: 100 }),
+        customerOrdersApi.listCustomerOrders({ limit: 200 }),
+        dealsApi.listDeals({ limit: 200 }),
+      ])
+      for (const wo of woRes.work_orders || []) {
+        push(wo.customer_id, wo.customer_name || wo.customer_id, wo.vehicle_label || wo.vehicle_vin)
+      }
+      for (const o of coRes.orders || []) {
+        if (o.vehicle_id === vehicleId) push(o.customer_id, o.customer_name || o.customer_id, o.vehicle_label || o.vehicle_vin)
+      }
+      for (const d of dealRes.deals || []) {
+        if (d.vehicle_id === vehicleId) push(d.customer_id, 'Клиент по сделке', d.vehicle_id)
+      }
+    } catch {
+      // не критично — поиск останется обычным
+    }
+    setCustomerPresets(result)
+  }
 
   useEffect(() => {
     if (isNew) return
@@ -85,6 +201,8 @@ export function RepairAppointmentForm() {
         }
         setStartAt(fromUnix(a.scheduled_start))
         setEndAt(fromUnix(a.scheduled_end))
+        setCustomerDisplay(a.customer_name)
+        setVehicleDisplay(a.vehicle_label || a.vehicle_vin)
         setForm({
           customer_id: a.customer_id,
           vehicle_id: a.vehicle_id,
@@ -100,6 +218,7 @@ export function RepairAppointmentForm() {
                 quantity: l.quantity,
                 unit_price: l.unit_price,
                 sort_order: l.sort_order,
+                display: l.work_code || l.work_name || l.description || '',
               }))
             : [emptyLabor()],
           parts: a.parts?.map((p) => ({
@@ -109,8 +228,11 @@ export function RepairAppointmentForm() {
             unit_price: p.unit_price,
             notes: p.notes,
             sort_order: p.sort_order,
+            display: p.part_sku || p.part_name || '',
           })) || [],
         })
+        if (a.customer_id) void loadCustomerVehicles(a.customer_id)
+        if (a.vehicle_id) void loadVehicleCustomers(a.vehicle_id)
       })
       .catch(async (e) => {
         if (e instanceof api.ApiError && (e.status === 401 || e.status === 403)) {
@@ -145,8 +267,8 @@ export function RepairAppointmentForm() {
       ...form,
       scheduled_start,
       scheduled_end,
-      labor: (form.labor || []).filter((l) => l.work_id || l.description?.trim()),
-      parts: (form.parts || []).filter((p) => p.part_id && p.warehouse_id),
+      labor: (form.labor || []).filter((l) => l.work_id || l.description?.trim()).map(stripDisplay),
+      parts: (form.parts || []).filter((p) => p.part_id && p.warehouse_id).map(stripDisplay),
     }
     try {
       const saved = isNew
@@ -165,6 +287,26 @@ export function RepairAppointmentForm() {
     }
   }
 
+  async function searchCustomers(query: string): Promise<SearchSelectItem<customersApi.Customer>[]> {
+    const r = await customersApi.listCustomers({ limit: 10, search: query })
+    return r.customers.map(customerItem)
+  }
+
+  async function searchVehicles(query: string): Promise<SearchSelectItem<vehiclesApi.Vehicle>[]> {
+    const r = await vehiclesApi.listVehicles({ limit: 10, search: query })
+    return r.vehicles.map(vehicleItem)
+  }
+
+  async function searchParts(query: string): Promise<SearchSelectItem<partsApi.Part>[]> {
+    const r = await partsApi.listParts({ limit: 10, search: query })
+    return r.parts.map(partItem)
+  }
+
+  async function searchWorks(query: string): Promise<SearchSelectItem<worksApi.Work>[]> {
+    const r = await worksApi.listWorks({ limit: 10, search: query })
+    return r.works.map(workItem)
+  }
+
   return (
     <FormPage title={isNew ? 'Новая запись на ремонт' : 'Редактирование записи'} loading={loading}>
       {error && (
@@ -177,28 +319,36 @@ export function RepairAppointmentForm() {
           <CardHeader><CardTitle className="text-base">Клиент и время</CardTitle></CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <FormField label="Клиент" required>
-              <NativeSelect
-                value={form.customer_id}
-                onChange={(e) => setForm((f) => ({ ...f, customer_id: e.target.value, vehicle_id: '' }))}
-              >
-                <option value="">Выберите клиента</option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name || c.email || c.id}</option>
-                ))}
-              </NativeSelect>
+              <SearchSelect<customersApi.Customer>
+                value={form.customer_id || ''}
+                displayValue={customerDisplay}
+                placeholder="ФИО или email клиента…"
+                clearable
+                presetItems={customerPresets}
+                presetHeader="Клиенты этого автомобиля"
+                onChange={(v, item) => {
+                  setCustomerDisplay(item ? item.label : '')
+                  setForm((f) => ({ ...f, customer_id: v, vehicle_id: f.vehicle_id }))
+                  void loadCustomerVehicles(v)
+                }}
+                onSearch={searchCustomers}
+              />
             </FormField>
             <FormField label="Автомобиль" required>
-              <NativeSelect
-                value={form.vehicle_id}
-                onChange={(e) => setForm((f) => ({ ...f, vehicle_id: e.target.value }))}
-              >
-                <option value="">Выберите автомобиль</option>
-                {vehicles.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.make} {v.model} {v.vin ? `(${v.vin})` : ''}
-                  </option>
-                ))}
-              </NativeSelect>
+              <SearchSelect<vehiclesApi.Vehicle>
+                value={form.vehicle_id || ''}
+                displayValue={vehicleDisplay}
+                placeholder="Марка, модель или VIN…"
+                clearable
+                presetItems={customerVehicles}
+                presetHeader="Автомобили клиента"
+                onChange={(v, item) => {
+                  setVehicleDisplay(item ? item.label : '')
+                  setForm((f) => ({ ...f, vehicle_id: v }))
+                  void loadVehicleCustomers(v)
+                }}
+                onSearch={searchVehicles}
+              />
             </FormField>
             <FormField label="Склад (для запчастей)">
               <NativeSelect
@@ -237,20 +387,27 @@ export function RepairAppointmentForm() {
           <CardContent className="space-y-3">
             {(form.labor || []).map((line, i) => (
               <div key={i} className="grid gap-2 rounded border p-3 sm:grid-cols-5">
-                <NativeSelect
+                <SearchSelect<worksApi.Work>
                   value={line.work_id || ''}
-                  onChange={(e) => {
-                    const work = works.find((w) => w.id === e.target.value)
+                  displayValue={line.display || ''}
+                  placeholder="Код работы…"
+                  clearable
+                  onChange={(v, item) => {
                     setForm((f) => {
                       const labor = [...(f.labor || [])]
-                      labor[i] = { ...labor[i], work_id: e.target.value, description: work?.name || labor[i].description }
+                      labor[i] = {
+                        ...labor[i],
+                        work_id: v,
+                        display: item ? item.label : '',
+                        description: item?.data?.name || labor[i].description,
+                        quantity: item?.data?.labor_hours || labor[i].quantity,
+                        unit_price: item?.data?.unit_price || labor[i].unit_price,
+                      }
                       return { ...f, labor }
                     })
                   }}
-                >
-                  <option value="">Работа</option>
-                  {works.map((w) => <option key={w.id} value={w.id}>{w.code} — {w.name}</option>)}
-                </NativeSelect>
+                  onSearch={searchWorks}
+                />
                 <Input
                   placeholder="Описание"
                   value={line.description || ''}
@@ -300,17 +457,26 @@ export function RepairAppointmentForm() {
           <CardContent className="space-y-3">
             {(form.parts || []).map((line, i) => (
               <div key={i} className="grid gap-2 rounded border p-3 sm:grid-cols-5">
-                <NativeSelect
-                  value={line.part_id}
-                  onChange={(e) => {
-                    const partsLines = [...(form.parts || [])]
-                    partsLines[i] = { ...partsLines[i], part_id: e.target.value }
-                    setForm((f) => ({ ...f, parts: partsLines }))
+                <SearchSelect<partsApi.Part>
+                  value={line.part_id || ''}
+                  displayValue={line.display || ''}
+                  placeholder="Артикул запчасти…"
+                  clearable
+                  onChange={(v, item) => {
+                    setForm((f) => {
+                      const partsLines = [...(f.parts || [])]
+                      partsLines[i] = {
+                        ...partsLines[i],
+                        part_id: v,
+                        display: item ? item.label : '',
+                        warehouse_id: partsLines[i].warehouse_id || item?.data?.warehouse_id || f.warehouse_id || '',
+                        unit_price: item?.data?.price || partsLines[i].unit_price,
+                      }
+                      return { ...f, parts: partsLines }
+                    })
                   }}
-                >
-                  <option value="">Запчасть</option>
-                  {parts.map((p) => <option key={p.id} value={p.id}>{p.sku} — {p.name}</option>)}
-                </NativeSelect>
+                  onSearch={searchParts}
+                />
                 <NativeSelect
                   value={line.warehouse_id}
                   onChange={(e) => {

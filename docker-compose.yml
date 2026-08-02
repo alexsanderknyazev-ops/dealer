@@ -1,3 +1,6 @@
+x-tracing: &tracing
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4318"
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -72,6 +75,7 @@ services:
     ports:
       - "8092:8092"
     environment:
+      <<: *tracing
       ERRORS_INGEST_HTTP_PORT: "8092"
       KAFKA_BROKERS: "kafka:29092"
       KAFKA_TOPIC_ERRORS: "platform.errors.v1"
@@ -94,6 +98,7 @@ services:
     ports:
       - "8091:8091"
     environment:
+      <<: *tracing
       CLIENT_PUBLIC_GATEWAY_HTTP_PORT: "8091"
       CLIENT_AUTH_GRPC_ADDR: "client-auth-service:50059"
       CLIENT_REGISTRATION_GRPC_ADDR: "client-registration-service:50058"
@@ -114,6 +119,7 @@ services:
     ports:
       - "8093:8093"
     environment:
+      <<: *tracing
       CLIENT_PROTECTED_GATEWAY_HTTP_PORT: "8093"
       CLIENT_AUTH_GRPC_ADDR: "client-auth-service:50059"
       CLIENT_REGISTRATION_GRPC_ADDR: "client-registration-service:50058"
@@ -137,6 +143,7 @@ services:
     ports:
       - "50060:50060"
     environment:
+      <<: *tracing
       CLIENT_REVIEWS_GRPC_PORT: "50060"
       CLIENT_REVIEWS_HTTP_PORT: "8089"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -160,6 +167,7 @@ services:
     ports:
       - "50059:50059"
     environment:
+      <<: *tracing
       CLIENT_AUTH_GRPC_PORT: "50059"
       CLIENT_AUTH_HTTP_PORT: "8088"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -186,6 +194,7 @@ services:
     ports:
       - "50058:50058"
     environment:
+      <<: *tracing
       CLIENT_REGISTRATION_GRPC_PORT: "50058"
       CLIENT_REGISTRATION_HTTP_PORT: "8087"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -212,6 +221,7 @@ services:
     ports:
       - "8090:8090"
     environment:
+      <<: *tracing
       GATEWAY_HTTP_PORT: "8090"
       KAFKA_BROKERS: "kafka:29092"
       KAFKA_TOPIC_ERRORS: "platform.errors.v1"
@@ -268,6 +278,7 @@ services:
     ports:
       - "50067:50067"
     environment:
+      <<: *tracing
       APPOINTMENTS_GRPC_PORT: "50067"
       APPOINTMENTS_HTTP_PORT: "8101"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -301,6 +312,7 @@ services:
     ports:
       - "50064:50064"
     environment:
+      <<: *tracing
       WORKORDERS_GRPC_PORT: "50064"
       WORKORDERS_HTTP_PORT: "8097"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -334,6 +346,7 @@ services:
     ports:
       - "50066:50066"
     environment:
+      <<: *tracing
       EMPLOYEES_GRPC_PORT: "50066"
       EMPLOYEES_HTTP_PORT: "8099"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -349,6 +362,7 @@ services:
     ports:
       - "50065:50065"
     environment:
+      <<: *tracing
       WORKS_GRPC_PORT: "50065"
       WORKS_HTTP_PORT: "8098"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -364,6 +378,7 @@ services:
     ports:
       - "50063:50063"
     environment:
+      <<: *tracing
       EMPLOYEE_REVIEWS_GRPC_PORT: "50063"
       EMPLOYEE_REVIEWS_HTTP_PORT: "8096"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -388,6 +403,7 @@ services:
     ports:
       - "50061:50061"
     environment:
+      <<: *tracing
       EMPLOYEE_STATISTICS_GRPC_PORT: "50061"
       EMPLOYEE_STATISTICS_HTTP_PORT: "8094"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -409,6 +425,7 @@ services:
     ports:
       - "50062:50062"
     environment:
+      <<: *tracing
       CLIENT_STATISTICS_GRPC_PORT: "50062"
       CLIENT_STATISTICS_HTTP_PORT: "8095"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -432,6 +449,7 @@ services:
       - "50051:50051"
       - "8080:8080"
     environment:
+      <<: *tracing
       AUTH_GRPC_PORT: "50051"
       AUTH_HTTP_PORT: "8080"
       STATIC_DIR: "/app/web"
@@ -460,6 +478,7 @@ services:
     ports:
       - "50052:50052"
     environment:
+      <<: *tracing
       CUSTOMERS_GRPC_PORT: "50052"
       CUSTOMERS_HTTP_PORT: "8081"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -479,6 +498,7 @@ services:
     ports:
       - "50053:50053"
     environment:
+      <<: *tracing
       VEHICLES_GRPC_PORT: "50053"
       VEHICLES_HTTP_PORT: "8082"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -504,6 +524,7 @@ services:
     ports:
       - "50054:50054"
     environment:
+      <<: *tracing
       DEALS_GRPC_PORT: "50054"
       DEALS_HTTP_PORT: "8083"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -530,6 +551,7 @@ services:
     ports:
       - "50055:50055"
     environment:
+      <<: *tracing
       PARTS_GRPC_PORT: "50055"
       PARTS_HTTP_PORT: "8084"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -559,6 +581,7 @@ services:
     ports:
       - "50056:50056"
     environment:
+      <<: *tracing
       BRANDS_GRPC_PORT: "50056"
       BRANDS_HTTP_PORT: "8085"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -578,6 +601,7 @@ services:
     ports:
       - "50057:50057"
     environment:
+      <<: *tracing
       DEALER_POINTS_GRPC_PORT: "50057"
       DEALER_POINTS_HTTP_PORT: "8086"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
@@ -597,6 +621,7 @@ services:
     ports:
       - "8100:8100"
     environment:
+      <<: *tracing
       SCHEDULER_HTTP_PORT: "8100"
       SCHEDULER_POLL_INTERVAL: "5m"
       SCHEDULER_BATCH_SIZE: "100"
@@ -621,6 +646,18 @@ services:
         condition: service_started
       client-protected-gateway-service:
         condition: service_started
+
+  jaeger:
+    image: jaegertracing/jaeger:2.5.0
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:16686/ | grep -q ."]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
 volumes:
   postgres_data: {}

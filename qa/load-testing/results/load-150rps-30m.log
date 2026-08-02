@@ -1,0 +1,27 @@
+Login qa.master@test.local @ http://192.168.0.27:9080
+Load: 150.0 RPS × 1800s = 270000 req, workers=400, endpoints=41, checkpoint=300s
+[login] attempt 1/60 failed: <urlopen error [Errno 64] Host is down>
+[login] ok on attempt 2
+[5m] total=44799 ok=35730 err=9069 (79.8%) | window +44799 ok=35730 err=9069 (79.8%) rps=149.3 p95=2223ms codes=[] exc=[URLError:8915, ConnectionResetError:87, timeout:67]
+[10m] total=66779 ok=55540 err=11239 (83.2%) | window +21980 ok=19810 err=2170 (90.1%) rps=111.3 p95=11150ms codes=[] exc=[URLError:9006, timeout:2064, ConnectionResetError:169]
+[15m] total=73029 ok=57173 err=15856 (78.3%) | window +6250 ok=1633 err=4617 (26.1%) rps=81.1 p95=30015ms codes=[401:200] exc=[URLError:9519, timeout:5900, ConnectionResetError:237]
+[login] attempt 1/12 failed: <urlopen error [Errno 64] Host is down>
+[20m] total=179638 ok=58402 err=121236 (32.5%) | window +106609 ok=1229 err=105380 (1.2%) rps=149.7 p95=15102ms codes=[401:37582] exc=[URLError:76902, timeout:6414, ConnectionResetError:338]
+[login] attempt 2/12 failed: <urlopen error timed out>
+[login] attempt 3/12 failed: <urlopen error [Errno 64] Host is down>
+[login] attempt 4/12 failed: <urlopen error timed out>
+[login] ok on attempt 5
+[token] refreshed (#1)
+[25m] total=224636 ok=80625 err=144011 (35.9%) | window +44998 ok=22223 err=22775 (49.4%) rps=149.8 p95=10302ms codes=[401:39434, 500:66] exc=[URLError:97619, timeout:6471, ConnectionResetError:421]
+
+=== FINAL ===
+# Load test — 150.0 RPS × 1800s
+
+- Target: **150.0 RPS** for **30 min** (~270000 requests)
+- Completed: **270000** (actual **149.28 RPS**)
+- OK 200: **80625** (29.86%)
+- Errors: **189375** (70.14%)
+- Latency p50/p95/p99: **23.5/13241.7/30024.1 ms**
+- Latency max/mean: **42188.7/1820.9 ms**
+Verdict: FAIL
+Report: /Users/aleksandrknazev/dealer-1/qa/load-testing/results/load-20260612-163635-report.md

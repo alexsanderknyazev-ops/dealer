@@ -25,10 +25,10 @@ CREATE OR REPLACE FUNCTION sync_parts_quantity_from_stock()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'DELETE' THEN
-        UPDATE parts SET quantity = COALESCE((SELECT SUM(quantity) FROM part_stock WHERE part_id = OLD.part_id), 0), updated_at = now() WHERE id = OLD.part_id;
+        UPDATE parts.parts SET quantity = COALESCE((SELECT SUM(quantity) FROM parts.part_stock WHERE part_id = OLD.part_id), 0), updated_at = now() WHERE id = OLD.part_id;
         RETURN OLD;
     END IF;
-    UPDATE parts SET quantity = (SELECT SUM(quantity) FROM part_stock WHERE part_id = COALESCE(NEW.part_id, OLD.part_id)), updated_at = now() WHERE id = COALESCE(NEW.part_id, OLD.part_id);
+    UPDATE parts.parts SET quantity = (SELECT SUM(quantity) FROM parts.part_stock WHERE part_id = COALESCE(NEW.part_id, OLD.part_id)), updated_at = now() WHERE id = COALESCE(NEW.part_id, OLD.part_id);
     RETURN COALESCE(NEW, OLD);
 END;
 $$ LANGUAGE plpgsql;

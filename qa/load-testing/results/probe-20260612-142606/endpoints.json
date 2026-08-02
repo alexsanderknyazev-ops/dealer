@@ -1,0 +1,786 @@
+{
+  "base_url": "http://192.168.0.27:9080",
+  "login_email": "qa.master@test.local",
+  "probed_at": "2026-06-12T14:26:08.806942+00:00",
+  "discovered_ids": {
+    "customers": "a2200001-0000-4000-8000-000000000099",
+    "vehicles": "a3300001-0000-4000-8000-000000000003",
+    "deals": "a5500001-0000-4000-8000-000000000002",
+    "parts": "a4400001-0000-4000-8000-000000000002",
+    "parts-folders": "50000000-0000-4000-8000-000000000003",
+    "brands": "40000000-0000-4000-8000-000000000003",
+    "dealer-points": "90000003-0000-4000-8000-000000000001",
+    "legal-entities": "90000013-0000-4000-8000-000000000001",
+    "warehouses": "90000023-0000-4000-8000-000000000001",
+    "work-orders": "a6600001-0000-4000-8000-000000000001",
+    "works": "90000008-0000-4000-8000-00000000000e",
+    "works-folders": "60000000-0000-4000-8000-000000000004",
+    "employees": "ac022b64-5cf6-431a-bce6-9fa1a0bd1442",
+    "reviews": "9000000e-0000-4000-8000-000000000001",
+    "movement-documents": "ae0a141f-74ce-4732-9c6d-3ccda483e076",
+    "repair-appointments": "6fe8e56d-9056-4679-8b44-9bb5bc206091"
+  },
+  "summary": {
+    "pass": 46,
+    "fail": 0,
+    "skip": 2
+  },
+  "endpoints": [
+    {
+      "id": "healthz",
+      "method": "GET",
+      "path": "/healthz",
+      "auth": false,
+      "weight": 1
+    },
+    {
+      "id": "me",
+      "method": "GET",
+      "path": "/api/me",
+      "auth": true,
+      "weight": 1
+    },
+    {
+      "id": "customers-list",
+      "method": "GET",
+      "path": "/api/customers?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "vehicles-list",
+      "method": "GET",
+      "path": "/api/vehicles?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "deals-list",
+      "method": "GET",
+      "path": "/api/deals?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "parts-list",
+      "method": "GET",
+      "path": "/api/parts?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "parts-folders-list",
+      "method": "GET",
+      "path": "/api/parts/folders?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "brands-list",
+      "method": "GET",
+      "path": "/api/brands?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "brand-labor-rates",
+      "method": "GET",
+      "path": "/api/brand-labor-rates",
+      "auth": true,
+      "weight": 1
+    },
+    {
+      "id": "dealer-points-list",
+      "method": "GET",
+      "path": "/api/dealer-points?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "legal-entities-list",
+      "method": "GET",
+      "path": "/api/legal-entities?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "warehouses-list",
+      "method": "GET",
+      "path": "/api/warehouses?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "work-orders-list",
+      "method": "GET",
+      "path": "/api/work-orders?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "works-list",
+      "method": "GET",
+      "path": "/api/works?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "works-folders-list",
+      "method": "GET",
+      "path": "/api/works/folders?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "employees-list",
+      "method": "GET",
+      "path": "/api/employees?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "reviews-list",
+      "method": "GET",
+      "path": "/api/reviews?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "movement-documents-list",
+      "method": "GET",
+      "path": "/api/movement-documents?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "suppliers-list",
+      "method": "GET",
+      "path": "/api/suppliers?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "supplier-orders-list",
+      "method": "GET",
+      "path": "/api/supplier-orders?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "customer-orders-list",
+      "method": "GET",
+      "path": "/api/customer-orders?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "repair-appointments-list",
+      "method": "GET",
+      "path": "/api/repair-appointments?limit=20",
+      "auth": true,
+      "weight": 3
+    },
+    {
+      "id": "stats-employee",
+      "method": "GET",
+      "path": "/api/stats/employee/overview",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "stats-client",
+      "method": "GET",
+      "path": "/api/stats/client/overview",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "reviews-stats",
+      "method": "GET",
+      "path": "/api/reviews/stats",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "client-reviews",
+      "method": "GET",
+      "path": "/api/clients/a7700001-0000-4000-8000-000000000002/reviews",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "brand-labor-resolve",
+      "method": "GET",
+      "path": "/api/brand-labor-rates/resolve?brand_id=40000000-0000-4000-8000-000000000003",
+      "auth": true,
+      "weight": 1
+    },
+    {
+      "id": "repair-slots",
+      "method": "GET",
+      "path": "/api/repair-appointment-slots?dealer_point_id=90000003-0000-4000-8000-000000000001&limit=10",
+      "auth": true,
+      "weight": 1
+    },
+    {
+      "id": "dp-legal",
+      "method": "GET",
+      "path": "/api/dealer-points/90000003-0000-4000-8000-000000000001/legal-entities",
+      "auth": true,
+      "weight": 1
+    },
+    {
+      "id": "customers-by-id",
+      "method": "GET",
+      "path": "/api/customers/a2200001-0000-4000-8000-000000000099",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "vehicles-by-id",
+      "method": "GET",
+      "path": "/api/vehicles/a3300001-0000-4000-8000-000000000003",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "deals-by-id",
+      "method": "GET",
+      "path": "/api/deals/a5500001-0000-4000-8000-000000000002",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "parts-by-id",
+      "method": "GET",
+      "path": "/api/parts/a4400001-0000-4000-8000-000000000002",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "parts-stock",
+      "method": "GET",
+      "path": "/api/parts/a4400001-0000-4000-8000-000000000002/stock",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "parts-folders-by-id",
+      "method": "GET",
+      "path": "/api/parts/folders/50000000-0000-4000-8000-000000000003",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "brands-by-id",
+      "method": "GET",
+      "path": "/api/brands/40000000-0000-4000-8000-000000000003",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "dealer-points-by-id",
+      "method": "GET",
+      "path": "/api/dealer-points/90000003-0000-4000-8000-000000000001",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "legal-entities-by-id",
+      "method": "GET",
+      "path": "/api/legal-entities/90000013-0000-4000-8000-000000000001",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "warehouses-by-id",
+      "method": "GET",
+      "path": "/api/warehouses/90000023-0000-4000-8000-000000000001",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "work-orders-by-id",
+      "method": "GET",
+      "path": "/api/work-orders/a6600001-0000-4000-8000-000000000001",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "works-by-id",
+      "method": "GET",
+      "path": "/api/works/90000008-0000-4000-8000-00000000000e",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "works-folders-by-id",
+      "method": "GET",
+      "path": "/api/works/folders/60000000-0000-4000-8000-000000000004",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "employees-by-id",
+      "method": "GET",
+      "path": "/api/employees/ac022b64-5cf6-431a-bce6-9fa1a0bd1442",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "reviews-by-id",
+      "method": "GET",
+      "path": "/api/reviews/9000000e-0000-4000-8000-000000000001",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "movement-documents-by-id",
+      "method": "GET",
+      "path": "/api/movement-documents/ae0a141f-74ce-4732-9c6d-3ccda483e076",
+      "auth": true,
+      "weight": 2
+    },
+    {
+      "id": "repair-appointments-by-id",
+      "method": "GET",
+      "path": "/api/repair-appointments/6fe8e56d-9056-4679-8b44-9bb5bc206091",
+      "auth": true,
+      "weight": 2
+    }
+  ],
+  "probe_results": [
+    {
+      "id": "healthz",
+      "method": "GET",
+      "path": "/healthz",
+      "auth": false,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "ok"
+    },
+    {
+      "id": "me",
+      "method": "GET",
+      "path": "/api/me",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"user_id\":\"a1100001-0000-4000-8000-000000000003\", \"email\":\"qa.master@test.local\", \"valid\":true}"
+    },
+    {
+      "id": "customers-list",
+      "method": "GET",
+      "path": "/api/customers?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"customers\":[{\"id\":\"a2200001-0000-4000-8000-000000000099\", \"name\":\"QA Client User\", \"email\":\"qa.client@test.local\", \"ph"
+    },
+    {
+      "id": "vehicles-list",
+      "method": "GET",
+      "path": "/api/vehicles?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"vehicles\":[{\"id\":\"a3300001-0000-4000-8000-000000000003\", \"vin\":\"QAVINDEAL001\", \"make\":\"Volkswagen\", \"model\":\"QA Polo\","
+    },
+    {
+      "id": "deals-list",
+      "method": "GET",
+      "path": "/api/deals?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"deals\":[{\"id\":\"a5500001-0000-4000-8000-000000000002\", \"customer_id\":\"a2200001-0000-4000-8000-000000000002\", \"vehicle_i"
+    },
+    {
+      "id": "parts-list",
+      "method": "GET",
+      "path": "/api/parts?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"parts\":[{\"id\":\"a4400001-0000-4000-8000-000000000002\", \"sku\":\"QA-PART-LOW\", \"name\":\"QA Low Stock Gasket\", \"category\":\"\u0420"
+    },
+    {
+      "id": "parts-folders-list",
+      "method": "GET",
+      "path": "/api/parts/folders?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"folders\":[{\"id\":\"50000000-0000-4000-8000-000000000003\", \"name\":\"\u041c\u0430\u0441\u043b\u0430\", \"parent_id\":\"\", \"created_at\":\"1781268251\", \"up"
+    },
+    {
+      "id": "brands-list",
+      "method": "GET",
+      "path": "/api/brands?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"brands\":[{\"id\":\"40000000-0000-4000-8000-000000000003\", \"name\":\"Hyundai\", \"created_at\":\"1781268251\", \"updated_at\":\"1781"
+    },
+    {
+      "id": "brand-labor-rates",
+      "method": "GET",
+      "path": "/api/brand-labor-rates",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"brand_labor_rates\":[{\"id\":\"60000000-0000-4000-8000-000000000001\", \"brand_id\":\"40000000-0000-4000-8000-000000000001\", \""
+    },
+    {
+      "id": "dealer-points-list",
+      "method": "GET",
+      "path": "/api/dealer-points?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"dealer_points\":[{\"id\":\"90000003-0000-4000-8000-000000000001\", \"name\":\"Volume Dealer Point 1\", \"address\":\"\u0433. \u0422\u0435\u0441\u0442\u0433\u0440\u0430\u0434, "
+    },
+    {
+      "id": "legal-entities-list",
+      "method": "GET",
+      "path": "/api/legal-entities?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"legal_entities\":[{\"id\":\"90000013-0000-4000-8000-000000000001\", \"name\":\"\u041e\u041e\u041e Volume Auto 1\", \"inn\":\"7700000001\", \"addres"
+    },
+    {
+      "id": "warehouses-list",
+      "method": "GET",
+      "path": "/api/warehouses?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"warehouses\":[{\"id\":\"90000023-0000-4000-8000-000000000001\", \"dealer_point_id\":\"90000003-0000-4000-8000-000000000001\", \""
+    },
+    {
+      "id": "work-orders-list",
+      "method": "GET",
+      "path": "/api/work-orders?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"work_orders\":[{\"id\":\"a6600001-0000-4000-8000-000000000001\", \"order_number\":\"WO-QA-0001\", \"customer_id\":\"a2200001-0000-"
+    },
+    {
+      "id": "works-list",
+      "method": "GET",
+      "path": "/api/works?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"works\":[{\"id\":\"90000008-0000-4000-8000-00000000000e\", \"code\":\"VOL-LAB-0014\", \"name\":\"Volume Work 14\", \"category\":\"\u0414\u0432\u0438\u0433"
+    },
+    {
+      "id": "works-folders-list",
+      "method": "GET",
+      "path": "/api/works/folders?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"folders\":[{\"id\":\"60000000-0000-4000-8000-000000000004\", \"name\":\"\u0414\u0432\u0438\u0433\u0430\u0442\u0435\u043b\u044c\", \"parent_id\":\"\", \"created_at\":\"1781268251\","
+    },
+    {
+      "id": "employees-list",
+      "method": "GET",
+      "path": "/api/employees?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"employees\":[{\"id\":\"ac022b64-5cf6-431a-bce6-9fa1a0bd1442\", \"user_id\":\"a1100001-0000-4000-8000-000000000001\", \"full_name"
+    },
+    {
+      "id": "reviews-list",
+      "method": "GET",
+      "path": "/api/reviews?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"reviews\":[{\"id\":\"9000000e-0000-4000-8000-000000000001\", \"review_id\":\"9000000d-0000-4000-8000-000000000001\", \"client_id"
+    },
+    {
+      "id": "movement-documents-list",
+      "method": "GET",
+      "path": "/api/movement-documents?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"documents\":[{\"id\":\"ae0a141f-74ce-4732-9c6d-3ccda483e076\", \"document_number\":\"MOV-2026-00001\", \"status\":\"closed\", \"move"
+    },
+    {
+      "id": "suppliers-list",
+      "method": "GET",
+      "path": "/api/suppliers?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "<!DOCTYPE html> <html lang=\"ru\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-w"
+    },
+    {
+      "id": "supplier-orders-list",
+      "method": "GET",
+      "path": "/api/supplier-orders?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "<!DOCTYPE html> <html lang=\"ru\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-w"
+    },
+    {
+      "id": "customer-orders-list",
+      "method": "GET",
+      "path": "/api/customer-orders?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "<!DOCTYPE html> <html lang=\"ru\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-w"
+    },
+    {
+      "id": "repair-appointments-list",
+      "method": "GET",
+      "path": "/api/repair-appointments?limit=20",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"appointments\":[{\"id\":\"6fe8e56d-9056-4679-8b44-9bb5bc206091\", \"appointment_number\":\"RA-2026-00001\", \"customer_id\":\"9000"
+    },
+    {
+      "id": "stats-employee",
+      "method": "GET",
+      "path": "/api/stats/employee/overview",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"customers_count\":\"0\", \"vehicles_count\":\"0\", \"deals_count\":\"80\", \"deals_by_stage\":[{\"stage\":\"completed\", \"count\":\"40\"},"
+    },
+    {
+      "id": "stats-client",
+      "method": "GET",
+      "path": "/api/stats/client/overview",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"clients_count\":\"81\", \"client_vehicles_count\":\"81\", \"registered_users_count\":\"81\", \"reviews_count\":\"80\", \"average_ratin"
+    },
+    {
+      "id": "reviews-stats",
+      "method": "GET",
+      "path": "/api/reviews/stats",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"total_count\":\"80\", \"average_rating\":3, \"by_status\":[{\"status\":\"published\", \"count\":\"80\"}]}"
+    },
+    {
+      "id": "client-reviews",
+      "method": "GET",
+      "path": "/api/clients/a7700001-0000-4000-8000-000000000002/reviews",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"reviews\":[], \"total\":\"0\"}"
+    },
+    {
+      "id": "brand-labor-resolve",
+      "method": "GET",
+      "path": "/api/brand-labor-rates/resolve?brand_id=40000000-0000-4000-8000-000000000003",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"warranty_hour_price\":\"\", \"commercial_hour_price\":\"\", \"hour_price\":\"\", \"found\":false}"
+    },
+    {
+      "id": "repair-slots",
+      "method": "GET",
+      "path": "/api/repair-appointment-slots?dealer_point_id=90000003-0000-4000-8000-000000000001&limit=10",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "<!DOCTYPE html> <html lang=\"ru\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-w"
+    },
+    {
+      "id": "dp-legal",
+      "method": "GET",
+      "path": "/api/dealer-points/90000003-0000-4000-8000-000000000001/legal-entities",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"legal_entities\":[], \"total\":1}"
+    },
+    {
+      "id": "customers-by-id",
+      "method": "GET",
+      "path": "/api/customers/a2200001-0000-4000-8000-000000000099",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"a2200001-0000-4000-8000-000000000099\", \"name\":\"QA Client User\", \"email\":\"qa.client@test.local\", \"phone\":\"+7900300"
+    },
+    {
+      "id": "vehicles-by-id",
+      "method": "GET",
+      "path": "/api/vehicles/a3300001-0000-4000-8000-000000000003",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"a3300001-0000-4000-8000-000000000003\", \"vin\":\"QAVINDEAL001\", \"make\":\"Volkswagen\", \"model\":\"QA Polo\", \"year\":2022,"
+    },
+    {
+      "id": "deals-by-id",
+      "method": "GET",
+      "path": "/api/deals/a5500001-0000-4000-8000-000000000002",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"a5500001-0000-4000-8000-000000000002\", \"customer_id\":\"a2200001-0000-4000-8000-000000000002\", \"vehicle_id\":\"a33000"
+    },
+    {
+      "id": "parts-by-id",
+      "method": "GET",
+      "path": "/api/parts/a4400001-0000-4000-8000-000000000002",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"a4400001-0000-4000-8000-000000000002\", \"sku\":\"QA-PART-LOW\", \"name\":\"QA Low Stock Gasket\", \"category\":\"\u0420\u0430\u0441\u0445\u043e\u0434\u043d\u0438\u043a\u0438\""
+    },
+    {
+      "id": "parts-stock",
+      "method": "GET",
+      "path": "/api/parts/a4400001-0000-4000-8000-000000000002/stock",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"stock\":[{\"warehouse_id\":\"30000000-0000-4000-8000-000000000002\", \"quantity\":5}]}"
+    },
+    {
+      "id": "parts-folders-by-id",
+      "method": "GET",
+      "path": "/api/parts/folders/50000000-0000-4000-8000-000000000003",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"50000000-0000-4000-8000-000000000003\", \"name\":\"\u041c\u0430\u0441\u043b\u0430\", \"parent_id\":\"\", \"created_at\":\"1781268251\", \"updated_at\":\"1"
+    },
+    {
+      "id": "brands-by-id",
+      "method": "GET",
+      "path": "/api/brands/40000000-0000-4000-8000-000000000003",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"40000000-0000-4000-8000-000000000003\", \"name\":\"Hyundai\", \"created_at\":\"1781268251\", \"updated_at\":\"1781268251\"}"
+    },
+    {
+      "id": "dealer-points-by-id",
+      "method": "GET",
+      "path": "/api/dealer-points/90000003-0000-4000-8000-000000000001",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"90000003-0000-4000-8000-000000000001\", \"name\":\"Volume Dealer Point 1\", \"address\":\"\u0433. \u0422\u0435\u0441\u0442\u0433\u0440\u0430\u0434, \u0443\u043b. Volume, \u0434. 1\","
+    },
+    {
+      "id": "legal-entities-by-id",
+      "method": "GET",
+      "path": "/api/legal-entities/90000013-0000-4000-8000-000000000001",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"90000013-0000-4000-8000-000000000001\", \"name\":\"\u041e\u041e\u041e Volume Auto 1\", \"inn\":\"7700000001\", \"address\":\"\u0433. \u0422\u0435\u0441\u0442\u0433\u0440\u0430\u0434, \u044e\u0440"
+    },
+    {
+      "id": "warehouses-by-id",
+      "method": "GET",
+      "path": "/api/warehouses/90000023-0000-4000-8000-000000000001",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"90000023-0000-4000-8000-000000000001\", \"dealer_point_id\":\"90000003-0000-4000-8000-000000000001\", \"legal_entity_id"
+    },
+    {
+      "id": "work-orders-by-id",
+      "method": "GET",
+      "path": "/api/work-orders/a6600001-0000-4000-8000-000000000001",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"a6600001-0000-4000-8000-000000000001\", \"order_number\":\"WO-QA-0001\", \"customer_id\":\"a2200001-0000-4000-8000-000000"
+    },
+    {
+      "id": "works-by-id",
+      "method": "GET",
+      "path": "/api/works/90000008-0000-4000-8000-00000000000e",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"90000008-0000-4000-8000-00000000000e\", \"code\":\"VOL-LAB-0014\", \"name\":\"Volume Work 14\", \"category\":\"\u0414\u0432\u0438\u0433\u0430\u0442\u0435\u043b\u044c\", \"l"
+    },
+    {
+      "id": "works-folders-by-id",
+      "method": "GET",
+      "path": "/api/works/folders/60000000-0000-4000-8000-000000000004",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"60000000-0000-4000-8000-000000000004\", \"name\":\"\u0414\u0432\u0438\u0433\u0430\u0442\u0435\u043b\u044c\", \"parent_id\":\"\", \"created_at\":\"1781268251\", \"updated_at"
+    },
+    {
+      "id": "employees-by-id",
+      "method": "GET",
+      "path": "/api/employees/ac022b64-5cf6-431a-bce6-9fa1a0bd1442",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"ac022b64-5cf6-431a-bce6-9fa1a0bd1442\", \"user_id\":\"a1100001-0000-4000-8000-000000000001\", \"full_name\":\"QA Admin\", "
+    },
+    {
+      "id": "reviews-by-id",
+      "method": "GET",
+      "path": "/api/reviews/9000000e-0000-4000-8000-000000000001",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"9000000e-0000-4000-8000-000000000001\", \"review_id\":\"9000000d-0000-4000-8000-000000000001\", \"client_id\":\"9000000c-"
+    },
+    {
+      "id": "movement-documents-by-id",
+      "method": "GET",
+      "path": "/api/movement-documents/ae0a141f-74ce-4732-9c6d-3ccda483e076",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"ae0a141f-74ce-4732-9c6d-3ccda483e076\", \"document_number\":\"MOV-2026-00001\", \"status\":\"closed\", \"movement_type\":\"wo"
+    },
+    {
+      "id": "supplier-orders-by-id",
+      "method": "GET",
+      "path": "\u2014",
+      "auth": true,
+      "http": 0,
+      "status": "SKIP",
+      "body_snippet": "no id from list"
+    },
+    {
+      "id": "customer-orders-by-id",
+      "method": "GET",
+      "path": "\u2014",
+      "auth": true,
+      "http": 0,
+      "status": "SKIP",
+      "body_snippet": "no id from list"
+    },
+    {
+      "id": "repair-appointments-by-id",
+      "method": "GET",
+      "path": "/api/repair-appointments/6fe8e56d-9056-4679-8b44-9bb5bc206091",
+      "auth": true,
+      "http": 200,
+      "status": "PASS",
+      "body_snippet": "{\"id\":\"6fe8e56d-9056-4679-8b44-9bb5bc206091\", \"appointment_number\":\"RA-2026-00001\", \"customer_id\":\"90000005-0000-4000-80"
+    }
+  ]
+}

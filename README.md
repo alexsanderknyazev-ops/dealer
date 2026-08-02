@@ -143,3 +143,54 @@ Workflows в `.github/workflows/`:
 При деплое в Kubernetes создаются `Secret`-ы `dealer-db` и `dealer-app-secrets`, после чего сервисы читают секреты через `secretKeyRef`.
 
 В CI добавлен обязательный lint-этап Go для всех модулей (`golangci-lint`), базовая конфигурация зафиксирована в `.golangci.yml`.
+
+## Стенды
+
+Проект поддерживает три варианта окружения — подробности в `docs/deploy/`:
+
+| Стенд | Для чего | Команда | Документация |
+|---|---|---|---|
+| **Локальный dev** | разработка на своей машине, docker compose | `make local-up` | `docs/deploy/local.md` |
+| **Dev (cloud)** | быстрый дев-стенд в один клик | GitHub Codespaces → `./scripts/codespaces-up.sh` | `docs/deploy/codespaces.md` |
+| **НТ-стенд** | постоянный тест-стенд дома, minikube на Ubuntu в локальной сети | `./scripts/kube-up.sh` | `docs/deploy/nt-lan.md` |
+
+### Трейсинг
+
+Все сервисы экспортируют распределённые трейсы (OpenTelemetry, OTLP/HTTP) в
+Jaeger; на локальном стенде UI: http://localhost:16686. Подробности и
+инструментирование — в `docs/deploy/tracing.md`.
+
+### Локальный dev-стенд (docker compose)
+
+Поднимает весь стек (`docker compose`) на вашей машине: Postgres, Redis, Kafka,
+ClickHouse, все сервисы, employee-UI (8080) и client-UI (3001). Пересобирает
+**только изменившиеся** образы (BuildKit-кэш) и сносит их старые версии —
+инфраструктурные образы (postgres/redis/kafka/clickhouse) не трогаются.
+
+```bash
+make local-up                      # инкрементальная пересборка
+make local-up FULL=1               # пересборка всех образов с нуля
+make local-up VOLUMES=1            # + сброс данных БД (миграции/seed заново)
+make local-up FULL=1 VOLUMES=1     # полностью чистый стенд
+docker compose down                # остановить (down -v — и с данными)
+```
+
+Порт-форвардинг и дочерние команды (проброс в LAN, диагностика, нагрузка) см. в
+`docs/deploy/local.md` и `docs/deploy/nt-lan.md`.
+
+### Чистка Docker
+
+Безопасная чистка диска (build cache + неиспользуемые образы; volumes не трогает):
+
+```bash
+make docker-clean                                  # локальный Docker
+./scripts/docker-cleanup.sh --volumes              # + неиспользуемые volumes (с подтверждением)
+./scripts/docker-cleanup.sh --minikube             # чистка внутри minikube (НТ-стенд)
+```
+
+### Прочее из `scripts/`
+
+- `kube-up.sh` — полный деплой НТ-стенда в minikube (образы, k8s, миграции, seed, LAN-проброс).
+- `expose-lan.sh` / `diagnose-lan.sh` — проброс портов и диагностика для НТ-стенда.
+- `load-test.sh` — нагрузочное тестирование (`make load-test`).
+- `codespaces-client-ui.sh` — dev-сервер client-UI внутри codespace.

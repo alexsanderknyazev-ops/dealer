@@ -5,7 +5,9 @@ COPY pkg/ ./pkg/
 COPY api/ ./api/
 COPY services/employee/appointments/ ./services/employee/appointments/
 WORKDIR /app/services/employee/appointments
-RUN go mod tidy && go build -o /appointments-service .
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GOMAXPROCS=2 go mod tidy && GOMAXPROCS=2 CGO_ENABLED=0 go build -trimpath -ldflags="-w -s" -o /appointments-service .
 
 FROM alpine:3.19
 ARG SERVICE_VERSION=dev

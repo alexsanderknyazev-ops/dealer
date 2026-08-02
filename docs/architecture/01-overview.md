@@ -8,7 +8,7 @@ flowchart TB
     end
 
     subgraph GW [API Gateways — HTTP]
-        AUTH_HTTP[auth-service :8080<br/>SPA + proxy]
+        AUTH_HTTP[auth-serviceMarkdown Preview Mermaid Support :8080<br/>SPA + proxy]
         GW_EMP[gateway-service :8090]
         GW_PUB[client-public-gateway :8091]
         GW_PR[client-protected-gateway :8093]

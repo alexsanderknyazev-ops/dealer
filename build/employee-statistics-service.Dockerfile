@@ -5,7 +5,9 @@ COPY pkg/ ./pkg/
 COPY api/ ./api/
 COPY services/statistics/employee/ ./services/statistics/employee/
 WORKDIR /app/services/statistics/employee
-RUN go mod tidy && go build -o /employee-statistics-service .
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GOMAXPROCS=2 go mod tidy && GOMAXPROCS=2 CGO_ENABLED=0 go build -trimpath -ldflags="-w -s" -o /employee-statistics-service .
 
 FROM alpine:3.19
 ARG SERVICE_VERSION=dev

@@ -1,0 +1,23 @@
+Login qa.master@test.local @ http://192.168.0.27:9080
+Load: 150.0 RPS × 600s = 90000 req, workers=400, endpoints=41
+[1.0m] done=8577 ok=8577 err=0 actual_rps=142.9 p95=868ms
+[2.0m] done=17654 ok=17573 err=81 actual_rps=147.1 p95=3168ms
+[3.0m] done=26549 ok=26464 err=85 actual_rps=147.5 p95=2938ms
+[4.0m] done=35605 ok=35520 err=85 actual_rps=148.3 p95=2489ms
+[5.0m] done=44588 ok=44502 err=86 actual_rps=148.6 p95=2267ms
+[6.0m] done=53597 ok=53511 err=86 actual_rps=148.9 p95=2179ms
+[7.0m] done=62612 ok=62526 err=86 actual_rps=149.0 p95=2524ms
+[8.0m] done=71564 ok=71478 err=86 actual_rps=149.1 p95=2315ms
+[9.0m] done=80613 ok=80526 err=87 actual_rps=149.2 p95=2304ms
+
+=== FINAL ===
+# Load test — 150.0 RPS × 600s
+
+- Target: **150.0 RPS** for **10 min** (~90000 requests)
+- Completed: **89954** (actual **149.29 RPS**)
+- OK 200: **89867** (99.90%)
+- Errors: **87** (0.10%)
+- Latency p50/p95/p99: **27.6/2361.4/5226.3 ms**
+- Latency max/mean: **20052.0/387.6 ms**
+Verdict: PASS
+Report: /Users/aleksandrknazev/dealer-1/qa/load-testing/results/load-20260612-142937-report.md

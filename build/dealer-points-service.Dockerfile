@@ -13,7 +13,9 @@ COPY services/employee/dealerpoints/ ./services/employee/dealerpoints/
 #устанавливаем рабочую директорию
 WORKDIR /app/services/employee/dealerpoints
 #строим проект
-RUN go mod tidy && go build -o /dealer-points-service .
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GOMAXPROCS=2 go mod tidy && GOMAXPROCS=2 CGO_ENABLED=0 go build -trimpath -ldflags="-w -s" -o /dealer-points-service .
 
 #берем alpine 3.19
 FROM alpine:3.19

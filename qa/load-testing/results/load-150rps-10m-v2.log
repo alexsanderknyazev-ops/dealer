@@ -1,0 +1,9 @@
+Login qa.master@test.local @ http://192.168.0.27:9080
+Load: 150.0 RPS × 600s = 90000 req, workers=400, endpoints=41, checkpoint=60s
+[1m] total=8379 ok=160 err=8219 (1.9%) | window +8379 ok=160 err=8219 (1.9%) rps=139.6 p95=2599ms codes=[] exc=[URLError:8207, timeout:12]
+[2m] total=17611 ok=3175 err=14436 (18.0%) | window +9232 ok=3015 err=6217 (32.7%) rps=146.7 p95=19599ms codes=[] exc=[URLError:14424, timeout:12]
+[3m] total=26632 ok=12194 err=14438 (45.8%) | window +9021 ok=9019 err=2 (100.0%) rps=147.9 p95=4372ms codes=[500:2] exc=[URLError:14424, timeout:12]
+[4m] total=35801 ok=12308 err=23493 (34.4%) | window +9169 ok=114 err=9055 (1.2%) rps=149.2 p95=11415ms codes=[500:3] exc=[URLError:23409, timeout:81]
+[5m] total=44697 ok=12308 err=32389 (27.5%) | window +8896 ok=0 err=8896 (0.0%) rps=149.0 p95=8352ms codes=[500:3] exc=[URLError:32305, timeout:81]
+[6m] total=53167 ok=12308 err=40859 (23.1%) | window +8470 ok=0 err=8470 (0.0%) rps=147.7 p95=5364ms codes=[500:3] exc=[URLError:40775, timeout:81]
+[7m] total=58799 ok=12954 err=45845 (22.0%) | window +5632 ok=646 err=4986 (11.5%) rps=140.0 p95=19748ms codes=[500:20] exc=[URLError:45744, timeout:81]

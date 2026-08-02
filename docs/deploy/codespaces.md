@@ -78,4 +78,4 @@ git pull --ff-only
 | Порты не открываются | Проверь панель **Ports**; если не видно — `./scripts/codespaces-up.sh` |
 | `ImagePullBackOff` / падение контейнера | `docker compose ps`, `docker compose logs <service>` |
 | Нужен чистый стенд | `docker compose down -v` и заново `./scripts/codespaces-up.sh --build` |
-| Мало места | `docker system prune -af` (удалит кэш сборки, не volumes) |
+| Мало места | `./scripts/docker-cleanup.sh` (build cache + неиспользуемые образы; volumes не трогает) |

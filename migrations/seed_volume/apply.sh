@@ -10,12 +10,17 @@ if [[ "${1:-}" == "--k8s" ]]; then
     kubectl -n dealer exec -i deployment/postgres -- \
       env PGPASSWORD="$POSTGRES_PASSWORD" psql -U dealer -d dealer -v ON_ERROR_STOP=1 -f -
   }
+elif [[ "${1:-}" == "--compose" ]]; then
+  POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-changeme}"
+  exec_sql() {
+    docker compose exec -T postgres env PGPASSWORD="$POSTGRES_PASSWORD" psql -U dealer -d dealer -v ON_ERROR_STOP=1 -f -
+  }
 elif [[ -n "${POSTGRES_DSN:-}" ]]; then
   exec_sql() {
     psql "$POSTGRES_DSN" -v ON_ERROR_STOP=1 -f -
   }
 else
-  echo "Set POSTGRES_DSN or run: $0 --k8s" >&2
+  echo "Set POSTGRES_DSN or run: $0 --k8s | --compose" >&2
   exit 1
 fi
 

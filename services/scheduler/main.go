@@ -12,9 +12,11 @@ import (
 
 	"github.com/dealer/dealer/pkg/dbschema"
 	"github.com/dealer/dealer/pkg/health"
+	"github.com/dealer/dealer/pkg/kafka"
 	"github.com/dealer/dealer/pkg/observe"
 	"github.com/dealer/dealer/pkg/postgres"
 	"github.com/dealer/dealer/scheduler-service/internal/config"
+	"github.com/dealer/dealer/scheduler-service/internal/consumer"
 	"github.com/dealer/dealer/scheduler-service/internal/repository"
 	"github.com/dealer/dealer/scheduler-service/internal/service"
 	"github.com/dealer/dealer/scheduler-service/internal/worker"
@@ -45,6 +47,17 @@ func main() {
 	svc := service.NewSchedulerService(invRepo, notifRepo, cfg.BatchSize)
 	w := worker.NewWorker(svc, cfg.PollInterval, logger)
 	go w.Run(ctx)
+
+	if len(cfg.KafkaBrokers) > 0 && cfg.KafkaBrokers[0] != "" && cfg.KafkaTopic != "" {
+		kConsumer := kafka.NewConsumer(cfg.KafkaBrokers, cfg.KafkaTopic, cfg.KafkaConsumerGroup)
+		if kConsumer != nil {
+			defer kConsumer.Close()
+			go consumer.NewWorker(kConsumer, notifRepo, logger).Run(ctx)
+			logger.Info("kafka consumer started", "topic", cfg.KafkaTopic, "group", cfg.KafkaConsumerGroup)
+		}
+	} else {
+		logger.Warn("kafka consumer disabled: KAFKA_BROKERS or KAFKA_TOPIC_APPOINTMENT_CREATED not set")
+	}
 
 	httpMux := http.NewServeMux()
 	observe.RegisterHTTP(httpMux, health.Postgres(pool))

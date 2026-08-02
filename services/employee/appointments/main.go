@@ -16,12 +16,14 @@ import (
 	"github.com/dealer/dealer/pkg/dbschema"
 	"github.com/dealer/dealer/pkg/grpcauth"
 	"github.com/dealer/dealer/pkg/health"
+	"github.com/dealer/dealer/pkg/kafka"
 	"github.com/dealer/dealer/pkg/observe"
 	appointmentsv1 "github.com/dealer/dealer/pkg/pb/appointments/v1"
 	"github.com/dealer/dealer/pkg/postgres"
 	"github.com/dealer/dealer/services/appointments/internal/client"
 	"github.com/dealer/dealer/services/appointments/internal/config"
 	grpcserver "github.com/dealer/dealer/services/appointments/internal/grpc"
+	"github.com/dealer/dealer/services/appointments/internal/publisher"
 	"github.com/dealer/dealer/services/appointments/internal/repository"
 	"github.com/dealer/dealer/services/appointments/internal/service"
 )
@@ -75,11 +77,20 @@ func main() {
 		}
 	}
 
-	svc := service.NewRepairAppointmentService(repo, refs, woClient)
+	svc := service.NewRepairAppointmentService(repo, refs, woClient, nil)
+
+	if len(cfg.KafkaBrokers) > 0 && cfg.KafkaBrokers[0] != "" && cfg.KafkaTopic != "" {
+		kp := kafka.NewProducer(cfg.KafkaBrokers, cfg.KafkaTopic)
+		defer kp.Close()
+		svc = service.NewRepairAppointmentService(repo, refs, woClient, publisher.NewAppointmentCreated(kp))
+		logger.Info("kafka appointment.created publisher enabled", "topic", cfg.KafkaTopic)
+	} else {
+		logger.Warn("kafka appointment.created publisher disabled")
+	}
 
 	gsrv := grpc.NewServer(observe.GRPCServerOptions(serviceName, logger, &grpcauth.Config{
 		JWTSecret:  cfg.JWTSecret,
-		WriteRoles: []string{"admin", "manager", "master", "service_advisor"},
+		WriteRoles: []string{"admin", "manager", "master", "service_advisor", "storekeeper", "parts_manager"},
 	})...)
 	appointmentsv1.RegisterRepairAppointmentsServiceServer(gsrv, grpcserver.NewServer(svc, displayRefs, woClient))
 	reflection.Register(gsrv)

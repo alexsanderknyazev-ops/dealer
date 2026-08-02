@@ -289,6 +289,8 @@ services:
       PARTS_GRPC_ADDR: "parts-service:50055"
       WORKS_GRPC_ADDR: "works-service:50065"
       WORKORDERS_GRPC_ADDR: "workorders-service:50064"
+      KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_APPOINTMENT_CREATED: "repair.appointment.created.v1"
     depends_on:
       postgres:
         condition: service_healthy
@@ -627,6 +629,8 @@ services:
       SCHEDULER_BATCH_SIZE: "100"
       POSTGRES_DSN: postgres://dealer:${POSTGRES_PASSWORD:-changeme}@postgres:5432/dealer?sslmode=disable
       KAFKA_BROKERS: "kafka:29092"
+      KAFKA_TOPIC_APPOINTMENT_CREATED: "repair.appointment.created.v1"
+      KAFKA_CONSUMER_GROUP_SCHEDULER: "scheduler"
       KAFKA_TOPIC_ERRORS: "platform.errors.v1"
     depends_on:
       postgres:

@@ -9,10 +9,13 @@ import (
 )
 
 type Config struct {
-	HTTPPort       int
-	PostgresDSN    string
-	PollInterval   time.Duration
-	BatchSize      int
+	HTTPPort            int
+	PostgresDSN         string
+	PollInterval        time.Duration
+	BatchSize           int
+	KafkaBrokers        []string
+	KafkaTopic          string
+	KafkaConsumerGroup  string
 }
 
 func Load() *Config {
@@ -35,10 +38,14 @@ func Load() *Config {
 		}
 	}
 	pj := configenv.LoadPostgresJWT()
+	k := configenv.LoadKafkaAppointmentCreated("127.0.0.1:9092")
 	return &Config{
-		HTTPPort:     httpPort,
-		PostgresDSN:  pj.PostgresDSN,
-		PollInterval: interval,
-		BatchSize:    batch,
+		HTTPPort:           httpPort,
+		PostgresDSN:        pj.PostgresDSN,
+		PollInterval:       interval,
+		BatchSize:          batch,
+		KafkaBrokers:       k.Brokers,
+		KafkaTopic:         k.Topic,
+		KafkaConsumerGroup: configenv.String("KAFKA_CONSUMER_GROUP_SCHEDULER", "scheduler"),
 	}
 }

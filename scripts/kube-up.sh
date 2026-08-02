@@ -259,6 +259,13 @@ main() {
     log "Skipping seed_volume (--skip-seed)"
   fi
 
+  log "Creating admin user (seed-admin)"
+  AUTH_VER="$(read_version "$ROOT/services/employee/auth/VERSION")"
+  kubectl -n "$NS" run seed-admin --rm -i --restart=Never \
+    --image="auth-service:${AUTH_VER}" --image-pull-policy=Never \
+    --env="POSTGRES_DSN=postgres://dealer:${POSTGRES_PASSWORD}@postgres:5432/dealer?sslmode=disable" \
+    --command -- /seed-admin
+
   wait_apps
 
   if [[ "$SKIP_EXPOSE" -eq 0 ]]; then

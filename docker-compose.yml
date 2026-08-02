@@ -607,6 +607,21 @@ services:
       postgres:
         condition: service_healthy
 
+  client-ui:
+    build:
+      context: .
+      dockerfile: build/client-frontend-dev.Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      VITE_CLIENT_PUBLIC_GATEWAY: "http://client-public-gateway-service:8091"
+      VITE_CLIENT_PROTECTED_GATEWAY: "http://client-protected-gateway-service:8093"
+    depends_on:
+      client-public-gateway-service:
+        condition: service_started
+      client-protected-gateway-service:
+        condition: service_started
+
 volumes:
   postgres_data: {}
   clickhouse_data: {}

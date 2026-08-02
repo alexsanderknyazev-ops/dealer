@@ -1,0 +1,34 @@
+{
+  "name": "dealer dev stand",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/go:1": { "version": "1.22" },
+    "ghcr.io/devcontainers/features/node:1": { "version": "20" }
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb"
+  },
+  "postCreateCommand": "./scripts/codespaces-up.sh --build",
+  "postStartCommand": "./scripts/codespaces-up.sh",
+  "forwardPorts": [8080, 8090, 8091, 8093, 3001, 5433, 6379, 9092, 8123],
+  "portsAttributes": {
+    "8080": { "label": "Employee UI/API", "onAutoForward": "notify", "visibility": "public" },
+    "8090": { "label": "Gateway API", "onAutoForward": "notify", "visibility": "public" },
+    "8091": { "label": "Client public API", "onAutoForward": "notify", "visibility": "public" },
+    "8093": { "label": "Client protected API", "onAutoForward": "notify", "visibility": "public" },
+    "3001": { "label": "Client UI", "onAutoForward": "notify", "visibility": "public" },
+    "5433": { "label": "Postgres (host)", "onAutoForward": "silent", "visibility": "private" },
+    "6379": { "label": "Redis (host)", "onAutoForward": "silent", "visibility": "private" },
+    "9092": { "label": "Kafka (host)", "onAutoForward": "silent", "visibility": "private" },
+    "8123": { "label": "ClickHouse HTTP", "onAutoForward": "silent", "visibility": "private" }
+  },
+  "customizations": {
+    "codespaces": {
+      "repositories": {
+        "alexsanderknyazev-ops/dealer": { "permissions": "read-all" }
+      }
+    }
+  }
+}

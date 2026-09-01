@@ -57,6 +57,11 @@ services:
     ports:
       - "8123:8123"
       - "9000:9000"
+    environment:
+      # Official image generates a random password if this is unset; keep in sync with errors-ingest.
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-changeme}
+      CLICKHOUSE_DB: analytics
     volumes:
       - clickhouse_data:/var/lib/clickhouse
       - ./clickhouse/init:/docker-entrypoint-initdb.d:ro
@@ -83,7 +88,7 @@ services:
       CLICKHOUSE_ADDR: "clickhouse:9000"
       CLICKHOUSE_DATABASE: "analytics"
       CLICKHOUSE_USER: "default"
-      CLICKHOUSE_PASSWORD: ""
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-changeme}
       ENVIRONMENT: "development"
     depends_on:
       kafka:

@@ -150,11 +150,10 @@ frontend-client-build:
 kube-up:
 	./scripts/kube-up.sh
 
-# Локальный dev-стенд через docker compose: пересобирает только изменившиеся сервисы
-# (BuildKit-кэш), стартует и применяет миграции/seed/admin; сносит старые образы пересобранных.
-# Полная пересборка всех образов: make local-up FULL=1. Сброс данных: make local-up VOLUMES=1
+# Локальный dev-стенд одной командой: поднимает весь docker compose, миграции/seed/admin.
+# Пересборка образов: make local-up BUILD=1. С нуля: make local-up FULL=1. Сброс БД: make local-up VOLUMES=1
 local-up:
-	./scripts/local-up.sh $(if $(FULL),--full,) $(if $(VOLUMES),--volumes,)
+	./scripts/local-up.sh $(if $(BUILD),--build,) $(if $(FULL),--full,) $(if $(VOLUMES),--volumes,)
 
 # Нагрузочное тестирование (нужен seed_volume и expose-lan)
 load-test:

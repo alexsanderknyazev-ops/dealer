@@ -163,13 +163,12 @@ Jaeger; на локальном стенде UI: http://localhost:16686. Под�
 ### Локальный dev-стенд (docker compose)
 
 Поднимает весь стек (`docker compose`) на вашей машине: Postgres, Redis, Kafka,
-ClickHouse, все сервисы, employee-UI (8080) и client-UI (3001). Пересобирает
-**только изменившиеся** образы (BuildKit-кэш) и сносит их старые версии —
-инфраструктурные образы (postgres/redis/kafka/clickhouse) не трогаются.
+ClickHouse, все сервисы, employee-UI (8080) и client-UI (3001).
 
 ```bash
-make local-up                      # инкрементальная пересборка
-make local-up FULL=1               # пересборка всех образов с нуля
+make local-up                      # поднять всё одной командой
+make local-up BUILD=1              # + пересборка изменившихся образов
+make local-up FULL=1               # пересоздать контейнеры и пересобрать
 make local-up VOLUMES=1            # + сброс данных БД (миграции/seed заново)
 make local-up FULL=1 VOLUMES=1     # полностью чистый стенд
 docker compose down                # остановить (down -v — и с данными)

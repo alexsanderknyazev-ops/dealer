@@ -1,30 +1,31 @@
 #!/usr/bin/env bash
-# Поднимает локальный dev-стенд через docker compose инкрементально:
-# останавливает стек, пересобирает только те образы, где изменился контекст сборки
-# (BuildKit через кэш пропускает неизменённые), стартует, сносит старые версии
-# пересобранных образов (dangling) и применяет миграции, seed, admin-пользователя.
+# Поднимает весь локальный dev-стенд одной командой:
+# docker compose up, миграции, seed и admin-пользователь (если БД пустая).
 #
 # Usage:
-#   ./scripts/local-up.sh [--full] [--volumes]
+#   ./scripts/local-up.sh [--build] [--full] [--volumes]
 #
-#   --full     снести ВСЕ образы проекта (--rmi all) и пересобрать всё с нуля.
-#              По умолчанию пересобираются только сервисы с изменениями.
-#   --volumes  дополнительно удалить data-тома (postgres_data, clickhouse_data) —
-#              БД начнётся с нуля и миграции/seed выполнятся заново.
-#              По умолчанию данные сохраняются (миграции/seed пропускаются, если БД заполнена).
+#   (без флагов)  поднять стек из уже собранных образов, без Docker Hub.
+#   --build       пересобрать изменившиеся сервисы (--pull never: без registry).
+#                 Если сборка не удалась — стартует существующие образы.
+#   --full        пересоздать контейнеры и пересобрать все сервисы.
+#   --volumes     удалить data-тома (postgres_data, clickhouse_data) —
+#                 БД с нуля, миграции/seed заново.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+BUILD=0
 FULL=0
 VOLUMES=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --build) BUILD=1 ;;
     --full) FULL=1 ;;
     --volumes) VOLUMES=1 ;;
-    --help|-h) sed -n '2,15p' "$0"; exit 0 ;;
+    --help|-h) sed -n '2,16p' "$0"; exit 0 ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
   esac
   shift
@@ -61,25 +62,52 @@ docker info >/dev/null 2>&1 || {
   exit 1
 }
 
-log "Stopping stack"
+# Не ходим в registry, если образы уже есть локально.
+PULL_NEVER=()
+if "${COMPOSE[@]}" up --help 2>/dev/null | grep -q -- '--pull'; then
+  PULL_NEVER=(--pull never)
+fi
+
+compose_up() {
+  "${COMPOSE[@]}" up -d --remove-orphans "${PULL_NEVER[@]}" "$@"
+}
+
 if [[ "$VOLUMES" -eq 1 ]]; then
+  log "Stopping stack and removing volumes"
   "${COMPOSE[@]}" down -v --remove-orphans
-else
-  "${COMPOSE[@]}" down --remove-orphans
 fi
 
+DID_BUILD=0
 if [[ "$FULL" -eq 1 ]]; then
-  log "docker compose up -d --build --force-recreate (full rebuild: removing all project images)"
-  "${COMPOSE[@]}" up -d --build --force-recreate
+  log "docker compose up -d --build --force-recreate"
+  if compose_up --build --force-recreate; then
+    DID_BUILD=1
+  else
+    log "Build failed (registry unavailable?). Starting existing images"
+    compose_up --force-recreate
+  fi
+elif [[ "$BUILD" -eq 1 ]]; then
+  log "docker compose up -d --build"
+  if compose_up --build; then
+    DID_BUILD=1
+  else
+    log "Build failed (registry unavailable?). Starting existing images"
+    compose_up
+  fi
 else
-  log "docker compose up -d --build (incremental: only changed services rebuild)"
-  "${COMPOSE[@]}" up -d --build
+  log "docker compose up -d (existing images)"
+  if ! compose_up; then
+    log "Images missing, trying --build"
+    compose_up --build
+    DID_BUILD=1
+  fi
 fi
 
-PROJECT="$("${COMPOSE[@]}" config --format json 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["name"])' 2>/dev/null || echo dealer)"
-
-log "Removing old versions of rebuilt service images (dangling, only ${PROJECT}-*)"
-docker image prune -f --filter "label=com.docker.compose.project=${PROJECT}"
+if [[ "$DID_BUILD" -eq 1 ]]; then
+  PROJECT="$("${COMPOSE[@]}" config --format json 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["name"])' 2>/dev/null || echo dealer)"
+  log "Removing old versions of rebuilt service images (dangling, only ${PROJECT}-*)"
+  docker image prune -f --filter "label=com.docker.compose.project=${PROJECT}"
+fi
 
 log "Waiting for Postgres"
 for _ in $(seq 1 60); do
